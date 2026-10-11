@@ -33,6 +33,7 @@ public class RetrofitClient {
     private final AuthApi authApi;
     private final RestApi restApi;
     private final StorageApi storageApi;
+    private final OkHttpClient okHttpClient;
 
     public static synchronized RetrofitClient getInstance(Context context) {
         if (instance == null) {
@@ -108,7 +109,7 @@ public class RetrofitClient {
             okBuilder.addInterceptor(logging);
         }
 
-        OkHttpClient okHttpClient = okBuilder.build();
+        this.okHttpClient = okBuilder.build();
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -125,4 +126,5 @@ public class RetrofitClient {
     public AuthApi getAuthApi() { return authApi; }
     public RestApi getRestApi() { return restApi; }
     public StorageApi getStorageApi() { return storageApi; }
+    public OkHttpClient getOkHttpClient() { return okHttpClient; }
 }

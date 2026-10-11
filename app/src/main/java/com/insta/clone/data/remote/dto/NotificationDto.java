@@ -34,6 +34,9 @@ public class NotificationDto implements Serializable {
     @SerializedName("text")
     private String text;
 
+    @SerializedName("body")
+    private String body;
+
     @SerializedName("is_read")
     private boolean read;
 
@@ -66,7 +69,7 @@ public class NotificationDto implements Serializable {
     public String getPostThumbnailUrl() { return postThumbnailUrl; }
     public void setPostThumbnailUrl(String postThumbnailUrl) { this.postThumbnailUrl = postThumbnailUrl; }
 
-    public String getText() { return text; }
+    public String getText() { return body != null ? body : text; }
     public void setText(String text) { this.text = text; }
 
     public boolean isRead() { return read; }

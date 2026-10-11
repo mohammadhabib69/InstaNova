@@ -83,6 +83,14 @@ public class DoubleTapHeartLayout extends FrameLayout {
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // Enforce 1:1 square aspect ratio based on width
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int squareSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
+        super.onMeasure(squareSpec, squareSpec);
+    }
+
+    @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         gestureDetector.onTouchEvent(ev);
         return false; // Allow child view (e.g. ViewPager2) to also receive touch events

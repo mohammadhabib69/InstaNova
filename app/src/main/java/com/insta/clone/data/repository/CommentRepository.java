@@ -71,7 +71,7 @@ public class CommentRepository {
         Map<String, Object> body = new HashMap<>();
         body.put("post_id", postId);
         body.put("user_id", myId);
-        body.put("text", text.trim());
+        body.put("body", text.trim());
 
         restApi.addComment(body).enqueue(new Callback<List<CommentDto>>() {
             @Override

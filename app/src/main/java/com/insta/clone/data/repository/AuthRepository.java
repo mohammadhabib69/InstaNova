@@ -82,7 +82,17 @@ public class AuthRepository {
         data.put("full_name", fullName == null ? "" : fullName.trim());
         authApi.signUp(new AuthRequest(email == null ? "" : email.trim(), password, data)).enqueue(new Callback<AuthResponse>() {
             @Override public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                if (!response.isSuccessful() || response.body() == null) { result.postValue(Resource.error(errorBody(response))); return; }
+                if (!response.isSuccessful() || response.body() == null) {
+                    String raw = errorBody(response);
+                    String normalized = raw.toLowerCase();
+                    if (normalized.contains("over_email_send_rate_limit") || normalized.contains("email rate limit") || response.code() == 429) {
+                        raw = "Supabase is temporarily limiting new email sign-ups. Please wait a little while and try again.";
+                    } else if (normalized.contains("user_already_exists") || normalized.contains("already registered") || normalized.contains("already exists")) {
+                        raw = "That email is already registered. Please log in instead.";
+                    }
+                    result.postValue(Resource.error(raw));
+                    return;
+                }
                 AuthResponse auth = response.body();
                 if (auth.hasSession()) saveSession(auth.getAccessToken(), auth.getRefreshToken(), auth.getUserId(), auth.getUsername(), null);
                 result.postValue(Resource.success(auth));

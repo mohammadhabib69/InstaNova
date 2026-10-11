@@ -106,11 +106,7 @@ public class StoryRingView extends FrameLayout {
 
     public void loadAvatar(String url) {
         if (url != null && !url.isEmpty()) {
-            Glide.with(getContext())
-                    .load(url)
-                    .placeholder(R.drawable.ic_person_placeholder)
-                    .error(R.drawable.ic_person_placeholder)
-                    .into(avatarImageView);
+            com.insta.clone.util.GlideUtils.loadAvatar(avatarImageView, url);
         } else {
             avatarImageView.setImageResource(R.drawable.ic_person_placeholder);
         }

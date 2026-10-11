@@ -1,12 +1,17 @@
 package com.insta.clone.data.remote.dto;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
 /**
  * Payload for RPC get_suggested_users.
  */
 public class RpcSuggestedRequest implements Serializable {
+
+    @SerializedName("p_limit")
     private int limit;
+
+    @SerializedName("p_exclude_user_id")
     private String exclude_user_id;
 
     public RpcSuggestedRequest() {}

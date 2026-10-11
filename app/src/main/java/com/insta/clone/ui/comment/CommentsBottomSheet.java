@@ -4,27 +4,35 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.insta.clone.R;
+import com.insta.clone.data.local.SessionManager;
 import com.insta.clone.data.model.Comment;
+import com.insta.clone.data.repository.CommentRepository;
 import com.insta.clone.databinding.BottomSheetCommentsBinding;
 import com.insta.clone.databinding.ItemCommentBinding;
+import com.insta.clone.util.Resource;
+import com.insta.clone.util.TimeUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * BottomSheet displaying threaded comments, emoji reaction bar, and comment input.
+ * BottomSheet displaying real threaded comments, emoji reaction bar, and comment input.
+ * Fully backed by PostgREST v_comments / comments table.
  */
 public class CommentsBottomSheet extends BottomSheetDialogFragment {
 
@@ -36,6 +44,8 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
     private int commentCount;
     private CommentsAdapter adapter;
     private final List<Comment> commentsList = new ArrayList<>();
+    private CommentRepository commentRepository;
+    private String currentUserId;
 
     public static CommentsBottomSheet newInstance(String postId, int commentCount) {
         CommentsBottomSheet sheet = new CommentsBottomSheet();
@@ -82,12 +92,39 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        adapter = new CommentsAdapter(commentsList);
+        commentRepository = new CommentRepository(requireContext());
+        currentUserId = SessionManager.getInstance(requireContext()).getUserId();
+
+        adapter = new CommentsAdapter(commentsList, currentUserId, new CommentsAdapter.OnCommentInteractionListener() {
+            @Override
+            public void onLikeClick(Comment comment, int position) {
+                boolean newState = !comment.isLikedByMe();
+                comment.setLikedByMe(newState);
+                comment.setLikesCount(Math.max(0, comment.getLikesCount() + (newState ? 1 : -1)));
+                adapter.notifyItemChanged(position);
+                commentRepository.toggleCommentLike(comment.getId(), newState);
+            }
+
+            @Override
+            public void onDeleteClick(Comment comment, int position) {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Delete Comment")
+                        .setMessage("Do you want to delete this comment?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            commentsList.remove(position);
+                            adapter.notifyItemRemoved(position);
+                            commentRepository.deleteComment(comment.getId());
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            }
+        });
+
         binding.rvComments.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvComments.setAdapter(adapter);
 
-        loadInitialComments();
         setupEmojiBar();
+        loadComments();
 
         binding.etCommentInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -101,21 +138,30 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
         binding.btnPostComment.setOnClickListener(v -> {
             String text = binding.etCommentInput.getText().toString().trim();
             if (!text.isEmpty()) {
-                Comment comment = new Comment(
-                        UUID.randomUUID().toString(),
-                        postId,
-                        "my_user_id",
-                        "you",
-                        "",
-                        text,
-                        0,
-                        false,
-                        System.currentTimeMillis()
-                );
-                commentsList.add(comment);
-                adapter.notifyItemInserted(commentsList.size() - 1);
-                binding.rvComments.smoothScrollToPosition(commentsList.size() - 1);
-                binding.etCommentInput.setText("");
+                binding.btnPostComment.setEnabled(false);
+                commentRepository.addComment(postId, text).observe(getViewLifecycleOwner(), resource -> {
+                    if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
+                        commentsList.add(resource.data);
+                        adapter.notifyItemInserted(commentsList.size() - 1);
+                        binding.rvComments.smoothScrollToPosition(commentsList.size() - 1);
+                        binding.etCommentInput.setText("");
+                        binding.btnPostComment.setEnabled(true);
+                    } else if (resource != null && resource.status == Resource.Status.ERROR) {
+                        Toast.makeText(requireContext(), "Failed to post comment", Toast.LENGTH_SHORT).show();
+                        binding.btnPostComment.setEnabled(true);
+                    }
+                });
+            }
+        });
+    }
+
+    private void loadComments() {
+        if (postId == null || postId.isEmpty()) return;
+        commentRepository.getComments(postId).observe(getViewLifecycleOwner(), resource -> {
+            if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
+                commentsList.clear();
+                commentsList.addAll(resource.data);
+                adapter.notifyDataSetChanged();
             }
         });
     }
@@ -137,13 +183,6 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
         binding.emojiLaugh.setOnClickListener(emojiClick);
     }
 
-    private void loadInitialComments() {
-        commentsList.clear();
-        commentsList.add(new Comment("1", postId, "u1", "alex_photos", "", "Stunning capture! 🔥", 3, false, System.currentTimeMillis() - 3600000));
-        commentsList.add(new Comment("2", postId, "u2", "travel_bug", "", "Where is this location?", 1, false, System.currentTimeMillis() - 7200000));
-        adapter.notifyDataSetChanged();
-    }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -152,9 +191,18 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
 
     static class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.CommentViewHolder> {
         private final List<Comment> items;
+        private final String currentUserId;
+        private final OnCommentInteractionListener listener;
 
-        CommentsAdapter(List<Comment> items) {
+        interface OnCommentInteractionListener {
+            void onLikeClick(Comment comment, int position);
+            void onDeleteClick(Comment comment, int position);
+        }
+
+        CommentsAdapter(List<Comment> items, String currentUserId, OnCommentInteractionListener listener) {
             this.items = items;
+            this.currentUserId = currentUserId;
+            this.listener = listener;
         }
 
         @NonNull
@@ -170,7 +218,42 @@ public class CommentsBottomSheet extends BottomSheetDialogFragment {
         public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
             Comment comment = items.get(position);
             holder.binding.tvCommentText.setText(comment.getUsername() + "  " + comment.getText());
-            holder.binding.tvTime.setText("1h");
+
+            long time = comment.getCreatedAt();
+            if (time > 0) {
+                holder.binding.tvTime.setText(TimeUtils.formatRelativeTime(time));
+            } else {
+                holder.binding.tvTime.setText("just now");
+            }
+
+            if (comment.getLikesCount() > 0) {
+                holder.binding.tvLikes.setText(comment.getLikesCount() + " likes");
+                holder.binding.tvLikes.setVisibility(View.VISIBLE);
+            } else {
+                holder.binding.tvLikes.setVisibility(View.GONE);
+            }
+
+            holder.binding.ivLike.setImageResource(
+                    comment.isLikedByMe() ? R.drawable.ic_favorite_filled : R.drawable.ic_favorite_outline
+            );
+            if (comment.isLikedByMe()) {
+                holder.binding.ivLike.setColorFilter(holder.itemView.getContext().getColor(R.color.color_like));
+            } else {
+                holder.binding.ivLike.clearColorFilter();
+            }
+
+            holder.binding.ivLike.setOnClickListener(v -> {
+                if (listener != null) listener.onLikeClick(comment, position);
+            });
+
+            if (currentUserId != null && currentUserId.equals(comment.getUserId())) {
+                holder.itemView.setOnLongClickListener(v -> {
+                    if (listener != null) listener.onDeleteClick(comment, position);
+                    return true;
+                });
+            } else {
+                holder.itemView.setOnLongClickListener(null);
+            }
         }
 
         @Override
