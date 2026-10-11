@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base Application Theme -->
+    <style name="Theme.InstaClone" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Brand Colors -->
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorPrimaryVariant">@color/color_primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:windowBackground">@color/color_background</item>
+        <item name="android:statusBarColor">@color/color_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/color_background</item>
+
+        <!-- Custom Semantics -->
+        <item name="themeBackground">@color/color_background</item>
+        <item name="themeDivider">@color/color_divider</item>
+        <item name="themePrimary">@color/color_primary</item>
+        <item name="themeTextPrimary">@color/color_text_primary</item>
+        <item name="themeTextSecondary">@color/color_text_secondary</item>
+    </style>
+
+    <!-- Splash Screen Theme -->
+    <style name="Theme.InstaClone.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/color_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.InstaClone</item>
+        <item name="themeBackground">@color/color_background</item>
+        <item name="themeDivider">@color/color_divider</item>
+        <item name="themePrimary">@color/color_primary</item>
+        <item name="themeTextPrimary">@color/color_text_primary</item>
+        <item name="themeTextSecondary">@color/color_text_secondary</item>
+    </style>
+
+    <!-- Bottom Sheet Dialog Theme -->
+    <style name="InstagramBottomSheetDialog" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/InstagramBottomSheetStyle</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/color_background</item>
+    </style>
+
+    <style name="InstagramBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="InstaAuthField" parent="Widget.AppCompat.EditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">@drawable/bg_input_field</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+        <item name="android:textColorHint">?attr/themeTextSecondary</item>
+        <item name="android:importantForAutofill">no</item>
+    </style>
+</resources>

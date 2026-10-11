@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App & General -->
+    <string name="app_name">Instagram</string>
+    <string name="wordmark">Instagram</string>
+    <string name="english_language">English (United States)</string>
+    <string name="next">Next</string>
+    <string name="more">more</string>
+    <string name="post">Post</string>
+    <string name="posts">Posts</string>
+    <string name="comments">Comments</string>
+    <string name="add_a_comment">Add a comment…</string>
+    <string name="view_all_comments">View all %1$d comments</string>
+    <string name="reply">Reply</string>
+    <string name="delete">Delete</string>
+    <string name="unfollow">Unfollow</string>
+    <string name="share">Share</string>
+    <string name="copy_link">Copy link</string>
+    <string name="your_story">Your story</string>
+    <string name="direct_messages">Direct Messages</string>
+    <string name="notifications">Notifications</string>
+    <string name="cd_search">Search</string>
+
+    <!-- Home & Feed -->
+    <string name="likes_count">%1$s likes</string>
+    <string name="all_caught_up">You\'re All Caught Up</string>
+    <string name="all_caught_up_subtitle">You\'ve seen all new posts from the past 3 days.</string>
+    <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
+
+    <!-- Auth & Login -->
+    <string name="login_hint_identifier">Phone number, username or email</string>
+    <string name="login_hint_password">Password</string>
+    <string name="login_button">Log in</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="create_new_account">Create new account</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="error_incorrect_credentials">Incorrect username or password. Please try again.</string>
+
+    <!-- Forgot Password -->
+    <string name="find_your_account">Find your account</string>
+    <string name="forgot_password_subtitle">Enter your email or phone number and we\'ll send you a link to get back into your account.</string>
+    <string name="email_sent_to">We\'ve sent a recovery link to %1$s</string>
+
+    <!-- Signup Wizard -->
+    <string name="signup_title_email">What\'s your email?</string>
+    <string name="signup_subtitle_email">Enter the email address where you can be contacted. No one will see this on your profile.</string>
+    <string name="hint_email">Email address</string>
+    <string name="check_email_confirm">Please check your email to confirm your account.</string>
+
+    <string name="signup_title_password">Create a password</string>
+    <string name="signup_subtitle_password">Create a password with at least 6 letters or numbers. It should be something others can\'t guess.</string>
+
+    <string name="signup_title_birthday">What\'s your birthday?</string>
+    <string name="signup_error_age">You must be at least 13 years old to use Instagram.</string>
+
+    <string name="signup_title_name">What\'s your name?</string>
+    <string name="hint_full_name">Full name</string>
+
+    <string name="signup_title_username">Create a username</string>
+    <string name="hint_username">Username</string>
+    <string name="signup_btn_create">Complete sign up</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_reels">Reels</string>
+    <string name="nav_profile">Profile</string>
+</resources>

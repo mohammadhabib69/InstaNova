@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/themeBackground"
+    android:orientation="vertical"
+    android:paddingBottom="12dp">
+
+    <!-- Post Header (54dp) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/top_bar_height"
+        android:paddingHorizontal="12dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="@dimen/avatar_feed_header"
+            android:layout_height="@dimen/avatar_feed_header"
+            android:src="@drawable/ic_person_placeholder"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/layoutAuthor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/ivOptions"
+            app:layout_constraintStart_toEndOf="@id/ivAvatar"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvUsername"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="@dimen/text_body"
+                    android:textStyle="bold" />
+
+                <com.insta.clone.ui.widget.VerifiedBadgeView
+                    android:id="@+id/badgeVerified"
+                    android:layout_width="@dimen/badge_verified_size"
+                    android:layout_height="@dimen/badge_verified_size"
+                    android:layout_marginStart="4dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/themeTextSecondary"
+                android:textSize="@dimen/text_meta"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/ivOptions"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_more_horiz"
+            app:tint="?attr/themeTextPrimary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="Options" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Post Media Container (Aspect 1:1) with Double-Tap Heart Support -->
+    <com.insta.clone.ui.widget.DoubleTapHeartLayout
+        android:id="@+id/doubleTapLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintDimensionRatio="1:1">
+
+        <!-- Single Image View -->
+        <ImageView
+            android:id="@+id/ivSingleMedia"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="Post media" />
+
+        <!-- Carousel ViewPager2 -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPagerCarousel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <!-- Carousel Badge (top right icon indicating multiple photos) -->
+        <ImageView
+            android:id="@+id/ivCarouselBadge"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_pill_surface"
+            android:padding="4dp"
+            android:src="@drawable/ic_photo_library"
+            app:tint="@color/white"
+            android:visibility="gone"
+            android:contentDescription="Multiple photos" />
+
+        <!-- Reel Play / Audio Toggle Overlay -->
+        <ImageView
+            android:id="@+id/ivAudioToggle"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_pill_surface"
+            android:padding="5dp"
+            android:src="@drawable/ic_volume_off"
+            app:tint="@color/white"
+            android:visibility="gone"
+            android:contentDescription="Toggle sound" />
+
+    </com.insta.clone.ui.widget.DoubleTapHeartLayout>
+
+    <!-- Action Buttons Row (44dp) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:paddingHorizontal="12dp">
+
+        <LinearLayout
+            android:id="@+id/layoutLeftActions"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivLike"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_favorite_outline"
+                app:tint="?attr/themeTextPrimary"
+                android:contentDescription="Like" />
+
+            <ImageView
+                android:id="@+id/ivComment"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_comment"
+                app:tint="?attr/themeTextPrimary"
+                android:contentDescription="Comment" />
+
+            <ImageView
+                android:id="@+id/ivShare"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:padding="4dp"
+                android:rotation="-20"
+                android:src="@drawable/ic_send"
+                app:tint="?attr/themeTextPrimary"
+                android:contentDescription="Share" />
+        </LinearLayout>
+
+        <!-- Carousel Dots Indicator (Centered) -->
+        <com.insta.clone.ui.widget.DotsIndicatorView
+            android:id="@+id/dotsIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/ivBookmark"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_bookmark_outline"
+            app:tint="?attr/themeTextPrimary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="Save" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Likes Count ("1,234 likes") -->
+    <TextView
+        android:id="@+id/tvLikesCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="14dp"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/text_body"
+        android:textStyle="bold" />
+
+    <!-- Caption (Username + expandable caption) -->
+    <com.insta.clone.ui.widget.ExpandableCaptionTextView
+        android:id="@+id/tvCaption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:paddingHorizontal="14dp"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/text_body" />
+
+    <!-- "View all X comments" -->
+    <TextView
+        android:id="@+id/tvViewComments"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:paddingHorizontal="14dp"
+        android:textColor="?attr/themeTextSecondary"
+        android:textSize="@dimen/text_meta" />
+
+    <!-- Relative Timestamp ("2 hours ago") -->
+    <TextView
+        android:id="@+id/tvTimestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:paddingHorizontal="14dp"
+        android:textAllCaps="true"
+        android:textColor="?attr/themeTextSecondary"
+        android:textSize="10sp"
+        android:letterSpacing="0.04" />
+
+</LinearLayout>

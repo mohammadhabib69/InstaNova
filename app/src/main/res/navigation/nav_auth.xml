@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_auth"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.insta.clone.ui.auth.LoginFragment"
+        android:label="LoginFragment"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_login_to_signupEmail"
+            app:destination="@id/signupEmailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_login_to_forgotPassword"
+            app:destination="@id/forgotPasswordFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signupEmailFragment"
+        android:name="com.insta.clone.ui.auth.SignupEmailFragment"
+        android:label="SignupEmailFragment"
+        tools:layout="@layout/fragment_signup_email">
+        <action
+            android:id="@+id/action_signupEmail_to_password"
+            app:destination="@id/signupPasswordFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signupPasswordFragment"
+        android:name="com.insta.clone.ui.auth.SignupPasswordFragment"
+        android:label="SignupPasswordFragment"
+        tools:layout="@layout/fragment_signup_password">
+        <action
+            android:id="@+id/action_signupPassword_to_birthday"
+            app:destination="@id/signupBirthdayFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signupBirthdayFragment"
+        android:name="com.insta.clone.ui.auth.SignupBirthdayFragment"
+        android:label="SignupBirthdayFragment"
+        tools:layout="@layout/fragment_signup_birthday">
+        <action
+            android:id="@+id/action_signupBirthday_to_name"
+            app:destination="@id/signupNameFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signupNameFragment"
+        android:name="com.insta.clone.ui.auth.SignupNameFragment"
+        android:label="SignupNameFragment"
+        tools:layout="@layout/fragment_signup_name">
+        <action
+            android:id="@+id/action_signupName_to_username"
+            app:destination="@id/signupUsernameFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signupUsernameFragment"
+        android:name="com.insta.clone.ui.auth.SignupUsernameFragment"
+        android:label="SignupUsernameFragment"
+        tools:layout="@layout/fragment_signup_username" />
+
+    <fragment
+        android:id="@+id/forgotPasswordFragment"
+        android:name="com.insta.clone.ui.auth.ForgotPasswordFragment"
+        android:label="ForgotPasswordFragment"
+        tools:layout="@layout/fragment_forgot_password" />
+
+</navigation>

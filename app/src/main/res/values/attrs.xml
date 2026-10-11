@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom Theme Attributes -->
+    <attr name="themeBackground" format="color|reference" />
+    <attr name="themeDivider" format="color|reference" />
+    <attr name="themePrimary" format="color|reference" />
+    <attr name="themeTextPrimary" format="color|reference" />
+    <attr name="themeTextSecondary" format="color|reference" />
+
+    <!-- StoryRingView Attributes -->
+    <declare-styleable name="StoryRingView">
+        <attr name="ringState" format="enum">
+            <enum name="none" value="0" />
+            <enum name="unseen" value="1" />
+            <enum name="seen" value="2" />
+        </attr>
+        <attr name="ringStrokeWidth" format="dimension" />
+        <attr name="gapWidth" format="dimension" />
+    </declare-styleable>
+</resources>
