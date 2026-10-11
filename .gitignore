@@ -29,4 +29,6 @@ coverage/
 package.json
 package-lock.json
 local.properties
-local.properties
+
+# Test artifacts
+shots/

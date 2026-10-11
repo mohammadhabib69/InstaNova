@@ -21,11 +21,45 @@
 
     <!-- Camera Icon -->
     <ImageView
+        android:id="@+id/btn_camera"
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_gravity="end"
         android:layout_margin="16dp"
         android:src="@drawable/ic_camera"
         android:contentDescription="Camera" />
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/layout_reels_empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_movie"
+            android:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="No Reels Yet"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_empty_create_reel"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginTop="16dp"
+            android:text="Create reel" />
+    </LinearLayout>
 
 </FrameLayout>

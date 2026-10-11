@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:name=".InstaApp"
@@ -69,6 +70,40 @@
         <activity
             android:name=".ui.post.PostDetailActivity"
             android:exported="false" />
+
+        <!-- Create Reel Activity -->
+        <activity
+            android:name=".ui.create.CreateReelActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- 1-on-1 Chat Activity -->
+        <activity
+            android:name=".ui.chat.ChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Fullscreen Image Viewer Activity -->
+        <activity
+            android:name=".ui.chat.ImageViewerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.InstaClone" />
+
+        <!-- Settings Activity -->
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false" />
+
+        <!-- FileProvider for camera captures -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

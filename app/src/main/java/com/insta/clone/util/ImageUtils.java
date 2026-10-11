@@ -79,4 +79,57 @@ public final class ImageUtils {
 
         return compressImage(bitmap);
     }
+
+    public static byte[] processUriToJpegBytes(android.content.Context context, android.net.Uri uri) throws IOException {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        try (java.io.InputStream is = context.getContentResolver().openInputStream(uri)) {
+            if (is == null) throw new IOException("Cannot open input stream for: " + uri);
+            BitmapFactory.decodeStream(is, null, options);
+        }
+
+        int longEdge = Math.max(options.outWidth, options.outHeight);
+        int inSampleSize = 1;
+        while (longEdge / (inSampleSize * 2) >= MAX_LONG_EDGE_PX) {
+            inSampleSize *= 2;
+        }
+        options.inJustDecodeBounds = false;
+        options.inSampleSize = inSampleSize;
+
+        Bitmap bitmap;
+        try (java.io.InputStream is = context.getContentResolver().openInputStream(uri)) {
+            if (is == null) throw new IOException("Cannot open input stream for: " + uri);
+            bitmap = BitmapFactory.decodeStream(is, null, options);
+        }
+        if (bitmap == null) {
+            throw new IOException("Failed to decode image bitmap from: " + uri);
+        }
+
+        try (java.io.InputStream is = context.getContentResolver().openInputStream(uri)) {
+            if (is != null) {
+                ExifInterface exif = new ExifInterface(is);
+                int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                Matrix matrix = new Matrix();
+                if (orientation == ExifInterface.ORIENTATION_ROTATE_90) {
+                    matrix.postRotate(90);
+                } else if (orientation == ExifInterface.ORIENTATION_ROTATE_180) {
+                    matrix.postRotate(180);
+                } else if (orientation == ExifInterface.ORIENTATION_ROTATE_270) {
+                    matrix.postRotate(270);
+                }
+                if (!matrix.isIdentity()) {
+                    Bitmap rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                    if (rotated != bitmap) {
+                        bitmap.recycle();
+                        bitmap = rotated;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        byte[] result = compressImage(bitmap);
+        bitmap.recycle();
+        return result;
+    }
 }
+

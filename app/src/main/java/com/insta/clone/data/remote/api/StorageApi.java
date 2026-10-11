@@ -12,6 +12,7 @@ import retrofit2.http.Path;
  */
 public interface StorageApi {
 
+    @retrofit2.http.Headers("x-upsert: true")
     @POST("storage/v1/object/{bucket}/{path}")
     Call<Void> uploadFile(
             @Path("bucket") String bucket,

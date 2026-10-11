@@ -20,8 +20,14 @@ public class MessageDto implements Serializable {
     @SerializedName("text")
     private String text;
 
+    @SerializedName("body")
+    private String body;
+
     @SerializedName("image_url")
     private String imageUrl;
+
+    @SerializedName("media_url")
+    private String mediaUrl;
 
     @SerializedName("post_id")
     private String postId;
@@ -35,16 +41,19 @@ public class MessageDto implements Serializable {
     public MessageDto() {}
 
     public Message toMessage() {
+        String msgText = body != null ? body : (text != null ? text : "");
+        String media = mediaUrl != null ? mediaUrl : (imageUrl != null ? imageUrl : "");
         Message m = new Message(
                 id != null ? id : "",
                 conversationId != null ? conversationId : "",
                 senderId != null ? senderId : "",
-                text != null ? text : "",
-                imageUrl != null ? imageUrl : "",
+                msgText,
+                media,
                 false,
                 0L
         );
-        m.setImageUrl(imageUrl);
+        m.setImageUrl(media);
+        m.setMediaUrl(media);
         m.setPostId(postId);
         m.setRead(read);
         m.setCreatedAt(createdAt);

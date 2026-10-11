@@ -41,10 +41,14 @@ public class SessionManager {
     }
 
     public void saveTokens(String accessToken, String refreshToken) {
-        prefs.edit()
+        String uid = extractSub(accessToken);
+        SharedPreferences.Editor editor = prefs.edit()
                 .putString(KEY_ACCESS_TOKEN, accessToken)
-                .putString(KEY_REFRESH_TOKEN, refreshToken)
-                .apply();
+                .putString(KEY_REFRESH_TOKEN, refreshToken);
+        if (uid != null && !uid.isEmpty()) {
+            editor.putString(KEY_USER_ID, uid);
+        }
+        editor.apply();
     }
 
     public boolean isLoggedIn() {
@@ -60,7 +64,26 @@ public class SessionManager {
     }
 
     public String getUserId() {
+        String tokenSub = extractSub(getAccessToken());
+        if (tokenSub != null && !tokenSub.isEmpty()) {
+            return tokenSub;
+        }
         return prefs.getString(KEY_USER_ID, null);
+    }
+
+    private static String extractSub(String token) {
+        if (token == null || !token.contains(".")) return null;
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length >= 2) {
+                byte[] decoded = android.util.Base64.decode(parts[1], android.util.Base64.URL_SAFE);
+                org.json.JSONObject json = new org.json.JSONObject(new String(decoded, java.nio.charset.StandardCharsets.UTF_8));
+                if (json.has("sub")) {
+                    return json.getString("sub");
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     public String getUsername() {
