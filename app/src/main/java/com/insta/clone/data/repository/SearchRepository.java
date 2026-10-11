@@ -140,7 +140,15 @@ public class SearchRepository {
         MutableLiveData<Resource<List<Profile>>> result = new MutableLiveData<>();
         result.setValue(Resource.loading(null));
 
-        restApi.getSuggestedUsers(new RpcSuggestedRequest(limit)).enqueue(new Callback<List<ProfileDto>>() {
+        Map<String, String> params = new HashMap<>();
+        String myId = sessionManager.getUserId();
+        if (myId != null) {
+            params.put("id", "neq." + myId);
+        }
+        params.put("order", "followers_count.desc,created_at.desc");
+        params.put("limit", String.valueOf(limit));
+
+        restApi.getProfiles(params).enqueue(new Callback<List<ProfileDto>>() {
             @Override
             public void onResponse(Call<List<ProfileDto>> call, Response<List<ProfileDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {

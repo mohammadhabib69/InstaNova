@@ -11,6 +11,9 @@ public class ConversationDto implements Serializable {
     @SerializedName("id")
     private String id;
 
+    @SerializedName("conversation_id")
+    private String conversationId;
+
     @SerializedName("other_user_id")
     private String otherUserId;
 
@@ -35,8 +38,9 @@ public class ConversationDto implements Serializable {
     public ConversationDto() {}
 
     public Conversation toConversation() {
+        String cid = conversationId != null ? conversationId : (id != null ? id : "");
         Conversation c = new Conversation(
-                id != null ? id : "",
+                cid,
                 otherUserId != null ? otherUserId : "",
                 otherUsername != null ? otherUsername : "",
                 otherAvatarUrl != null ? otherAvatarUrl : "",

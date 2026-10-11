@@ -3,6 +3,7 @@
     <!-- App & General -->
     <string name="app_name">Instagram</string>
     <string name="wordmark">Instagram</string>
+    <string name="welcome_to_instanova">Welcome to InstaNova</string>
     <string name="english_language">English (United States)</string>
     <string name="next">Next</string>
     <string name="more">more</string>

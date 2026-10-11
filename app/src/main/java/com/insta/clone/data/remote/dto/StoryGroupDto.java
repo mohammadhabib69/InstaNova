@@ -26,7 +26,13 @@ public class StoryGroupDto implements Serializable {
     public StoryGroupDto() {}
 
     public StoryGroup toStoryGroup() {
-        return new StoryGroup(userId, username, avatarUrl, hasUnseen, latest);
+        return new StoryGroup(
+                userId == null ? "" : userId,
+                username == null ? "" : username,
+                avatarUrl == null ? "" : avatarUrl,
+                hasUnseen,
+                latest == null ? "" : latest
+        );
     }
 
     public String getUserId() { return userId; }

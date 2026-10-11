@@ -32,7 +32,9 @@ public class StoryTrayAdapter extends RecyclerView.Adapter<StoryTrayAdapter.View
     public void submitList(List<StoryGroup> newItems) {
         items.clear();
         if (newItems != null) {
-            items.addAll(newItems);
+            for (StoryGroup group : newItems) {
+                if (group != null) items.add(group);
+            }
         }
         notifyDataSetChanged();
     }
@@ -66,7 +68,13 @@ public class StoryTrayAdapter extends RecyclerView.Adapter<StoryTrayAdapter.View
         }
 
         void bind(StoryGroup group, int position, OnStoryClickListener listener) {
-            binding.tvUsername.setText(group.isOwner() ? binding.getRoot().getContext().getString(R.string.your_story) : group.getUsername());
+            if (group == null) {
+                binding.getRoot().setVisibility(View.GONE);
+                return;
+            }
+            binding.getRoot().setVisibility(View.VISIBLE);
+            String username = group.getUsername() == null ? "" : group.getUsername();
+            binding.tvUsername.setText(group.isOwner() ? binding.getRoot().getContext().getString(R.string.your_story) : username);
             binding.storyRingView.loadAvatar(group.getAvatarUrl());
 
             if (group.isOwner()) {

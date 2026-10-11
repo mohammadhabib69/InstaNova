@@ -43,7 +43,7 @@ public interface RestApi {
     Call<List<ProfileDto>> getSuggestedUsers(@Body RpcSuggestedRequest request);
 
     @POST("rest/v1/rpc/get_or_create_conversation")
-    Call<String> getOrCreateConversation(@Body Map<String, Object> request);
+    Call<JsonElement> getOrCreateConversation(@Body Map<String, Object> request);
 
     @POST("rest/v1/rpc/get_inbox")
     Call<List<ConversationDto>> getInbox(@Body Map<String, Object> body);

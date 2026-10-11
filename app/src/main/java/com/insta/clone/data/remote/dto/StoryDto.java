@@ -29,6 +29,9 @@ public class StoryDto implements Serializable {
     @SerializedName("is_seen")
     private boolean isSeen;
 
+    @SerializedName("seen_by_me")
+    private boolean seenByMe;
+
     @SerializedName("created_at")
     private String createdAt;
 
@@ -45,7 +48,7 @@ public class StoryDto implements Serializable {
                 avatarUrl != null ? avatarUrl : "",
                 mediaUrl != null ? mediaUrl : "",
                 mediaType != null ? mediaType : "image",
-                isSeen,
+                isSeen || seenByMe,
                 0L
         );
         s.setAvatarUrl(avatarUrl);

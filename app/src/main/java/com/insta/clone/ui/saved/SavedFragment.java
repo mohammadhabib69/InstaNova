@@ -32,7 +32,16 @@ public class SavedFragment extends Fragment {
     static class SavedAdapter extends RecyclerView.Adapter<SavedAdapter.Holder> {
         private final List<Post> posts = new ArrayList<>(); void submit(List<Post> p) { posts.clear(); if (p != null) posts.addAll(p); notifyDataSetChanged(); }
         @NonNull @Override public Holder onCreateViewHolder(@NonNull ViewGroup p, int t) { return new Holder(ItemSavedMediaBinding.inflate(LayoutInflater.from(p.getContext()),p,false)); }
-        @Override public void onBindViewHolder(@NonNull Holder h, int pos) { Glide.with(h.binding.getRoot()).load(posts.get(pos).getFirstMediaUrl()).placeholder(R.drawable.ic_person_placeholder).error(R.drawable.ic_person_placeholder).into(h.binding.ivMedia); }
+        @Override public void onBindViewHolder(@NonNull Holder h, int pos) {
+            Post post = posts.get(pos);
+            com.insta.clone.util.GlideUtils.load(h.binding.ivMedia, "posts", post.getFirstMediaUrl());
+            h.binding.getRoot().setOnClickListener(v -> {
+                android.content.Intent intent = new android.content.Intent(v.getContext(), com.insta.clone.ui.post.PostDetailActivity.class);
+                intent.putExtra("post", post);
+                intent.putExtra("post_id", post.getId());
+                v.getContext().startActivity(intent);
+            });
+        }
         @Override public int getItemCount() { return posts.size(); }
         static class Holder extends RecyclerView.ViewHolder { final ItemSavedMediaBinding binding; Holder(ItemSavedMediaBinding b) { super(b.getRoot()); binding=b; } }
     }

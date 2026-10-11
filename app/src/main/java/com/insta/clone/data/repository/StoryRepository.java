@@ -1,6 +1,7 @@
 package com.insta.clone.data.repository;
 
 import android.content.Context;
+import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.insta.clone.data.local.SessionManager;
@@ -21,6 +22,7 @@ import retrofit2.Response;
 
 /** Active story tray repository backed by the RPC and v_stories view. */
 public class StoryRepository {
+    private static final String TAG = "StoryRepository";
     private final RestApi restApi;
     private final SessionManager sessionManager;
     private final MutableLiveData<List<StoryGroup>> rawGroups = new MutableLiveData<>(new ArrayList<>());
@@ -38,7 +40,22 @@ public class StoryRepository {
             @Override public void onResponse(Call<List<StoryGroupDto>> call, Response<List<StoryGroupDto>> response) {
                 if (!response.isSuccessful() || response.body() == null) { groups.postValue(Resource.error(AuthRepository.errorBody(response))); return; }
                 List<StoryGroup> result = new ArrayList<>(); String uid = sessionManager.getUserId();
-                for (StoryGroupDto dto : response.body()) { StoryGroup group = dto.toStoryGroup(); group.setOwner(uid != null && uid.equals(dto.getUserId())); result.add(group); }
+                int skipped = 0;
+                for (StoryGroupDto dto : response.body()) {
+                    if (dto == null) {
+                        skipped++;
+                        continue;
+                    }
+                    try {
+                        StoryGroup group = dto.toStoryGroup();
+                        group.setOwner(uid != null && uid.equals(dto.getUserId()));
+                        result.add(group);
+                    } catch (RuntimeException e) {
+                        skipped++;
+                        Log.e(TAG, "Skipping malformed story group", e);
+                    }
+                }
+                if (skipped > 0) Log.w(TAG, "Skipped " + skipped + " malformed story group(s)");
                 rawGroups.postValue(result); groups.postValue(Resource.success(result));
             }
             @Override public void onFailure(Call<List<StoryGroupDto>> call, Throwable t) { groups.postValue(Resource.error(t.getMessage())); }

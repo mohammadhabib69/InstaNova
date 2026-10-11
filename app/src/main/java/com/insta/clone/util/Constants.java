@@ -14,6 +14,9 @@ public final class Constants {
     /** When false, hide Facebook button + OR divider on Login and Sign-up. */
     public static final boolean SHOW_FACEBOOK_BUTTON = true;
 
+    /** Debug-only switch for entering the main UI while authentication is being developed. */
+    public static final boolean BYPASS_LOGIN_FOR_DEVELOPMENT = false;
+
     public static final long POLLING_BADGES_MS = 30000L;
     public static final int PAGE_SIZE_FEED = 10;
     public static final int PAGE_SIZE_EXPLORE = 21;

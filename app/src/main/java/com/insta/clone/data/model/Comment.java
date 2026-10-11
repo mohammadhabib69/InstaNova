@@ -2,6 +2,7 @@ package com.insta.clone.data.model;
 
 import java.io.Serializable;
 import java.util.Objects;
+import com.insta.clone.util.TimeUtils;
 
 /**
  * Domain model representing a comment on a post.
@@ -70,15 +71,7 @@ public class Comment implements Serializable {
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
 
     public void setCreatedAt(String createdAtStr) {
-        try {
-            this.createdAt = java.time.Instant.parse(createdAtStr).toEpochMilli();
-        } catch (Exception e) {
-            try {
-                this.createdAt = Long.parseLong(createdAtStr);
-            } catch (Exception ignored) {
-                this.createdAt = 0L;
-            }
-        }
+        this.createdAt = TimeUtils.parseTimestamp(createdAtStr);
     }
 
     @Override

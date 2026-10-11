@@ -84,8 +84,7 @@
     <com.insta.clone.ui.widget.DoubleTapHeartLayout
         android:id="@+id/doubleTapLayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintDimensionRatio="1:1">
+        android:layout_height="wrap_content">
 
         <!-- Single Image View -->
         <ImageView
@@ -93,6 +92,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
+            android:adjustViewBounds="false"
             android:contentDescription="Post media" />
 
         <!-- Carousel ViewPager2 -->

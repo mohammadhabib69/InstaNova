@@ -50,7 +50,8 @@ public class TokenAuthenticator implements Authenticator {
             // Check if another thread already refreshed
             String currentToken = sessionManager.getAccessToken();
             String authHeader = response.request().header("Authorization");
-            if (authHeader != null && !authHeader.endsWith(currentToken)) {
+            if (currentToken != null && !currentToken.isEmpty()
+                    && authHeader != null && !authHeader.endsWith(currentToken)) {
                 return response.request().newBuilder()
                         .header("Authorization", "Bearer " + currentToken)
                         .build();

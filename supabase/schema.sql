@@ -299,7 +299,8 @@ join public.profiles pr on pr.id = p.user_id;
 create view public.v_feed with (security_invoker = true) as
 select * from public.v_posts
 where is_reel = false
-  and (user_id = auth.uid()
+  and (auth.uid() is null
+       or user_id = auth.uid()
        or user_id in (select following_id from public.follows where follower_id = auth.uid()));
 
 create view public.v_saved with (security_invoker = true) as
@@ -388,9 +389,11 @@ as $$
   from public.stories s
   join public.profiles pr on pr.id = s.user_id
   where s.expires_at > now()
-    and (
+    and (auth.uid() is null or
+      (
       s.user_id = auth.uid()
       or s.user_id in (select following_id from public.follows where follower_id = auth.uid())
+      )
     )
   group by s.user_id, pr.username, pr.avatar_url
   order by
@@ -499,18 +502,17 @@ $$;
 
 grant execute on function public.get_email_by_username(text) to anon, authenticated;
 grant execute on function public.is_username_available(text) to anon, authenticated;
-grant execute on function public.get_story_groups() to authenticated;
+-- The debug login bypass needs the public story tray RPC; story writes remain authenticated-only.
+grant execute on function public.get_story_groups() to anon, authenticated;
 grant execute on function public.get_suggested_users(integer) to authenticated;
 grant execute on function public.get_or_create_conversation(uuid) to authenticated;
 grant execute on function public.get_inbox() to authenticated;
 grant execute on function public.get_unread_counts() to authenticated;
 
 -- Authenticated-only RPCs must not be callable with the public/publishable key alone.
-revoke execute on function public.get_story_groups() from anon;
 revoke execute on function public.get_suggested_users(integer) from anon;
 revoke execute on function public.get_inbox() from anon;
 revoke execute on function public.get_unread_counts() from anon;
-revoke execute on function public.get_story_groups() from public;
 revoke execute on function public.get_suggested_users(integer) from public;
 revoke execute on function public.get_inbox() from public;
 revoke execute on function public.get_unread_counts() from public;
@@ -546,7 +548,8 @@ alter table public.notifications enable row level security;
 
 -- profiles
 drop policy if exists profiles_select on public.profiles;
-create policy profiles_select on public.profiles for select to authenticated using (true);
+-- Public profile reads are required by the debug login bypass and are safe for this public profile data.
+create policy profiles_select on public.profiles for select to anon, authenticated using (true);
 drop policy if exists profiles_insert_own on public.profiles;
 create policy profiles_insert_own on public.profiles for insert to authenticated with check (id = auth.uid());
 drop policy if exists profiles_update_own on public.profiles;
@@ -554,7 +557,8 @@ create policy profiles_update_own on public.profiles for update to authenticated
 
 -- posts
 drop policy if exists posts_select on public.posts;
-create policy posts_select on public.posts for select to authenticated using (true);
+-- Public feed reads are required by the debug login bypass; writes remain authenticated-only.
+create policy posts_select on public.posts for select to anon, authenticated using (true);
 drop policy if exists posts_insert_own on public.posts;
 create policy posts_insert_own on public.posts for insert to authenticated with check (user_id = auth.uid());
 drop policy if exists posts_update_own on public.posts;
@@ -564,7 +568,7 @@ create policy posts_delete_own on public.posts for delete to authenticated using
 
 -- post_media
 drop policy if exists post_media_select on public.post_media;
-create policy post_media_select on public.post_media for select to authenticated using (true);
+create policy post_media_select on public.post_media for select to anon, authenticated using (true);
 drop policy if exists post_media_insert on public.post_media;
 create policy post_media_insert on public.post_media for insert to authenticated
   with check (exists (select 1 from public.posts p where p.id = post_id and p.user_id = auth.uid()));
@@ -611,7 +615,7 @@ create policy follows_delete on public.follows for delete to authenticated using
 
 -- stories
 drop policy if exists stories_select on public.stories;
-create policy stories_select on public.stories for select to authenticated using (true);
+create policy stories_select on public.stories for select to anon, authenticated using (true);
 drop policy if exists stories_insert on public.stories;
 create policy stories_insert on public.stories for insert to authenticated with check (user_id = auth.uid());
 drop policy if exists stories_delete on public.stories;

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import com.insta.clone.util.TimeUtils;
 
 /**
  * Domain model representing an Instagram post (image, carousel, or reel).
@@ -122,15 +123,7 @@ public class Post implements Serializable {
     }
 
     public void setCreatedAt(String createdAtStr) {
-        try {
-            this.createdAt = java.time.Instant.parse(createdAtStr).toEpochMilli();
-        } catch (Exception e) {
-            try {
-                this.createdAt = Long.parseLong(createdAtStr);
-            } catch (Exception ignored) {
-                this.createdAt = 0L;
-            }
-        }
+        this.createdAt = TimeUtils.parseTimestamp(createdAtStr);
     }
 
     @Override

@@ -33,10 +33,12 @@
             android:contentDescription="Create" />
 
         <ImageView
+            android:id="@+id/iv_menu"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/ic_more_vert"
-            android:contentDescription="Options" />
+            android:src="@drawable/ic_menu"
+            android:tint="?attr/themeTextPrimary"
+            android:contentDescription="Settings" />
     </LinearLayout>
 
     <!-- Header Stats -->

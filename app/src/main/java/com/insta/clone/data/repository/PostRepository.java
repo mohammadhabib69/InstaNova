@@ -1,6 +1,7 @@
 package com.insta.clone.data.repository;
 
 import android.content.Context;
+import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.insta.clone.data.local.SessionManager;
@@ -19,6 +20,7 @@ import retrofit2.Response;
 
 /** Feed repository backed by v_feed/v_posts. It never seeds the UI with demo records. */
 public class PostRepository {
+    private static final String TAG = "PostRepository";
     private final RestApi restApi;
     private final SessionManager sessionManager;
     private final MutableLiveData<List<Post>> feedPostsLiveData = new MutableLiveData<>(new ArrayList<>());
@@ -37,7 +39,25 @@ public class PostRepository {
         restApi.getFeed(query).enqueue(new Callback<List<PostDto>>() {
             @Override public void onResponse(Call<List<PostDto>> call, Response<List<PostDto>> response) {
                 if (!response.isSuccessful() || response.body() == null) { result.postValue(Resource.error(AuthRepository.errorBody(response))); return; }
-                List<Post> posts = new ArrayList<>(); for (PostDto dto : response.body()) posts.add(dto.toDomain());
+                List<Post> posts = new ArrayList<>();
+                int skipped = 0;
+                for (PostDto dto : response.body()) {
+                    if (dto == null) {
+                        skipped++;
+                        continue;
+                    }
+                    try {
+                        posts.add(dto.toDomain());
+                    } catch (RuntimeException e) {
+                        skipped++;
+                        Log.e(TAG, "Skipping malformed feed post", e);
+                    }
+                }
+                if (!response.body().isEmpty() && posts.isEmpty()) {
+                    result.postValue(Resource.error("The feed response did not contain valid posts."));
+                    return;
+                }
+                if (skipped > 0) Log.w(TAG, "Skipped " + skipped + " malformed feed post(s)");
                 feedPostsLiveData.postValue(cursor == null ? posts : append(posts)); result.postValue(Resource.success(posts));
             }
             @Override public void onFailure(Call<List<PostDto>> call, Throwable t) { result.postValue(Resource.error(t.getMessage())); }
@@ -99,5 +119,34 @@ public class PostRepository {
             @Override public void onResponse(Call<Void> call, Response<Void> response) { result.postValue(response.isSuccessful() ? Resource.success(true) : Resource.error(AuthRepository.errorBody(response))); }
             @Override public void onFailure(Call<Void> call, Throwable t) { result.postValue(Resource.error(t.getMessage())); }
         }); return result;
+    }
+
+    public LiveData<Resource<List<Post>>> getUserPosts(String userId) {
+        MutableLiveData<Resource<List<Post>>> result = new MutableLiveData<>();
+        result.postValue(Resource.loading());
+        Map<String, String> query = new HashMap<>();
+        query.put("user_id", "eq." + (userId != null ? userId : sessionManager.getUserId()));
+        query.put("is_reel", "eq.false");
+        query.put("order", "created_at.desc");
+        restApi.getPosts(query).enqueue(new Callback<List<PostDto>>() {
+            @Override
+            public void onResponse(Call<List<PostDto>> call, Response<List<PostDto>> response) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    result.postValue(Resource.error(AuthRepository.errorBody(response)));
+                    return;
+                }
+                List<Post> posts = new ArrayList<>();
+                for (PostDto dto : response.body()) {
+                    if (dto != null) posts.add(dto.toDomain());
+                }
+                result.postValue(Resource.success(posts));
+            }
+
+            @Override
+            public void onFailure(Call<List<PostDto>> call, Throwable t) {
+                result.postValue(Resource.error(t.getMessage()));
+            }
+        });
+        return result;
     }
 }

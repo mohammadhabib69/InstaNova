@@ -145,7 +145,7 @@
         android:orientation="vertical"
         android:padding="24dp"
         android:visibility="gone">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Welcome to Insta_Clone" android:textColor="?attr/themeTextPrimary" android:textSize="18sp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/welcome_to_instanova" android:textColor="?attr/themeTextPrimary" android:textSize="18sp" android:textStyle="bold" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Follow people and share your first photo." android:textColor="?attr/themeTextSecondary" android:textSize="14sp" />
     </LinearLayout>
 

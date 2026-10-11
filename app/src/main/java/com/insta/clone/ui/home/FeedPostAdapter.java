@@ -18,7 +18,10 @@ import com.insta.clone.data.model.Post;
 import com.insta.clone.databinding.ItemFeedPostBinding;
 import com.insta.clone.util.SpanUtils;
 import com.insta.clone.util.TimeUtils;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Recycler adapter for Main Home Feed posts (single image, carousels, reels preview).
@@ -46,12 +49,19 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
     private static final DiffUtil.ItemCallback<Post> DIFF_CALLBACK = new DiffUtil.ItemCallback<Post>() {
         @Override
         public boolean areItemsTheSame(@NonNull Post oldItem, @NonNull Post newItem) {
-            return oldItem.getId().equals(newItem.getId());
+            return oldItem != null && newItem != null && Objects.equals(oldItem.getId(), newItem.getId());
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull Post oldItem, @NonNull Post newItem) {
-            return oldItem.equals(newItem);
+            return Objects.equals(oldItem, newItem)
+                    && Objects.equals(oldItem.getMediaUrls(), newItem.getMediaUrls())
+                    && Objects.equals(oldItem.getThumbnailUrl(), newItem.getThumbnailUrl())
+                    && Objects.equals(oldItem.getAvatarUrl(), newItem.getAvatarUrl())
+                    && oldItem.isLikedByMe() == newItem.isLikedByMe()
+                    && oldItem.isSavedByMe() == newItem.isSavedByMe()
+                    && oldItem.getLikesCount() == newItem.getLikesCount()
+                    && oldItem.getCommentsCount() == newItem.getCommentsCount();
         }
     };
 
@@ -70,8 +80,15 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
         holder.bind(post, position, listener);
     }
 
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        holder.clearCarouselCallback();
+        super.onViewRecycled(holder);
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         private final ItemFeedPostBinding binding;
+        private ViewPager2.OnPageChangeCallback carouselPageChangeCallback;
 
         ViewHolder(ItemFeedPostBinding binding) {
             super(binding.getRoot());
@@ -80,9 +97,17 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
 
         void bind(Post post, int position, OnPostInteractionListener listener) {
             Context context = binding.getRoot().getContext();
+            binding.getRoot().setVisibility(View.VISIBLE);
+            clearCarouselCallback();
+            binding.viewPagerCarousel.setAdapter(null);
+
+            if (post == null) {
+                binding.getRoot().setVisibility(View.GONE);
+                return;
+            }
 
             // 1. Author info
-            binding.tvUsername.setText(post.getUsername());
+            binding.tvUsername.setText(post.getUsername() == null ? "" : post.getUsername());
             binding.badgeVerified.setVerified(post.isVerified());
 
             if (post.getLocation() != null && !post.getLocation().isEmpty()) {
@@ -92,11 +117,7 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                 binding.tvLocation.setVisibility(View.GONE);
             }
 
-            Glide.with(context)
-                    .load(post.getAvatarUrl())
-                    .placeholder(R.drawable.ic_person_placeholder)
-                    .error(R.drawable.ic_person_placeholder)
-                    .into(binding.ivAvatar);
+            com.insta.clone.util.GlideUtils.loadAvatar(binding.ivAvatar, post.getAvatarUrl());
 
             View.OnClickListener userClickListener = v -> {
                 if (listener != null) listener.onUserClick(post.getUserId(), post.getUsername());
@@ -105,7 +126,7 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
             binding.layoutAuthor.setOnClickListener(userClickListener);
 
             // 2. Media handling (Carousel vs Single Media)
-            List<String> mediaUrls = post.getMediaUrls();
+            List<String> mediaUrls = validMediaUrls(post.getMediaUrls());
             if (mediaUrls != null && mediaUrls.size() > 1) {
                 // Multi-image carousel
                 binding.ivSingleMedia.setVisibility(View.GONE);
@@ -116,12 +137,13 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
 
                 CarouselPagerAdapter carouselAdapter = new CarouselPagerAdapter(mediaUrls);
                 binding.viewPagerCarousel.setAdapter(carouselAdapter);
-                binding.viewPagerCarousel.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                carouselPageChangeCallback = new ViewPager2.OnPageChangeCallback() {
                     @Override
                     public void onPageSelected(int pagePos) {
                         binding.dotsIndicator.setSelectedPosition(pagePos);
                     }
-                });
+                };
+                binding.viewPagerCarousel.registerOnPageChangeCallback(carouselPageChangeCallback);
             } else {
                 // Single image or reel preview
                 binding.ivSingleMedia.setVisibility(View.VISIBLE);
@@ -129,10 +151,8 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                 binding.ivCarouselBadge.setVisibility(View.GONE);
                 binding.dotsIndicator.setVisibility(View.GONE);
 
-                Glide.with(context)
-                        .load(post.getFirstMediaUrl())
-                        .centerCrop()
-                        .into(binding.ivSingleMedia);
+                String singleUrl = (mediaUrls != null && !mediaUrls.isEmpty()) ? mediaUrls.get(0) : post.getThumbnailUrl();
+                com.insta.clone.util.GlideUtils.load(binding.ivSingleMedia, "posts", singleUrl);
             }
 
             // Audio indicator for reels
@@ -188,7 +208,7 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
 
             // 9. Likes count
             if (post.getLikesCount() > 0) {
-                binding.tvLikesCount.setText(context.getString(R.string.likes_count, String.format("%,d", post.getLikesCount())));
+                binding.tvLikesCount.setText(context.getString(R.string.likes_count, String.format(Locale.US, "%,d", post.getLikesCount())));
                 binding.tvLikesCount.setVisibility(View.VISIBLE);
             } else {
                 binding.tvLikesCount.setVisibility(View.GONE);
@@ -228,6 +248,7 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
             if (liked) {
                 binding.ivLike.setImageResource(R.drawable.ic_favorite_filled);
                 binding.ivLike.setImageTintList(null);
+                binding.ivLike.clearColorFilter();
             } else {
                 binding.ivLike.setImageResource(R.drawable.ic_favorite_outline);
                 binding.ivLike.setColorFilter(ContextCompat.getColor(c, R.color.color_text_primary));
@@ -262,6 +283,22 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
         private void updateAudioIcon() {
             binding.ivAudioToggle.setImageResource(isAudioMuted ? R.drawable.ic_volume_off : R.drawable.ic_volume_up);
         }
+
+        void clearCarouselCallback() {
+            if (carouselPageChangeCallback != null) {
+                binding.viewPagerCarousel.unregisterOnPageChangeCallback(carouselPageChangeCallback);
+                carouselPageChangeCallback = null;
+            }
+        }
+
+        private static List<String> validMediaUrls(List<String> urls) {
+            List<String> valid = new ArrayList<>();
+            if (urls == null) return valid;
+            for (String url : urls) {
+                if (url != null && !url.trim().isEmpty()) valid.add(url);
+            }
+            return valid;
+        }
     }
 
     /**
@@ -282,15 +319,13 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
             ));
             iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            iv.setAdjustViewBounds(false);
             return new PageViewHolder(iv);
         }
 
         @Override
         public void onBindViewHolder(@NonNull PageViewHolder holder, int position) {
-            Glide.with(holder.imageView.getContext())
-                    .load(urls.get(position))
-                    .centerCrop()
-                    .into(holder.imageView);
+            com.insta.clone.util.GlideUtils.load(holder.imageView, "posts", urls.get(position));
         }
 
         @Override
