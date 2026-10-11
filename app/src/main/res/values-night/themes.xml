@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.InstaClone" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorPrimaryVariant">@color/color_primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:windowBackground">#000000</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">#000000</item>
+
+        <item name="themeBackground">#000000</item>
+        <item name="themeDivider">#262626</item>
+        <item name="themePrimary">@color/color_primary</item>
+        <item name="themeTextPrimary">#FFFFFF</item>
+        <item name="themeTextSecondary">#8E8E8E</item>
+    </style>
+
+    <style name="Theme.InstaClone.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.InstaClone</item>
+        <item name="themeBackground">#000000</item>
+        <item name="themeDivider">#262626</item>
+        <item name="themePrimary">@color/color_primary</item>
+        <item name="themeTextPrimary">#FFFFFF</item>
+        <item name="themeTextSecondary">#8E8E8E</item>
+    </style>
+
+    <style name="InstagramBottomSheetDialog" parent="Theme.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/InstagramBottomSheetStyle</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">#000000</item>
+    </style>
+</resources>

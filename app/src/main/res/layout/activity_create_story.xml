@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="16dp" android:background="?attr/themeBackground">
+    <TextView android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center" android:text="Add to Story" android:textColor="?attr/themeTextPrimary" android:textSize="18sp" android:textStyle="bold" />
+    <Button android:id="@+id/btnPickImage" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Choose photo" />
+    <ImageView android:id="@+id/ivPreview" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="12dp" android:scaleType="centerCrop" android:visibility="gone" android:contentDescription="Selected story" />
+    <Button android:id="@+id/btnPublish" android:layout_width="match_parent" android:layout_height="40dp" android:layout_marginTop="12dp" android:enabled="false" android:text="Share to story" />
+    <ProgressBar android:id="@+id/progress" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:visibility="gone" />
+</LinearLayout>

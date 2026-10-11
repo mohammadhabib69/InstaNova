@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".InstaApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.InstaClone">
+
+        <!-- Launcher Splash Activity -->
+        <activity
+            android:name=".ui.auth.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.InstaClone.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Authentication Wizard Activity -->
+        <activity
+            android:name=".ui.auth.AuthActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Main 5-Tab Navigation Container -->
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
+
+        <!-- Create Post Modal Activity -->
+        <activity
+            android:name=".ui.create.CreatePostActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Create Story Modal Activity -->
+        <activity
+            android:name=".ui.create.CreateStoryActivity"
+            android:exported="false" />
+
+        <!-- Fullscreen Story Viewer Activity -->
+        <activity
+            android:name=".ui.story.StoryViewerActivity"
+            android:exported="false" />
+
+        <!-- Direct Message Inbox Activity -->
+        <activity
+            android:name=".ui.chat.InboxActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.settings.SyncTestActivity"
+            android:exported="false" />
+
+        <!-- Single Post Detail Activity -->
+        <activity
+            android:name=".ui.post.PostDetailActivity"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

@@ -1,0 +1,32 @@
+# Local secrets / SDK
+local.properties
+*.keystore
+*.jks
+
+# Build
+.gradle/
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.ap_
+*.aab
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+.DS_Store
+
+# Web leftovers (must never return)
+node_modules/
+dist/
+coverage/
+.env*
+package.json
+package-lock.json
+local.properties
+local.properties
