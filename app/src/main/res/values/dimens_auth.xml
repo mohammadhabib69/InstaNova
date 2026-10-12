@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================================= -->
+    <!-- REGISTRATION FLOW — dimensions                                 -->
+    <!-- Screenshots are 1080px @ density 2.75 (392dp) => dp = px/2.75.  -->
+    <!-- ============================================================= -->
+
+    <!-- ========== Family A: chrome ========== -->
+    <dimen name="auth_side_padding">16dp</dimen>
+    <dimen name="auth_top_bar_height">56dp</dimen>
+    <dimen name="auth_back_icon">24dp</dimen>
+    <dimen name="auth_title_gap">20dp</dimen>
+    <dimen name="auth_title_size">24sp</dimen>
+    <dimen name="auth_subtitle_gap">12dp</dimen>
+    <dimen name="auth_subtitle_size">16sp</dimen>
+    <dimen name="auth_paragraph_gap">24dp</dimen>
+    <dimen name="auth_bottom_link_gap">24dp</dimen>
+
+    <!-- ========== Family A: field ========== -->
+    <dimen name="auth_field_height">54dp</dimen>
+    <dimen name="auth_field_radius">16dp</dimen>
+    <dimen name="auth_field_padding_horizontal">16dp</dimen>
+    <dimen name="auth_field_stroke">1.5dp</dimen>
+    <dimen name="auth_field_stroke_focused">2dp</dimen>
+    <dimen name="auth_field_label_size">16sp</dimen>
+    <dimen name="auth_field_value_size">20sp</dimen>
+    <dimen name="auth_trailing_icon">24dp</dimen>
+    <!-- Birthday field is 51dp per the reference (px 140 / 2.75) -->
+    <dimen name="auth_field_height_birthday">51dp</dimen>
+
+    <!-- ========== Family A: buttons ========== -->
+    <dimen name="auth_button_height">41dp</dimen>
+    <dimen name="auth_button_text_size">17sp</dimen>
+    <dimen name="auth_button_gap">19dp</dimen>
+    <dimen name="auth_button_gap_secondary">11dp</dimen>
+    <dimen name="auth_button_radius">100dp</dimen>
+    <dimen name="auth_button_spinner">20dp</dimen>
+    <dimen name="auth_bottom_link_text_size">17sp</dimen>
+
+    <!-- ========== Family A: confirmation code boxes ========== -->
+    <dimen name="auth_code_box_width">54dp</dimen>
+    <dimen name="auth_code_box_height">58dp</dimen>
+    <dimen name="auth_code_box_gap">8dp</dimen>
+    <dimen name="auth_code_box_radius">16dp</dimen>
+    <dimen name="auth_code_digit_size">24sp</dimen>
+    <dimen name="auth_code_error_gap">12dp</dimen>
+    <dimen name="auth_code_error_size">14sp</dimen>
+
+    <!-- ========== Family A: checkbox row ========== -->
+    <dimen name="auth_checkbox_size">24dp</dimen>
+    <dimen name="auth_checkbox_radius">6dp</dimen>
+    <dimen name="auth_checkbox_gap">8dp</dimen>
+
+    <!-- ========== Family A: bottom sheet rows ========== -->
+    <dimen name="auth_sheet_row_height">56dp</dimen>
+
+    <!-- ========== Family B: chrome ========== -->
+    <dimen name="vibe_top_bar_height">52dp</dimen>
+    <dimen name="vibe_skip_size">18sp</dimen>
+    <dimen name="vibe_skip_padding_end">16dp</dimen>
+    <dimen name="vibe_title_size">26sp</dimen>
+    <dimen name="vibe_title_margin_start">30dp</dimen>
+    <dimen name="vibe_title_margin_top">24dp</dimen>
+
+    <!-- ========== Family B: buttons ========== -->
+    <dimen name="vibe_button_height">41dp</dimen>
+    <dimen name="vibe_button_margin">16dp</dimen>
+    <dimen name="vibe_button_margin_done">33dp</dimen>
+    <dimen name="vibe_button_text_size">17sp</dimen>
+    <dimen name="vibe_button_radius">100dp</dimen>
+
+    <!-- ========== Family B: welcome ========== -->
+    <dimen name="vibe_wordmark_height">26dp</dimen>
+    <dimen name="vibe_wordmark_margin_top">58dp</dimen>
+    <dimen name="vibe_camera_glyph">74dp</dimen>
+    <dimen name="vibe_welcome_title_size">30sp</dimen>
+    <dimen name="vibe_welcome_title_gap">36dp</dimen>
+    <dimen name="vibe_welcome_sub_size">17sp</dimen>
+    <dimen name="vibe_welcome_sub_gap">8dp</dimen>
+    <dimen name="vibe_welcome_delay_ms">2500</dimen>
+
+    <!-- ========== Family B: profile vibe card ========== -->
+    <dimen name="vibe_card_margin">30dp</dimen>
+    <dimen name="vibe_card_radius">40dp</dimen>
+    <dimen name="vibe_card_padding">24dp</dimen>
+    <dimen name="vibe_avatar_size">185dp</dimen>
+    <dimen name="vibe_badge_size">47dp</dimen>
+    <dimen name="vibe_badge_border">4dp</dimen>
+    <dimen name="vibe_badge_icon">24dp</dimen>
+    <dimen name="vibe_badge_overlap">14dp</dimen>
+    <dimen name="vibe_chip_radius">16dp</dimen>
+    <dimen name="vibe_chip_padding_horizontal">12dp</dimen>
+    <dimen name="vibe_chip_padding_vertical">8dp</dimen>
+    <dimen name="vibe_chip_gap">12dp</dimen>
+    <dimen name="vibe_username_size">22sp</dimen>
+    <dimen name="vibe_fullname_size">22sp</dimen>
+    <dimen name="vibe_fullname_gap">16dp</dimen>
+    <dimen name="vibe_bio_size">22sp</dimen>
+    <dimen name="vibe_bio_size_saved">18sp</dimen>
+    <dimen name="vibe_bio_gap">8dp</dimen>
+    <dimen name="vibe_link_glyph">18dp</dimen>
+
+    <!-- ========== Family B: allow access rows ========== -->
+    <dimen name="vibe_rows_gap_from_title">40dp</dimen>
+    <dimen name="vibe_row_gap">40dp</dimen>
+    <dimen name="vibe_row_circle_size">44dp</dimen>
+    <dimen name="vibe_row_icon_size">24dp</dimen>
+    <dimen name="vibe_row_text_gap">12dp</dimen>
+    <dimen name="vibe_row_title_size">18sp</dimen>
+    <dimen name="vibe_row_title_gap">4dp</dimen>
+    <dimen name="vibe_row_desc_size">15sp</dimen>
+    <dimen name="vibe_helper_size">15sp</dimen>
+    <dimen name="vibe_helper_gap">12dp</dimen>
+
+    <!-- ========== Bio editor ========== -->
+    <dimen name="bio_field_min_height">120dp</dimen>
+    <dimen name="bio_field_text_size">18sp</dimen>
+    <dimen name="bio_counter_size">14sp</dimen>
+</resources>

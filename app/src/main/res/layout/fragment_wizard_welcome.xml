@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screen 9 — Welcome (reference image 8). Family B, no Skip. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/vibe_bg">
+
+    <ImageView
+        android:id="@+id/iv_wordmark"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/vibe_wordmark_height"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="@dimen/vibe_wordmark_margin_top"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/ic_wordmark"
+        app:tint="@color/vibe_text" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/iv_camera_glyph"
+            android:layout_width="@dimen/vibe_camera_glyph"
+            android:layout_height="@dimen/vibe_camera_glyph"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_gradient_camera" />
+
+        <TextView
+            android:id="@+id/tv_welcome_title"
+            style="@style/TextAppearance.Insta.VibeWelcomeTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/vibe_welcome_title_gap"
+            android:paddingStart="@dimen/vibe_title_margin_start"
+            android:paddingEnd="@dimen/vibe_title_margin_start" />
+
+        <TextView
+            android:id="@+id/tv_welcome_subtitle"
+            style="@style/TextAppearance.Insta.VibeWelcomeSub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/vibe_welcome_sub_gap"
+            android:text="@string/vibe_welcome_subtitle" />
+    </LinearLayout>
+</FrameLayout>

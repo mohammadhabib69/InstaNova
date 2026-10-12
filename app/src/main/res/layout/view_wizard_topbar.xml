@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Family A top bar: 56dp, no title, 24dp back arrow at the left with 16dp padding.
+  Included by every wizard step so the chrome stays identical across screens.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/auth_top_bar_height"
+    android:paddingStart="@dimen/auth_side_padding"
+    android:paddingEnd="@dimen/auth_side_padding">
+
+    <ImageView
+        android:id="@+id/btn_wizard_back"
+        android:layout_width="@dimen/auth_back_icon"
+        android:layout_height="@dimen/auth_back_icon"
+        android:layout_gravity="start|center_vertical"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/auth_back"
+        android:src="@drawable/ic_arrow_back"
+        app:tint="@color/auth_text" />
+</FrameLayout>

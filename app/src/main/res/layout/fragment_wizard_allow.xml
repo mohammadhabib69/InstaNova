@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screen 12 — Allow Instagram to access your device? (reference image 3) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/vibe_bg"
+    android:orientation="vertical">
+
+    <!-- Family B top bar: 52dp, no back arrow, right-aligned Skip. -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/vibe_top_bar_height"
+        android:background="@color/vibe_top_bar"
+        android:paddingEnd="@dimen/vibe_skip_padding_end">
+
+        <TextView
+            android:id="@+id/btn_skip"
+            style="@style/TextAppearance.Insta.VibeSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="@string/vibe_skip" />
+    </FrameLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_title"
+                style="@style/TextAppearance.Insta.VibeTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/vibe_title_margin_start"
+                android:layout_marginTop="@dimen/vibe_title_margin_top"
+                android:layout_marginEnd="@dimen/vibe_title_margin_start" />
+
+            <!-- Row 1: Notifications -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/vibe_title_margin_start"
+                android:layout_marginTop="@dimen/vibe_rows_gap_from_title"
+                android:layout_marginEnd="@dimen/vibe_title_margin_start"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/vibe_row_circle_size"
+                    android:layout_height="@dimen/vibe_row_circle_size"
+                    android:background="@drawable/bg_vibe_row_circle"
+                    android:contentDescription="@null"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_bell"
+                    app:tint="@color/vibe_row_icon" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/vibe_row_text_gap"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Insta.VibeRowTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/vibe_notifications_title" />
+
+                    <TextView
+                        style="@style/TextAppearance.Insta.VibeRowDesc"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/vibe_row_title_gap"
+                        android:text="@string/vibe_notifications_description" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Row 2: Contacts (visual only; this app never reads contacts) -->
+            <LinearLayout
+                android:id="@+id/row_contacts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/vibe_title_margin_start"
+                android:layout_marginTop="@dimen/vibe_row_gap"
+                android:layout_marginEnd="@dimen/vibe_title_margin_start"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/vibe_row_circle_size"
+                    android:layout_height="@dimen/vibe_row_circle_size"
+                    android:background="@drawable/bg_vibe_row_circle"
+                    android:contentDescription="@null"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_contacts"
+                    app:tint="@color/vibe_row_icon" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/vibe_row_text_gap"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Insta.VibeRowTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/vibe_contacts_title" />
+
+                    <TextView
+                        android:id="@+id/tv_contacts_desc"
+                        style="@style/TextAppearance.Insta.VibeRowDesc"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/vibe_row_title_gap" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/tv_helper"
+        style="@style/TextAppearance.Insta.VibeHelper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/vibe_button_margin"
+        android:layout_marginEnd="@dimen/vibe_button_margin"
+        android:layout_marginBottom="@dimen/vibe_helper_gap" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_next"
+        style="@style/Widget.Insta.VibeButton.Primary"
+        android:layout_marginStart="@dimen/vibe_button_margin"
+        android:layout_marginEnd="@dimen/vibe_button_margin"
+        android:layout_marginBottom="@dimen/vibe_button_margin"
+        android:text="@string/auth_next" />
+</LinearLayout>
