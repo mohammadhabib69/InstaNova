@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Every code box turns red when the entered code is rejected. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/auth_code_box_bg" />
+    <corners android:radius="@dimen/auth_code_box_radius" />
+    <stroke
+        android:width="@dimen/auth_field_stroke_focused"
+        android:color="@color/auth_field_border_error" />
+</shape>

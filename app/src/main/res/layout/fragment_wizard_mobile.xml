@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screen 1 — What's your mobile number? (reference image 9) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/auth_bg"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/topbar"
+        layout="@layout/view_wizard_topbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/auth_side_padding"
+            android:paddingEnd="@dimen/auth_side_padding">
+
+            <TextView
+                android:id="@+id/tv_title"
+                style="@style/TextAppearance.Insta.AuthTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/auth_title_gap"
+                android:text="@string/auth_mobile_title" />
+
+            <TextView
+                android:id="@+id/tv_subtitle"
+                style="@style/TextAppearance.Insta.AuthSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/auth_subtitle_gap"
+                android:text="@string/auth_mobile_subtitle" />
+
+            <com.insta.clone.ui.auth.AuthFieldView
+                android:id="@+id/field_mobile"
+                style="@style/Widget.Insta.AuthField"
+                android:layout_marginTop="@dimen/auth_title_gap" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/TextAppearance.Insta.AuthNote"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/auth_mobile_sms_note" />
+
+                <TextView
+                    android:id="@+id/tv_learn_more"
+                    style="@style/TextAppearance.Insta.AuthNote"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:text="@string/auth_learn_more"
+                    android:textColor="@color/auth_link"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Spinner replaces the label while loading, so it is stacked on the button. -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/auth_button_height"
+                android:layout_marginTop="@dimen/auth_button_gap">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btn_primary"
+                    style="@style/Widget.Insta.AuthButton.Primary"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="@string/auth_next" />
+
+                <ProgressBar
+                    android:id="@+id/progress_primary"
+                    android:layout_width="@dimen/auth_button_spinner"
+                    android:layout_height="@dimen/auth_button_spinner"
+                    android:layout_gravity="center"
+                    android:indeterminateTint="@color/auth_on_primary"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_secondary"
+                style="@style/Widget.Insta.AuthButton.Secondary"
+                android:layout_marginTop="@dimen/auth_button_gap_secondary"
+                android:text="@string/auth_signup_with_email" />
+        </LinearLayout>
+    </ScrollView>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_bottom_link"
+        style="@style/Widget.Insta.AuthBottomLink"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/auth_already_have_account" />
+</LinearLayout>

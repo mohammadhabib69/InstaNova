@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Confirmation-code box: 1.5dp default, 2dp while it is the active box. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The active box is setSelected(true) by WizardCodeFragment. -->
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/auth_code_box_bg" />
+            <corners android:radius="@dimen/auth_code_box_radius" />
+            <stroke
+                android:width="@dimen/auth_field_stroke_focused"
+                android:color="@color/auth_field_border_focused" />
+        </shape>
+    </item>
+
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/auth_code_box_bg" />
+            <corners android:radius="@dimen/auth_code_box_radius" />
+            <stroke
+                android:width="@dimen/auth_field_stroke_focused"
+                android:color="@color/auth_field_border_focused" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/auth_code_box_bg" />
+            <corners android:radius="@dimen/auth_code_box_radius" />
+            <stroke
+                android:width="@dimen/auth_field_stroke"
+                android:color="@color/auth_field_border" />
+        </shape>
+    </item>
+</selector>

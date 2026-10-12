@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================================= -->
+    <!-- REGISTRATION FLOW — copy. Texts are taken verbatim from the    -->
+    <!-- brief, with the agreed decisions already applied:              -->
+    <!--   * 'Meta Account' -> 'account'                                -->
+    <!--   * 'Instagram profile' -> 'profile'                           -->
+    <!--   * ', including ads' removed from the Terms third paragraph   -->
+    <!-- %1$s is always Constants.APP_NAME ("Instagram").               -->
+    <!-- ============================================================= -->
+
+    <!-- ========== Shared ========== -->
+    <string name="auth_next">Next</string>
+    <string name="auth_cancel">Cancel</string>
+    <string name="auth_learn_more">Learn more</string>
+    <string name="auth_ok">OK</string>
+    <string name="auth_back">Back</string>
+    <string name="auth_already_have_account">I already have an account</string>
+    <string name="auth_error_generic">Something went wrong. Please try again.</string>
+    <string name="auth_error_network">No network connection. Check your connection and try again.</string>
+    <string name="auth_error_too_many_requests">Too many requests. Please try again later.</string>
+
+    <!-- ========== 1. Mobile number ========== -->
+    <string name="auth_mobile_title">What\'s your mobile number?</string>
+    <string name="auth_mobile_subtitle">You\'ll use this number to log in and help secure your account. No one will see it on your profile.</string>
+    <string name="auth_field_mobile">Mobile number</string>
+    <string name="auth_mobile_sms_note">You may receive SMS notifications from us. </string>
+    <string name="auth_signup_with_email">Sign up with email</string>
+    <string name="auth_phone_unavailable_title">Mobile sign-up isn\'t available</string>
+    <string name="auth_phone_unavailable_message">Please sign up with your email address instead.</string>
+    <string name="auth_use_email">Use email</string>
+
+    <!-- ========== 2. Email address ========== -->
+    <string name="auth_email_title">What\'s your email address?</string>
+    <string name="auth_email_subtitle">Enter the email where you can be contacted. No one will see this on your profile.</string>
+    <string name="auth_field_email">Email address</string>
+    <string name="auth_signup_with_mobile">Sign up with mobile number</string>
+    <string name="auth_email_rate_limited">Too many emails sent. Please try again later.</string>
+    <string name="auth_email_invalid">That email address doesn\'t look right. Please check it and try again.</string>
+    <string name="auth_verify_failed">We couldn\'t verify that code. Please try again.</string>
+
+    <!-- ========== 3. Confirmation code ========== -->
+    <string name="auth_code_title">Enter the confirmation code</string>
+    <string name="auth_code_subtitle">To confirm your profile, enter the 6-digit code we sent to %1$s.</string>
+    <string name="auth_code_wrong">That code isn\'t right. Please try again.</string>
+    <string name="auth_code_didnt_get">I didn\'t get the code</string>
+    <string name="auth_code_resend">Resend confirmation code</string>
+    <string name="auth_code_resend_in">Resend in %1$s</string>
+    <string name="auth_code_change_email">Change email address</string>
+    <string name="auth_code_resent">We sent a new code to %1$s</string>
+    <string name="auth_already_registered_title">This email is already registered.</string>
+    <string name="auth_log_in">Log in</string>
+    <string name="auth_use_another_email">Use another email</string>
+    <string name="auth_code_verified_title">Code verified</string>
+    <string name="auth_code_verified_body">Your email is confirmed and your account now exists, so you are signed in. The remaining steps of this wizard (create a password, birthday, name, username and terms) are not built yet.</string>
+
+    <!-- ========== 4. Create a password ========== -->
+    <string name="auth_password_title">Create a password</string>
+    <string name="auth_password_subtitle">Create a password with at least 6 letters or numbers. It should be something others can\'t guess.</string>
+    <string name="auth_field_password">Password</string>
+    <string name="auth_remember_login">Remember login info.</string>
+    <string name="auth_password_too_short">Your password must be at least 6 characters.</string>
+
+    <!-- ========== 5. Birthday ========== -->
+    <string name="auth_birthday_title">What\'s your birthday?</string>
+    <string name="auth_birthday_subtitle">Use your own birthday, even if this account is for a business, a pet or something else. No one will see this unless you choose to share it. </string>
+    <string name="auth_birthday_why">Why do I need to provide my birthday?</string>
+    <string name="auth_field_birthday">Birthday (%1$d years old)</string>
+    <string name="auth_birthday_too_young">Sorry, you need to be at least 13 to use this app.</string>
+
+    <!-- ========== 6. Name ========== -->
+    <string name="auth_name_title">What\'s your name?</string>
+    <string name="auth_field_full_name">Full name</string>
+
+    <!-- ========== 7. Username ========== -->
+    <string name="auth_username_title">Create a username</string>
+    <string name="auth_username_subtitle">Add a username or use our suggestion. You can change this at any time.</string>
+    <string name="auth_field_username">Username</string>
+    <string name="auth_username_taken">This username isn\'t available.</string>
+    <string name="auth_username_rules">Usernames can only use letters, numbers, full stops and underscores, and must be 3 to 30 characters.</string>
+    <string name="auth_username_just_taken">That username was just taken.</string>
+
+    <!-- ========== 8. Terms ========== -->
+    <string name="auth_terms_title">Agree to %1$s\'s terms and policies</string>
+    <string name="auth_terms_p1">People who use our service may have uploaded your contact information to %1$s. </string>
+    <string name="auth_terms_p2_prefix">By tapping </string>
+    <string name="auth_terms_p2_agree">I agree</string>
+    <string name="auth_terms_p2_mid">, you agree to create an account and to %1$s\'s </string>
+    <string name="auth_terms_link_terms">Terms</string>
+    <string name="auth_terms_p2_comma">, </string>
+    <string name="auth_terms_link_privacy">Privacy Policy</string>
+    <string name="auth_terms_p2_and"> and </string>
+    <string name="auth_terms_link_cookies">Cookies Policy</string>
+    <string name="auth_terms_p2_suffix">.</string>
+    <string name="auth_terms_p3_prefix">The </string>
+    <string name="auth_terms_p3_suffix"> describes the ways we can use the information we collect when you create a profile. For example, we use this information to provide, personalize and improve our products.</string>
+    <string name="auth_agree">I agree</string>
+
+    <!-- Legal text screens -->
+    <string name="auth_legal_terms_title">Terms</string>
+    <string name="auth_legal_privacy_title">Privacy Policy</string>
+    <string name="auth_legal_cookies_title">Cookies Policy</string>
+    <string name="auth_legal_terms_body">By using this app you agree to these terms.\n\nYou must be at least 13 years old to create an account. You are responsible for the content you post and for keeping your password secure.\n\nDo not post content that is unlawful, hateful, harassing or that infringes someone else\'s rights. We may remove content or suspend accounts that break these rules.\n\nYou can delete your account at any time from Settings.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to Instagram or Meta.</string>
+    <string name="auth_legal_privacy_body">This privacy policy describes the information we collect and how we use it.\n\nWe collect the details you give us when you create a profile: your email address, birthday, name and username. We also store the photos, videos, comments and messages you choose to share.\n\nWe use this information to provide, personalize and improve our products, to keep the community safe, and to recommend people and content you may find relevant.\n\nWe do not sell your personal information. You can review and change your profile details at any time from Settings, and you can delete your account at any time.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to Instagram or Meta.</string>
+    <string name="auth_legal_cookies_body">Cookies and similar technologies keep you signed in and help us understand how the app is used.\n\nWe use them to remember your session so you do not have to log in every time you open the app, and to measure which features are used so we can improve them.\n\nYou can clear these at any time by logging out, which removes the stored session from this device.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to Instagram or Meta.</string>
+
+    <!-- ========== 9. Welcome ========== -->
+    <string name="vibe_welcome_title">Let\'s get started, %1$s!</string>
+    <string name="vibe_welcome_subtitle">Start customizing your experience</string>
+
+    <!-- ========== 10. Profile vibe ========== -->
+    <string name="vibe_vibe_title">Create a profile that shows your vibe</string>
+    <string name="vibe_skip">Skip</string>
+    <string name="vibe_done">Done</string>
+    <string name="vibe_add_bio">Add bio</string>
+    <string name="vibe_new_profile_picture">New profile picture</string>
+    <string name="vibe_choose_gallery">Choose from gallery</string>
+    <string name="vibe_take_photo">Take photo</string>
+    <string name="vibe_camera_failed">Couldn\'t open the camera.</string>
+    <string name="vibe_upload_failed">Couldn\'t upload your photo. Please try again.</string>
+    <string name="vibe_bio_title">Bio</string>
+    <string name="vibe_bio_counter">%1$d/150</string>
+    <string name="vibe_bio_hint">Add a short bio</string>
+
+    <!-- ========== 11. Allow access ========== -->
+    <string name="vibe_allow_title">Allow %1$s to access your device?</string>
+    <string name="vibe_notifications_title">Notifications</string>
+    <string name="vibe_notifications_description">Turning on notifications helps you keep up with your friends. You can also turn on notifications for messages only.</string>
+    <string name="vibe_contacts_title">Contacts</string>
+    <string name="vibe_contacts_description">Contacts on this device will be periodically synced and stored securely on our servers to help recommend more relevant people and things. </string>
+    <string name="vibe_allow_helper">Next, allow access or skip these steps. You can change these settings anytime. If you already have %1$s on your device, some settings may have been turned on previously.</string>
+
+    <!-- ========== Info bottom sheets (no dead links) ========== -->
+    <string name="auth_info_learn_more_title">Learn more</string>
+    <string name="auth_info_learn_more_body">SMS notifications let us send you security alerts and login codes. You can turn them off at any time from the settings on your device, and you can change how we contact you later from Settings in the app.</string>
+    <string name="auth_info_birthday_title">Why do I need to provide my birthday?</string>
+    <string name="auth_info_birthday_body">We use your birthday to make sure you are old enough to use the app, and to give you the right experience for your age. It is not shown on your profile, and no one else can see it. You can change it later from your profile.</string>
+    <string name="auth_info_remember_title">Remember login info</string>
+    <string name="auth_info_remember_body">When this is on, we keep your login on this device so you stay signed in the next time you open the app. When it is off, you will need to log in again each time. Use the off setting on a shared device.</string>
+    <string name="auth_info_contacts_title">Contacts</string>
+    <string name="auth_info_contacts_body">This app does not read or upload your contacts. The row on the previous screen is part of the design only, and no contact data ever leaves your device. Nothing is synced to our servers.</string>
+    <string name="auth_info_username_title">About usernames</string>
+    <string name="auth_info_username_body">A username is how people find and mention you. It can contain lowercase letters, numbers, full stops and underscores, and must be between 3 and 30 characters. You can change it at any time from your profile.</string>
+</resources>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bio editor — full screen in Family B style (reached from 'Add bio') -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/vibe_modal_bg"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/vibe_top_bar_height"
+        android:background="@color/vibe_top_bar"
+        android:paddingStart="@dimen/vibe_skip_padding_end"
+        android:paddingEnd="@dimen/vibe_skip_padding_end">
+
+        <ImageView
+            android:id="@+id/btn_bio_back"
+            android:layout_width="@dimen/auth_back_icon"
+            android:layout_height="@dimen/auth_back_icon"
+            android:layout_gravity="start|center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/auth_back"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/vibe_text" />
+
+        <TextView
+            android:id="@+id/tv_bio_title"
+            style="@style/TextAppearance.Insta.VibeSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/vibe_bio_title" />
+
+        <TextView
+            android:id="@+id/btn_bio_done"
+            style="@style/TextAppearance.Insta.VibeSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="@string/vibe_done"
+            android:textColor="@color/vibe_accent_link" />
+    </FrameLayout>
+
+    <EditText
+        android:id="@+id/et_bio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/vibe_button_margin"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="@dimen/vibe_button_margin"
+        android:background="@null"
+        android:gravity="top|start"
+        android:hint="@string/vibe_bio_hint"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine|textCapSentences"
+        android:maxLength="150"
+        android:minHeight="@dimen/bio_field_min_height"
+        android:textColor="@color/vibe_text"
+        android:textColorHint="@color/vibe_text_secondary"
+        android:textSize="@dimen/bio_field_text_size" />
+
+    <TextView
+        android:id="@+id/tv_bio_counter"
+        style="@style/TextAppearance.Insta.VibeRowDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="@dimen/vibe_button_margin"
+        android:gravity="end"
+        android:textSize="@dimen/bio_counter_size" />
+</LinearLayout>

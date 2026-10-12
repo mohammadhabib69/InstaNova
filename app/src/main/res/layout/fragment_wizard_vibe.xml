@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screen 10 — Create a profile that shows your vibe (reference image 7) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/vibe_bg"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/vibe_top_bar_height"
+        android:background="@color/vibe_top_bar"
+        android:paddingEnd="@dimen/vibe_skip_padding_end">
+
+        <TextView
+            android:id="@+id/btn_skip"
+            style="@style/TextAppearance.Insta.VibeSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="@string/vibe_skip" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_title"
+        style="@style/TextAppearance.Insta.VibeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/vibe_title_margin_start"
+        android:layout_marginTop="@dimen/vibe_title_margin_top"
+        android:layout_marginEnd="@dimen/vibe_title_margin_start"
+        android:text="@string/vibe_vibe_title" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Centred card: radius 40dp, card colour, 24dp padding -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/vibe_card_margin"
+            android:layout_marginEnd="@dimen/vibe_card_margin"
+            android:background="@drawable/bg_vibe_card"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="@dimen/vibe_card_padding">
+
+            <FrameLayout
+                android:layout_width="@dimen/vibe_avatar_size"
+                android:layout_height="@dimen/vibe_avatar_size">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/iv_vibe_avatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_vibe_avatar_placeholder"
+                    android:contentDescription="@string/vibe_new_profile_picture"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_person_placeholder"
+                    app:civ_border_width="0dp" />
+
+                <!-- Camera badge, overlapping the avatar's bottom-right -->
+                <ImageView
+                    android:id="@+id/btn_camera_badge"
+                    android:layout_width="@dimen/vibe_badge_size"
+                    android:layout_height="@dimen/vibe_badge_size"
+                    android:layout_gravity="bottom|end"
+                    android:layout_marginEnd="@dimen/vibe_badge_overlap"
+                    android:layout_marginBottom="@dimen/vibe_badge_overlap"
+                    android:background="@drawable/bg_vibe_camera_badge"
+                    android:contentDescription="@string/vibe_new_profile_picture"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_camera_add" />
+
+                <ProgressBar
+                    android:id="@+id/progress_avatar"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <!-- Username chip -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/vibe_chip_gap"
+                android:background="@drawable/bg_vibe_username_chip"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/vibe_chip_padding_horizontal"
+                android:paddingTop="@dimen/vibe_chip_padding_vertical"
+                android:paddingEnd="@dimen/vibe_chip_padding_horizontal"
+                android:paddingBottom="@dimen/vibe_chip_padding_vertical">
+
+                <ImageView
+                    android:layout_width="@dimen/vibe_link_glyph"
+                    android:layout_height="@dimen/vibe_link_glyph"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_gradient_glyph" />
+
+                <TextView
+                    android:id="@+id/tv_vibe_username"
+                    style="@style/TextAppearance.Insta.VibeUsername"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_vibe_fullname"
+                style="@style/TextAppearance.Insta.VibeFullName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/vibe_fullname_gap" />
+
+            <TextView
+                android:id="@+id/tv_vibe_bio"
+                style="@style/TextAppearance.Insta.VibeBioLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/vibe_bio_gap"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:maxLines="3"
+                android:text="@string/vibe_add_bio" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_done"
+        style="@style/Widget.Insta.VibeButton.Primary"
+        android:layout_marginStart="@dimen/vibe_button_margin_done"
+        android:layout_marginEnd="@dimen/vibe_button_margin_done"
+        android:layout_marginBottom="@dimen/vibe_button_margin"
+        android:text="@string/vibe_done" />
+</LinearLayout>

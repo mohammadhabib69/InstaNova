@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================================= -->
+    <!-- REGISTRATION FLOW — text appearances, buttons, fields          -->
+    <!-- ============================================================= -->
+
+    <!-- ===================== FAMILY A (wizard) ===================== -->
+
+    <style name="TextAppearance.Insta.AuthTitle" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/auth_title_size</item>
+        <item name="android:textColor">@color/auth_text</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthSubtitle" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/auth_subtitle_size</item>
+        <item name="android:textColor">@color/auth_text</item>
+        <item name="android:lineSpacingMultiplier">1.25</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthNote" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/auth_text_secondary</item>
+        <item name="android:lineSpacingMultiplier">1.25</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthFieldLabel" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/auth_field_label_size</item>
+        <item name="android:textColor">@color/auth_text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthFieldValue" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/auth_field_value_size</item>
+        <item name="android:textColor">@color/auth_text</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthButton" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/auth_button_text_size</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthBottomLink" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/auth_bottom_link_text_size</item>
+        <item name="android:textColor">@color/auth_link</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthInlineError" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/auth_code_error_size</item>
+        <item name="android:textColor">@color/auth_error_text</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthCodeDigit" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/auth_code_digit_size</item>
+        <item name="android:textColor">@color/auth_text</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="TextAppearance.Insta.AuthCheckbox" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/auth_text</item>
+    </style>
+
+    <!-- Button: full width, 41dp, pill, no elevation -->
+    <style name="Widget.Insta.AuthButton.Primary" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/auth_button_height</item>
+        <item name="android:background">@drawable/bg_auth_button_primary</item>
+        <item name="android:textColor">@color/auth_on_primary</item>
+        <item name="android:textAppearance">@style/TextAppearance.Insta.AuthButton</item>
+        <item name="android:gravity">center</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <style name="Widget.Insta.AuthButton.Secondary" parent="Widget.Insta.AuthButton.Primary">
+        <item name="android:background">@drawable/bg_auth_button_secondary</item>
+        <item name="android:textColor">@color/auth_secondary_text</item>
+    </style>
+
+    <!-- Bottom 'I already have an account' -->
+    <style name="Widget.Insta.AuthBottomLink" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@null</item>
+        <item name="android:textAppearance">@style/TextAppearance.Insta.AuthBottomLink</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+    </style>
+
+    <!-- Outlined field container (custom AuthFieldView).
+         parent="" is required: a dotted style name with no explicit parent makes
+         AAPT infer one by truncating the name, i.e. Widget.Insta (which does not
+         exist). Same convention as Widget.Insta.Chip in themes.xml. -->
+    <style name="Widget.Insta.AuthField" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/auth_field_height</item>
+        <item name="android:background">@drawable/bg_auth_field</item>
+        <item name="android:paddingStart">@dimen/auth_field_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/auth_field_padding_horizontal</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+
+    <style name="Widget.Insta.AuthField.Birthday">
+        <item name="android:layout_height">@dimen/auth_field_height_birthday</item>
+    </style>
+
+    <!-- Confirmation-code box -->
+    <!-- Confirmation-code box. parent="" for the same reason as AuthField. -->
+    <style name="Widget.Insta.AuthCodeBox" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">@dimen/auth_code_box_height</item>
+        <item name="android:background">@drawable/bg_auth_code_box</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAppearance">@style/TextAppearance.Insta.AuthCodeDigit</item>
+    </style>
+
+    <!-- Sheet row (Resend / Change email / Cancel) -->
+    <style name="TextAppearance.Insta.AuthSheetRow" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/auth_text</item>
+    </style>
+
+    <!-- ===================== FAMILY B (onboarding) ===================== -->
+
+    <style name="TextAppearance.Insta.VibeTitle" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/vibe_title_size</item>
+        <item name="android:textColor">@color/vibe_text</item>
+        <item name="android:lineSpacingMultiplier">1.15</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeSkip" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/vibe_skip_size</item>
+        <item name="android:textColor">@color/vibe_text</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeButton" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/vibe_button_text_size</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeRowTitle" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/vibe_row_title_size</item>
+        <item name="android:textColor">@color/vibe_text</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeRowDesc" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/vibe_row_desc_size</item>
+        <item name="android:textColor">@color/vibe_text_secondary</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeHelper" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/vibe_helper_size</item>
+        <item name="android:textColor">@color/vibe_text_secondary</item>
+        <item name="android:gravity">center</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeUsername" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/vibe_username_size</item>
+        <item name="android:textColor">@color/vibe_text</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeFullName" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/vibe_fullname_size</item>
+        <item name="android:textColor">@color/vibe_text</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeBioLink" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/vibe_bio_size</item>
+        <item name="android:textColor">@color/vibe_accent_link</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeWelcomeTitle" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/vibe_welcome_title_size</item>
+        <item name="android:textColor">@color/vibe_text</item>
+        <item name="android:gravity">center</item>
+        <item name="android:lineSpacingMultiplier">1.15</item>
+    </style>
+
+    <style name="TextAppearance.Insta.VibeWelcomeSub" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/vibe_welcome_sub_size</item>
+        <item name="android:textColor">@color/vibe_text_secondary</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="Widget.Insta.VibeButton.Primary" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/vibe_button_height</item>
+        <item name="android:background">@drawable/bg_vibe_button_primary</item>
+        <item name="android:textColor">@color/vibe_on_primary</item>
+        <item name="android:textAppearance">@style/TextAppearance.Insta.VibeButton</item>
+        <item name="android:gravity">center</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+</resources>

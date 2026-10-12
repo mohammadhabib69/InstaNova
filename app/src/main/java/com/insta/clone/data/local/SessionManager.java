@@ -18,6 +18,14 @@ public class SessionManager {
     private static SessionManager instance;
     private final SharedPreferences prefs;
 
+    /**
+     * Tokens held in memory only. Used when "Remember login info" is unchecked:
+     * the session keeps working for the rest of this process, but nothing is left
+     * on disk, so the next cold start opens Login.
+     */
+    private String transientAccessToken;
+    private String transientRefreshToken;
+
     public static synchronized SessionManager getInstance(Context context) {
         if (instance == null) {
             instance = new SessionManager(context.getApplicationContext());
@@ -51,16 +59,36 @@ public class SessionManager {
         editor.apply();
     }
 
-    public boolean isLoggedIn() {
-        return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
+    /**
+     * Moves the current session out of disk and into memory. Called when the user
+     * unchecks "Remember login info" on the Create-a-password step.
+     */
+    public void keepInMemoryOnly() {
+        transientAccessToken = prefs.getString(KEY_ACCESS_TOKEN, null);
+        transientRefreshToken = prefs.getString(KEY_REFRESH_TOKEN, null);
+        prefs.edit()
+                .remove(KEY_ACCESS_TOKEN)
+                .remove(KEY_REFRESH_TOKEN)
+                .remove(KEY_USER_ID)
+                .remove(KEY_USERNAME)
+                .remove(KEY_AVATAR_URL)
+                .remove(KEY_IS_LOGGED_IN)
+                .apply();
     }
 
+    public boolean isLoggedIn() {
+        return prefs.getBoolean(KEY_IS_LOGGED_IN, false) || transientAccessToken != null;
+    }
+
+    /** Persisted token, falling back to the in-memory one. */
     public String getAccessToken() {
-        return prefs.getString(KEY_ACCESS_TOKEN, null);
+        String token = prefs.getString(KEY_ACCESS_TOKEN, null);
+        return token != null ? token : transientAccessToken;
     }
 
     public String getRefreshToken() {
-        return prefs.getString(KEY_REFRESH_TOKEN, null);
+        String token = prefs.getString(KEY_REFRESH_TOKEN, null);
+        return token != null ? token : transientRefreshToken;
     }
 
     public String getUserId() {
@@ -95,6 +123,8 @@ public class SessionManager {
     }
 
     public void clearSession() {
+        transientAccessToken = null;
+        transientRefreshToken = null;
         prefs.edit().clear().apply();
     }
 }

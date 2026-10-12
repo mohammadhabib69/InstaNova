@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Outlined wizard field: 1.5dp default, 2dp + brighter while focused. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/auth_code_box_bg" />
+            <corners android:radius="@dimen/auth_field_radius" />
+            <stroke
+                android:width="@dimen/auth_field_stroke_focused"
+                android:color="@color/auth_field_border_focused" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/auth_code_box_bg" />
+            <corners android:radius="@dimen/auth_field_radius" />
+            <stroke
+                android:width="@dimen/auth_field_stroke"
+                android:color="@color/auth_field_border" />
+        </shape>
+    </item>
+</selector>
