@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Periwinkle camera badge overlapping the avatar, with a card-coloured ring. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/vibe_primary" />
+    <stroke
+        android:width="@dimen/vibe_badge_border"
+        android:color="@color/vibe_badge_border" />
+</shape>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================================= -->
+    <!-- REGISTRATION FLOW (LIGHT)                                      -->
+    <!-- Family A = wizard screens (mobile/email/code/password/...),    -->
+    <!-- Family B = onboarding (welcome / profile vibe / allow access)  -->
+    <!-- values-night/colors_auth.xml overrides these.                  -->
+    <!-- ============================================================= -->
+
+    <!-- ========== Family A (wizard) ========== -->
+    <color name="auth_bg">#FFFFFF</color>
+    <color name="auth_text">#000000</color>
+    <color name="auth_text_secondary">#65676B</color>
+    <color name="auth_field_border">#CED0D4</color>
+    <color name="auth_field_border_focused">#000000</color>
+    <color name="auth_field_border_error">#FF5A5F</color>
+    <color name="auth_primary">#0064E0</color>
+    <color name="auth_on_primary">#FFFFFF</color>
+    <color name="auth_secondary_bg">#E4E6EB</color>
+    <color name="auth_secondary_text">#444950</color>
+    <color name="auth_link">#0064E0</color>
+    <color name="auth_checkbox">#0A7CFF</color>
+    <color name="auth_checkbox_border">#CED0D4</color>
+    <color name="auth_error_text">#FF5A5F</color>
+    <color name="auth_success">#1DA457</color>
+    <color name="auth_code_box_bg">#00000000</color>
+
+    <!-- Disabled primary button = 40% alpha (applied in Java, token kept here) -->
+    <color name="auth_primary_disabled">#660064E0</color>
+
+    <!-- ========== Family B (onboarding), inverted for light ========== -->
+    <color name="vibe_bg">#FFFFFF</color>
+    <color name="vibe_top_bar">#F0F2F5</color>
+    <color name="vibe_text">#000000</color>
+    <color name="vibe_text_secondary">#65676B</color>
+    <color name="vibe_primary">#4B5BFF</color>
+    <color name="vibe_on_primary">#FFFFFF</color>
+    <color name="vibe_accent_link">#4B5BFF</color>
+    <color name="vibe_card_bg">#F0F2F5</color>
+    <color name="vibe_card_text">#000000</color>
+    <color name="vibe_chip_bg">#E4E6EB</color>
+    <color name="vibe_row_circle">#E4E6EB</color>
+    <color name="vibe_row_icon">#000000</color>
+    <!-- Fixed by the reference: avatar placeholder keeps its own greys -->
+    <color name="vibe_avatar_fill">#F2F4F7</color>
+    <color name="vibe_avatar_silhouette">#848A94</color>
+    <color name="vibe_badge_border">#F0F2F5</color>
+
+    <!-- Bio editor keeps Family B colours but is a full screen -->
+    <color name="vibe_modal_bg">#FFFFFF</color>
+</resources>

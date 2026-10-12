@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Small decorative gradient glyph inside the Profile-vibe username chip.
+  An original rounded-square ring, drawn for this app; not any official mark.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="18dp"
+    android:height="18dp"
+    android:viewportWidth="18"
+    android:viewportHeight="18">
+    <path
+        android:fillColor="#00000000"
+        android:strokeWidth="2"
+        android:pathData="M5,2L13,2A3,3 0 0 1 16,5L16,13A3,3 0 0 1 13,16L5,16A3,3 0 0 1 2,13L2,5A3,3 0 0 1 5,2Z">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="2"
+                android:startY="16"
+                android:endX="16"
+                android:endY="2">
+                <item android:offset="0.0" android:color="#FF7A2BD4" />
+                <item android:offset="0.5" android:color="#FFDD2A7B" />
+                <item android:offset="1.0" android:color="#FFF58529" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

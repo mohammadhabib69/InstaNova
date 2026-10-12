@@ -10,9 +10,10 @@
         android:name="com.insta.clone.ui.auth.LoginFragment"
         android:label="LoginFragment"
         tools:layout="@layout/fragment_login">
+        <!-- Registration wizard entry point (replaces the old one-page signup). -->
         <action
             android:id="@+id/action_login_to_signupEmail"
-            app:destination="@id/signupEmailFragment"
+            app:destination="@id/wizardMobileFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -25,6 +26,194 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
     </fragment>
+
+    <!-- ============ Registration wizard — Family A screens ============ -->
+
+    <fragment
+        android:id="@+id/wizardMobileFragment"
+        android:name="com.insta.clone.ui.auth.WizardMobileFragment"
+        android:label="WizardMobileFragment"
+        tools:layout="@layout/fragment_wizard_mobile">
+        <action
+            android:id="@+id/action_mobile_to_email"
+            app:destination="@id/wizardEmailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_wizard_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wizardEmailFragment"
+        android:name="com.insta.clone.ui.auth.WizardEmailFragment"
+        android:label="WizardEmailFragment"
+        tools:layout="@layout/fragment_wizard_email">
+        <action
+            android:id="@+id/action_email_to_code"
+            app:destination="@id/wizardCodeFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wizardCodeFragment"
+        android:name="com.insta.clone.ui.auth.WizardCodeFragment"
+        android:label="WizardCodeFragment"
+        tools:layout="@layout/fragment_wizard_code">
+        <action
+            android:id="@+id/action_code_to_password"
+            app:destination="@id/wizardPasswordFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wizardPasswordFragment"
+        android:name="com.insta.clone.ui.auth.WizardPasswordFragment"
+        android:label="WizardPasswordFragment"
+        tools:layout="@layout/fragment_wizard_password">
+        <action
+            android:id="@+id/action_password_to_birthday"
+            app:destination="@id/wizardBirthdayFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wizardBirthdayFragment"
+        android:name="com.insta.clone.ui.auth.WizardBirthdayFragment"
+        android:label="WizardBirthdayFragment"
+        tools:layout="@layout/fragment_wizard_birthday">
+        <action
+            android:id="@+id/action_birthday_to_name"
+            app:destination="@id/wizardNameFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wizardNameFragment"
+        android:name="com.insta.clone.ui.auth.WizardNameFragment"
+        android:label="WizardNameFragment"
+        tools:layout="@layout/fragment_wizard_name">
+        <action
+            android:id="@+id/action_name_to_username"
+            app:destination="@id/wizardUsernameFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wizardUsernameFragment"
+        android:name="com.insta.clone.ui.auth.WizardUsernameFragment"
+        android:label="WizardUsernameFragment"
+        tools:layout="@layout/fragment_wizard_username">
+        <action
+            android:id="@+id/action_username_to_terms"
+            app:destination="@id/wizardTermsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wizardTermsFragment"
+        android:name="com.insta.clone.ui.auth.WizardTermsFragment"
+        android:label="WizardTermsFragment"
+        tools:layout="@layout/fragment_wizard_terms">
+        <action
+            android:id="@+id/action_terms_to_welcome"
+            app:destination="@id/wizardWelcomeFragment"
+            app:popUpTo="@id/wizardMobileFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left" />
+    </fragment>
+
+    <!-- ============ Registration wizard — Family B (onboarding) ============ -->
+
+    <fragment
+        android:id="@+id/wizardWelcomeFragment"
+        android:name="com.insta.clone.ui.auth.WizardWelcomeFragment"
+        android:label="WizardWelcomeFragment"
+        tools:layout="@layout/fragment_wizard_welcome">
+        <action
+            android:id="@+id/action_welcome_to_vibe"
+            app:destination="@id/wizardVibeFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/wizardVibeFragment"
+        android:name="com.insta.clone.ui.auth.WizardVibeFragment"
+        android:label="WizardVibeFragment"
+        tools:layout="@layout/fragment_wizard_vibe">
+        <action
+            android:id="@+id/action_vibe_to_bio"
+            app:destination="@id/bioEditFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_vibe_to_allow"
+            app:destination="@id/wizardAllowAccessFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/bioEditFragment"
+        android:name="com.insta.clone.ui.auth.BioEditFragment"
+        android:label="BioEditFragment"
+        tools:layout="@layout/fragment_bio_edit" />
+
+    <fragment
+        android:id="@+id/wizardAllowAccessFragment"
+        android:name="com.insta.clone.ui.auth.WizardAllowAccessFragment"
+        android:label="WizardAllowAccessFragment"
+        tools:layout="@layout/fragment_wizard_allow" />
+
+    <fragment
+        android:id="@+id/legalTextFragment"
+        android:name="com.insta.clone.ui.auth.LegalTextFragment"
+        android:label="LegalTextFragment"
+        tools:layout="@layout/fragment_legal_text">
+        <argument
+            android:name="legal_title_res"
+            app:argType="integer" />
+        <argument
+            android:name="legal_body_res"
+            app:argType="integer" />
+    </fragment>
+
+    <!-- Reachable from any wizard step: the policy text screens. -->
+    <action
+        android:id="@+id/action_to_legal"
+        app:destination="@id/legalTextFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"
+        app:popEnterAnim="@anim/slide_in_left"
+        app:popExitAnim="@anim/slide_out_right" />
 
     <fragment
         android:id="@+id/signupEmailFragment"

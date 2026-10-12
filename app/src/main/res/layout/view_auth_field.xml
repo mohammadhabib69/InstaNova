@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Internal layout of AuthFieldView. The host view (a FrameLayout) applies the
+  outlined background and padding from @style/Widget.Insta.AuthField, so this
+  root carries no background, border or padding of its own.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Label stays at the top-left, always visible (never floats). -->
+            <TextView
+                android:id="@+id/tv_field_label"
+                style="@style/TextAppearance.Insta.AuthFieldLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <!-- Typed value sits directly under the label. -->
+            <EditText
+                android:id="@+id/et_field_value"
+                style="@style/TextAppearance.Insta.AuthFieldValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:importantForAutofill="no"
+                android:maxLines="1"
+                android:paddingStart="0dp"
+                android:paddingTop="0dp"
+                android:paddingEnd="0dp"
+                android:paddingBottom="0dp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/iv_field_trailing"
+            android:layout_width="@dimen/auth_trailing_icon"
+            android:layout_height="@dimen/auth_trailing_icon"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@null"
+            android:visibility="gone" />
+    </LinearLayout>
+</merge>

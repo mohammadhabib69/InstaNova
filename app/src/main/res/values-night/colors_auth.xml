@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================================= -->
+    <!-- REGISTRATION FLOW (DARK) — overrides values/colors_auth.xml    -->
+    <!-- ============================================================= -->
+
+    <!-- ========== Family A (wizard) ========== -->
+    <color name="auth_bg">#1F1F1F</color>
+    <color name="auth_text">#FFFFFF</color>
+    <color name="auth_text_secondary">#A8A8A8</color>
+    <color name="auth_field_border">#75777A</color>
+    <color name="auth_field_border_focused">#FFFFFF</color>
+    <color name="auth_field_border_error">#FF5A5F</color>
+    <color name="auth_primary">#0064E0</color>
+    <color name="auth_on_primary">#FFFFFF</color>
+    <color name="auth_secondary_bg">#282A2D</color>
+    <color name="auth_secondary_text">#A8A8A8</color>
+    <color name="auth_link">#4D9DF0</color>
+    <color name="auth_checkbox">#0A7CFF</color>
+    <color name="auth_checkbox_border">#75777A</color>
+    <color name="auth_error_text">#FF5A5F</color>
+    <color name="auth_success">#3FC463</color>
+    <color name="auth_code_box_bg">#00000000</color>
+
+    <color name="auth_primary_disabled">#660064E0</color>
+
+    <!-- ========== Family B (onboarding) ========== -->
+    <color name="vibe_bg">#000000</color>
+    <color name="vibe_top_bar">#0E1116</color>
+    <color name="vibe_text">#FFFFFF</color>
+    <color name="vibe_text_secondary">#A8A8A8</color>
+    <color name="vibe_primary">#4B5BFF</color>
+    <color name="vibe_on_primary">#FFFFFF</color>
+    <color name="vibe_accent_link">#7C8CFF</color>
+    <color name="vibe_card_bg">#1A1D21</color>
+    <color name="vibe_card_text">#FFFFFF</color>
+    <color name="vibe_chip_bg">#212428</color>
+    <color name="vibe_row_circle">#2A2C30</color>
+    <color name="vibe_row_icon">#FFFFFF</color>
+    <color name="vibe_avatar_fill">#F2F4F7</color>
+    <color name="vibe_avatar_silhouette">#848A94</color>
+    <color name="vibe_badge_border">#1A1D21</color>
+
+    <color name="vibe_modal_bg">#000000</color>
+</resources>
