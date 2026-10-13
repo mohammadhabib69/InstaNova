@@ -4,13 +4,20 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ConcatAdapter;
@@ -27,7 +34,7 @@ import com.insta.clone.ui.activity.ActivityFragment;
 import com.insta.clone.ui.chat.InboxActivity;
 import com.insta.clone.ui.comment.CommentsBottomSheet;
 import com.insta.clone.ui.create.CreateStoryActivity;
-import com.insta.clone.ui.create.CreatePostActivity;
+import com.insta.clone.ui.create.CreateSheet;
 import com.insta.clone.ui.story.StoryViewerActivity;
 import com.insta.clone.ui.auth.AuthActivity;
 import com.insta.clone.data.repository.ChatRepository;
@@ -61,6 +68,15 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
         // Wordmark styling
         binding.tvWordmark.setTypeface(InstaApp.getWordmarkTypeface(requireContext()));
 
+        // PAGE 1: keep the 48dp home top bar clear of the status bar. The window is
+        // edge-to-edge (PAGE 0), so only the top inset is applied here.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.appBarLayout, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), bars.top, v.getPaddingRight(), v.getPaddingBottom());
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(binding.appBarLayout);
+
         // Header click listeners
         binding.btnNotifications.setOnClickListener(v -> {
             // Open activity screen
@@ -72,7 +88,8 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
             Intent intent = new Intent(requireContext(), InboxActivity.class);
             startActivity(intent);
         });
-        binding.btnCreate.setOnClickListener(v -> startActivity(new Intent(requireContext(), CreatePostActivity.class)));
+        // PAGE 8A — the '+' opens the Create sheet, whose rows launch the existing flows
+        binding.btnCreate.setOnClickListener(v -> CreateSheet.show(requireContext()));
 
         setupRecyclerView();
 
@@ -300,20 +317,57 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            RecyclerView rv = new RecyclerView(parent.getContext());
+            Context context = parent.getContext();
+            Resources res = context.getResources();
+
+            RecyclerView rv = new RecyclerView(context);
             rv.setLayoutParams(new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    (int) parent.getResources().getDimension(R.dimen.story_tray_height)
+                    res.getDimensionPixelSize(R.dimen.story_tray_height)
             ));
-            rv.setLayoutManager(new LinearLayoutManager(parent.getContext(), LinearLayoutManager.HORIZONTAL, false));
+            rv.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
             rv.setClipToPadding(false);
-            rv.setPadding(8, 0, 8, 0);
+            int gutter = res.getDimensionPixelSize(R.dimen.story_tray_padding_horizontal);
+            rv.setPadding(gutter, 0, gutter, 0);
             rv.setAdapter(trayAdapter);
-            return new ViewHolder(rv);
+
+            // 1dp divider under the tray.
+            View divider = new View(context);
+            divider.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    res.getDimensionPixelSize(R.dimen.divider_hairline)
+            ));
+            divider.setBackgroundColor(themeColor(context, R.attr.themeDivider, R.color.color_divider));
+
+            LinearLayout container = new LinearLayout(context);
+            container.setOrientation(LinearLayout.VERTICAL);
+            container.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+            container.addView(rv);
+            container.addView(divider);
+            return new ViewHolder(container);
         }
 
         @Override public void onBindViewHolder(@NonNull ViewHolder holder, int position) {}
         @Override public int getItemCount() { return 1; }
+
+        /** Resolves a PAGE 0 semantic theme attribute to a concrete color. */
+        private static int themeColor(Context context, int attr, int fallbackColorRes) {
+            try {
+                TypedValue tv = new TypedValue();
+                if (context.getTheme().resolveAttribute(attr, tv, true)) {
+                    if (tv.resourceId != 0) {
+                        return ContextCompat.getColor(context, tv.resourceId);
+                    }
+                    return tv.data;
+                }
+            } catch (Exception ignored) {
+                // Fall through to the token default.
+            }
+            return ContextCompat.getColor(context, fallbackColorRes);
+        }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
             ViewHolder(@NonNull View itemView) { super(itemView); }

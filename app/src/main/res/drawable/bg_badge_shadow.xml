@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 3 — soft dark halo behind the grid badges. The negative inset lets the
+    shadow bleed a few dp past the badge icon so the white glyph stays readable
+    on bright media.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetTop="@dimen/media_badge_shadow_inset"
+    android:insetBottom="@dimen/media_badge_shadow_inset"
+    android:insetLeft="@dimen/media_badge_shadow_inset"
+    android:insetRight="@dimen/media_badge_shadow_inset">
+    <shape android:shape="oval">
+        <solid android:color="@color/color_badge_shadow" />
+    </shape>
+</inset>

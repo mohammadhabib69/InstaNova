@@ -1,6 +1,10 @@
 package com.insta.clone.ui.home;
 
 import android.content.Context;
+import android.graphics.Typeface;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +20,11 @@ import com.bumptech.glide.Glide;
 import com.insta.clone.R;
 import com.insta.clone.data.model.Post;
 import com.insta.clone.databinding.ItemFeedPostBinding;
+import com.insta.clone.util.Constants;
+import com.insta.clone.util.GlideUtils;
 import com.insta.clone.util.SpanUtils;
 import com.insta.clone.util.TimeUtils;
+import com.insta.clone.util.ToastUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -135,12 +142,17 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                 binding.dotsIndicator.setVisibility(View.VISIBLE);
                 binding.dotsIndicator.setCount(mediaUrls.size());
 
+                final int pageCount = mediaUrls.size();
+                binding.ivCarouselBadge.setText(context.getString(R.string.carousel_position, 1, pageCount));
+
                 CarouselPagerAdapter carouselAdapter = new CarouselPagerAdapter(mediaUrls);
                 binding.viewPagerCarousel.setAdapter(carouselAdapter);
                 carouselPageChangeCallback = new ViewPager2.OnPageChangeCallback() {
                     @Override
                     public void onPageSelected(int pagePos) {
                         binding.dotsIndicator.setSelectedPosition(pagePos);
+                        binding.ivCarouselBadge.setText(
+                                context.getString(R.string.carousel_position, pagePos + 1, pageCount));
                     }
                 };
                 binding.viewPagerCarousel.registerOnPageChangeCallback(carouselPageChangeCallback);
@@ -165,6 +177,16 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                 });
             } else {
                 binding.ivAudioToggle.setVisibility(View.GONE);
+            }
+
+            // Audio / repost attribution overlay (design-only, decorative)
+            if (post.isReel() && Constants.DECORATIVE_UI) {
+                binding.layoutMediaAttribution.setVisibility(View.VISIBLE);
+                GlideUtils.loadAvatar(binding.ivMediaAvatar, post.getAvatarUrl());
+                binding.layoutMediaAttribution.setOnClickListener(v -> ToastUtil.showNotAvailable(context));
+            } else {
+                binding.layoutMediaAttribution.setVisibility(View.GONE);
+                binding.layoutMediaAttribution.setOnClickListener(null);
             }
 
             // 3. Double-tap to like
@@ -201,17 +223,42 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                 if (listener != null) listener.onShareClick(post);
             });
 
+            // 7b. Repost (design-only, decorative)
+            if (Constants.DECORATIVE_UI) {
+                binding.ivRepost.setVisibility(View.VISIBLE);
+                binding.ivRepost.setOnClickListener(v -> ToastUtil.showNotAvailable(context));
+            } else {
+                binding.ivRepost.setVisibility(View.GONE);
+                binding.ivRepost.setOnClickListener(null);
+            }
+
             // 8. 3-dots options
             binding.ivOptions.setOnClickListener(v -> {
                 if (listener != null) listener.onOptionsClick(post, position);
             });
 
-            // 9. Likes count
+            // 9. Likes line: "Liked by <user> and <n> others" (hidden at 0)
             if (post.getLikesCount() > 0) {
-                binding.tvLikesCount.setText(context.getString(R.string.likes_count, String.format(Locale.US, "%,d", post.getLikesCount())));
+                binding.tvLikesCount.setText(buildLikesLine(context, post));
                 binding.tvLikesCount.setVisibility(View.VISIBLE);
             } else {
+                binding.tvLikesCount.setText(null);
                 binding.tvLikesCount.setVisibility(View.GONE);
+            }
+
+            // 9b. Action-row counts (abbreviated, hidden at 0)
+            if (post.getLikesCount() > 0) {
+                binding.tvLikeCount.setText(abbreviate(post.getLikesCount()));
+                binding.tvLikeCount.setVisibility(View.VISIBLE);
+            } else {
+                binding.tvLikeCount.setVisibility(View.GONE);
+            }
+
+            if (post.getCommentsCount() > 0) {
+                binding.tvCommentCount.setText(abbreviate(post.getCommentsCount()));
+                binding.tvCommentCount.setVisibility(View.VISIBLE);
+            } else {
+                binding.tvCommentCount.setVisibility(View.GONE);
             }
 
             // 10. Caption
@@ -246,13 +293,53 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
         private void updateLikeButton(boolean liked) {
             Context c = binding.getRoot().getContext();
             if (liked) {
-                binding.ivLike.setImageResource(R.drawable.ic_favorite_filled);
+                // Liked heart: ic_heart_filled (tinted with @color/color_like).
+                binding.ivLike.setImageResource(R.drawable.ic_heart_filled);
                 binding.ivLike.setImageTintList(null);
                 binding.ivLike.clearColorFilter();
             } else {
-                binding.ivLike.setImageResource(R.drawable.ic_favorite_outline);
+                binding.ivLike.setImageResource(R.drawable.ic_heart);
                 binding.ivLike.setColorFilter(ContextCompat.getColor(c, R.color.color_text_primary));
             }
+        }
+
+        /** "Liked by <user>" / "Liked by <user> and <n> others" with bold usernames. */
+        private CharSequence buildLikesLine(Context context, Post post) {
+            String username = post.getUsername() == null ? "" : post.getUsername();
+            SpannableStringBuilder sb = new SpannableStringBuilder();
+            sb.append(context.getString(R.string.liked_by)).append(' ');
+
+            int nameStart = sb.length();
+            sb.append(username);
+            sb.setSpan(new StyleSpan(Typeface.BOLD), nameStart, sb.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            int others = post.getLikesCount() - 1;
+            if (others > 0) {
+                sb.append(' ').append(context.getString(R.string.and)).append(' ');
+                int othersStart = sb.length();
+                sb.append(abbreviate(others)).append(' ').append(context.getString(R.string.others));
+                sb.setSpan(new StyleSpan(Typeface.BOLD), othersStart, sb.length(),
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            return sb;
+        }
+
+        /** 999 -> "999", 1200 -> "1.2K", 12000 -> "12K", 1200000 -> "1.2M". */
+        private String abbreviate(int count) {
+            if (count < 1000) {
+                return String.valueOf(count);
+            }
+            if (count < 10000) {
+                return String.format(Locale.US, "%.1fK", count / 1000.0);
+            }
+            if (count < 1000000) {
+                return String.format(Locale.US, "%dK", Math.round(count / 1000.0));
+            }
+            if (count < 10000000) {
+                return String.format(Locale.US, "%.1fM", count / 1000000.0);
+            }
+            return String.format(Locale.US, "%dM", Math.round(count / 1000000.0));
         }
 
         private void animateLikeButton() {

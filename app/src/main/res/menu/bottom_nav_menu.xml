@@ -1,27 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 0 — Bottom navigation (unlabeled, no indicator, no ripple).
+    Order: Home, Search, Create, Reels, Profile. Shop tab removed.
+    Create (navigation_create) is intercepted in MainActivity to open the
+    New post picker and never stays selected. Profile icon is swapped to the
+    user's avatar at runtime when available.
+-->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/ic_home"
+        android:icon="@drawable/bottom_nav_home"
         android:title="@string/nav_home" />
 
     <item
         android:id="@+id/navigation_search"
-        android:icon="@drawable/ic_search"
+        android:icon="@drawable/bottom_nav_search"
         android:title="@string/nav_search" />
 
     <item
-        android:id="@+id/navigation_shop"
-        android:icon="@drawable/ic_bookmark_outline"
-        android:title="Saved" />
+        android:id="@+id/navigation_create"
+        android:icon="@drawable/ic_add_square"
+        android:title="@string/nav_create" />
 
     <item
         android:id="@+id/navigation_reels"
-        android:icon="@drawable/ic_reels"
+        android:icon="@drawable/bottom_nav_reels"
         android:title="@string/nav_reels" />
 
     <item
         android:id="@+id/navigation_profile"
-        android:icon="@drawable/ic_person_placeholder"
+        android:icon="@drawable/bottom_nav_profile"
         android:title="@string/nav_profile" />
 </menu>

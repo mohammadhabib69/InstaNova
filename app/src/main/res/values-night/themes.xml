@@ -1,36 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ============================================================= -->
+    <!-- PAGE 0 — DARK THEME OVERRIDES                                  -->
+    <!-- Semantic @color/* names resolve to values-night automatically; -->
+    <!-- only night-specific window/bar flags are overridden here.      -->
+    <!-- ============================================================= -->
     <style name="Theme.InstaClone" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/color_primary</item>
-        <item name="colorPrimaryVariant">@color/color_primary_dark</item>
+        <item name="colorPrimaryVariant">@color/color_primary</item>
+        <item name="colorSecondary">@color/color_primary</item>
+        <item name="colorSecondaryVariant">@color/color_primary</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="android:windowBackground">#000000</item>
-        <item name="android:statusBarColor">#000000</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:navigationBarColor">#000000</item>
+        <item name="colorAccent">@color/color_primary</item>
+        <item name="android:colorControlActivated">@color/color_primary</item>
 
-        <item name="themeBackground">#000000</item>
-        <item name="themeDivider">#262626</item>
+        <item name="android:colorBackground">@color/color_background</item>
+        <item name="android:windowBackground">@color/color_background</item>
+        <item name="colorSurface">@color/color_background</item>
+        <item name="colorOnSurface">@color/color_text_primary</item>
+        <item name="android:textColorPrimary">@color/color_text_primary</item>
+        <item name="android:textColorSecondary">@color/color_text_secondary</item>
+
+        <!-- Edge-to-edge, transparent bars; dark theme => light (white) icons -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="android:fontFamily">sans-serif</item>
+
+        <item name="themeBackground">@color/color_background</item>
+        <item name="themeTextPrimary">@color/color_text_primary</item>
+        <item name="themeTextSecondary">@color/color_text_secondary</item>
+        <item name="themeSurfaceVariant">@color/color_surface_variant</item>
+        <item name="themeDivider">@color/color_divider</item>
         <item name="themePrimary">@color/color_primary</item>
-        <item name="themeTextPrimary">#FFFFFF</item>
-        <item name="themeTextSecondary">#8E8E8E</item>
+        <item name="themeLike">@color/color_like</item>
+        <item name="themeSheet">@color/color_sheet</item>
     </style>
 
     <style name="Theme.InstaClone.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenBackground">@color/color_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.InstaClone</item>
-        <item name="themeBackground">#000000</item>
-        <item name="themeDivider">#262626</item>
+        <item name="themeBackground">@color/color_background</item>
+        <item name="themeTextPrimary">@color/color_text_primary</item>
+        <item name="themeTextSecondary">@color/color_text_secondary</item>
+        <item name="themeSurfaceVariant">@color/color_surface_variant</item>
+        <item name="themeDivider">@color/color_divider</item>
         <item name="themePrimary">@color/color_primary</item>
-        <item name="themeTextPrimary">#FFFFFF</item>
-        <item name="themeTextSecondary">#8E8E8E</item>
+        <item name="themeLike">@color/color_like</item>
+        <item name="themeSheet">@color/color_sheet</item>
     </style>
 
-    <style name="InstagramBottomSheetDialog" parent="Theme.MaterialComponents.BottomSheetDialog">
+    <style name="InstagramBottomSheetDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/InstagramBottomSheetStyle</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:navigationBarColor">@color/color_sheet</item>
+        <item name="elevationOverlayEnabled">false</item>
     </style>
 </resources>

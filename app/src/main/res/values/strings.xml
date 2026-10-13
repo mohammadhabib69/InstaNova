@@ -24,6 +24,11 @@
 
     <!-- Home & Feed -->
     <string name="likes_count">%1$s likes</string>
+    <string name="liked_by">Liked by</string>
+    <string name="and">and</string>
+    <string name="others">others</string>
+    <string name="carousel_position">%1$d/%2$d</string>
+    <string name="empty_state_subtitle">Follow people and share your first photo.</string>
     <string name="all_caught_up">You\'re All Caught Up</string>
     <string name="all_caught_up_subtitle">You\'ve seen all new posts from the past 3 days.</string>
     <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
@@ -61,10 +66,111 @@
     <string name="hint_username">Username</string>
     <string name="signup_btn_create">Complete sign up</string>
 
+    <!-- Profile (PAGE 2) -->
+    <string name="profile_stat_posts">posts</string>
+    <string name="profile_stat_followers">followers</string>
+    <string name="profile_stat_following">following</string>
+    <string name="profile_edit">Edit profile</string>
+    <string name="profile_share">Share profile</string>
+    <string name="profile_follow">Follow</string>
+    <string name="profile_following">Following</string>
+    <string name="profile_message">Message</string>
+    <string name="profile_highlight_new">New</string>
+    <string name="profile_no_reposts">No reposts yet</string>
+    <string name="profile_no_photos_of_you">No photos of you yet</string>
+
+    <!-- Explore / Search (PAGE 3 + PAGE 4) -->
+    <string name="search_hint">Search</string>
+    <string name="explore_chip_reels">Reels</string>
+    <string name="explore_chip_shop">Shop</string>
+    <string name="explore_tag_architecture">Architecture</string>
+    <string name="explore_tag_travel">Travel</string>
+    <string name="explore_tag_decor">Decor</string>
+    <string name="explore_tag_food">Food</string>
+    <string name="explore_tag_art">Art</string>
+    <string name="explore_tag_nature">Nature</string>
+    <string name="search_tab_top">Top</string>
+    <string name="search_tab_accounts">Accounts</string>
+    <string name="search_tab_audio">Audio</string>
+    <string name="search_tab_tags">Tags</string>
+    <string name="search_tab_places">Places</string>
+    <string name="search_recent">Recent</string>
+    <string name="search_clear_all">Clear all</string>
+    <string name="search_no_results">No results</string>
+    <string name="tag_posts_count">%1$s posts</string>
+    <string name="tag_count_fewer_than_100">Fewer than 100</string>
+
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_search">Search</string>
     <string name="nav_create">Create</string>
     <string name="nav_reels">Reels</string>
     <string name="nav_profile">Profile</string>
+
+    <!-- Decorative UI (Constants.DECORATIVE_UI) -->
+    <string name="not_available">Not available</string>
+
+    <!-- Reels (PAGE 5) -->
+    <string name="reel_camera">Camera</string>
+    <string name="reel_audio_thumbnail">Audio</string>
+    <string name="reel_more_options">More options</string>
+    <string name="reel_empty_title">No Reels Yet</string>
+    <string name="reel_empty_action">Create reel</string>
+
+    <!-- DM Inbox (PAGE 6) -->
+    <string name="inbox_messages">Messages</string>
+    <string name="inbox_requests">Requests</string>
+    <string name="inbox_no_requests">No message requests</string>
+    <string name="inbox_empty_title">Your Messages</string>
+    <string name="inbox_empty_subtitle">Send private photos and messages to a friend or group.</string>
+    <string name="inbox_send_message">Send Message</string>
+    <string name="inbox_back">Back</string>
+    <string name="inbox_video_call">Video call</string>
+    <string name="inbox_new_message">New message</string>
+    <string name="inbox_camera">Camera</string>
+    <string name="inbox_sent_a_photo">Sent a photo</string>
+
+    <!-- Create sheet + picker (PAGE 8) -->
+    <string name="create_title">Create</string>
+    <string name="create_reel">Reel</string>
+    <string name="create_post">Post</string>
+    <string name="create_story">Story</string>
+    <string name="create_story_highlight">Story highlight</string>
+    <string name="create_live">Live</string>
+    <string name="create_made_for_you">Made for you</string>
+    <string name="picker_new_post">New post</string>
+    <string name="picker_next">Next</string>
+    <string name="picker_recents">Recents</string>
+    <string name="picker_select_multiple">SELECT MULTIPLE</string>
+    <string name="picker_mode_post">POST</string>
+    <string name="picker_mode_story">STORY</string>
+    <string name="picker_mode_reel">REEL</string>
+    <string name="picker_fit_toggle">Toggle fit or fill</string>
+    <string name="picker_album_source">Album source</string>
+
+    <!-- Post editor (PAGE 9) -->
+    <string name="editor_tab_filter">Filter</string>
+    <string name="editor_tab_edit">Edit</string>
+    <string name="editor_tab_crop">Crop</string>
+    <string name="editor_aa">Aa</string>
+    <string name="editor_add_photos">Add photos</string>
+    <string name="editor_filter_normal">Normal</string>
+
+    <!-- Caption + new post (PAGE 10) -->
+    <string name="details_chip_poll">Poll</string>
+    <string name="details_chip_prompt">Prompt</string>
+    <string name="details_tag_people">Tag people</string>
+    <string name="details_add_location">Add location</string>
+    <string name="details_add_music">Add music</string>
+    <string name="details_ai_label">Add AI label</string>
+    <string name="details_ai_label_desc">We require you to label certain realistic content that\u2019s made with AI. Learn more</string>
+    <string name="details_audience">Audience</string>
+    <string name="details_audience_value">Everyone</string>
+    <string name="details_also_share">Also share on...</string>
+    <string name="details_also_share_value">Off</string>
+    <string name="details_more_options">More options</string>
+    <string name="details_share">Share</string>
+    <string name="caption_title">Caption</string>
+    <string name="caption_ok">OK</string>
+    <string name="caption_hint">Write a caption...</string>
 </resources>

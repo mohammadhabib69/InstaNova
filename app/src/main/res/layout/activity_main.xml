@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mainRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/themeBackground">
+    android:background="?attr/themeBackground"
+    android:fitsSystemWindows="false">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_main"
@@ -17,10 +19,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 1dp top divider (hidden on the Reels tab by MainActivity) -->
     <View
         android:id="@+id/bottomNavDivider"
         android:layout_width="0dp"
-        android:layout_height="0.5dp"
+        android:layout_height="@dimen/divider_hairline"
         android:background="?attr/themeDivider"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
         app:layout_constraintEnd_toEndOf="parent"
@@ -34,8 +37,10 @@
         app:elevation="0dp"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/bottom_nav_menu"
+        app:itemIconSize="@dimen/icon_bottom_nav"
         app:itemIconTint="@null"
         app:itemRippleColor="@null"
+        app:itemActiveIndicatorStyle="@null"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
