@@ -1,22 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base Application Theme -->
-    <style name="Theme.InstaClone" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Brand Colors -->
-        <item name="colorPrimary">@color/color_primary</item>
-        <item name="colorPrimaryVariant">@color/color_primary_dark</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="android:windowBackground">@color/color_background</item>
-        <item name="android:statusBarColor">@color/color_background</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">@color/color_background</item>
 
-        <!-- Custom Semantics -->
+    <!-- ============================================================= -->
+    <!-- PAGE 0 — BASE APP THEME (LIGHT; DayNight picks night variant)  -->
+    <!-- Instagram-flat: no purple, no shadows, no elevation.          -->
+    <!-- ============================================================= -->
+    <style name="Theme.InstaClone" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Neutralize Material brand palette (remove purple defaults) -->
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorPrimaryVariant">@color/color_primary</item>
+        <item name="colorSecondary">@color/color_primary</item>
+        <item name="colorSecondaryVariant">@color/color_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorAccent">@color/color_primary</item>
+        <item name="android:colorControlActivated">@color/color_primary</item>
+
+        <!-- Surfaces & text -->
+        <item name="android:colorBackground">@color/color_background</item>
+        <item name="android:windowBackground">@color/color_background</item>
+        <item name="colorSurface">@color/color_background</item>
+        <item name="colorOnSurface">@color/color_text_primary</item>
+        <item name="android:textColorPrimary">@color/color_text_primary</item>
+        <item name="android:textColorSecondary">@color/color_text_secondary</item>
+
+        <!-- Edge-to-edge, transparent system bars; icons adapt to theme -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
+        <!-- Kill shadows / elevation globally -->
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="android:fontFamily">sans-serif</item>
+
+        <!-- Custom semantic attributes -->
         <item name="themeBackground">@color/color_background</item>
-        <item name="themeDivider">@color/color_divider</item>
-        <item name="themePrimary">@color/color_primary</item>
         <item name="themeTextPrimary">@color/color_text_primary</item>
         <item name="themeTextSecondary">@color/color_text_secondary</item>
+        <item name="themeSurfaceVariant">@color/color_surface_variant</item>
+        <item name="themeDivider">@color/color_divider</item>
+        <item name="themePrimary">@color/color_primary</item>
+        <item name="themeLike">@color/color_like</item>
+        <item name="themeSheet">@color/color_sheet</item>
     </style>
 
     <!-- Splash Screen Theme -->
@@ -25,31 +51,260 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.InstaClone</item>
         <item name="themeBackground">@color/color_background</item>
-        <item name="themeDivider">@color/color_divider</item>
-        <item name="themePrimary">@color/color_primary</item>
         <item name="themeTextPrimary">@color/color_text_primary</item>
         <item name="themeTextSecondary">@color/color_text_secondary</item>
+        <item name="themeSurfaceVariant">@color/color_surface_variant</item>
+        <item name="themeDivider">@color/color_divider</item>
+        <item name="themePrimary">@color/color_primary</item>
+        <item name="themeLike">@color/color_like</item>
+        <item name="themeSheet">@color/color_sheet</item>
     </style>
 
-    <!-- Bottom Sheet Dialog Theme -->
-    <style name="InstagramBottomSheetDialog" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+    <!-- ============================================================= -->
+    <!-- Bottom Sheet themes — flat sheet, 16dp top radius, no shadow   -->
+    <!-- ============================================================= -->
+    <style name="InstagramBottomSheetDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/InstagramBottomSheetStyle</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@color/color_background</item>
+        <item name="android:navigationBarColor">@color/color_sheet</item>
+        <item name="elevationOverlayEnabled">false</item>
     </style>
 
     <style name="InstagramBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
-        <item name="android:background">@android:color/transparent</item>
+        <item name="android:background">@drawable/bg_bottom_sheet</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Insta.BottomSheet</item>
+        <item name="android:elevation">0dp</item>
     </style>
 
+    <style name="ShapeAppearance.Insta.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">@dimen/radius_sheet</item>
+        <item name="cornerSizeTopRight">@dimen/radius_sheet</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <!-- ============================================================= -->
+    <!-- Typography text appearances (Roboto)                           -->
+    <!-- ============================================================= -->
+    <style name="TextAppearance.Insta.Username" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">@dimen/text_username</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.Button" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/text_button</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="TextAppearance.Insta.Body" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/text_body</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.Secondary" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/text_body</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.Title" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/text_title</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.ScreenTitle" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/text_screen_title</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.Meta" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/text_meta</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+    </style>
+
+    <!-- ============================================================= -->
+    <!-- Button styles (flat, 8dp radius, no elevation)                -->
+    <!-- ============================================================= -->
+    <!-- PAGE 3 — Explore filter chip (34dp, 8dp radius, 1dp border) -->
+    <style name="Widget.Insta.Chip" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/explore_chip_height</item>
+        <item name="android:layout_marginEnd">@dimen/explore_chip_gap</item>
+        <item name="android:background">@drawable/bg_chip_outline</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/explore_chip_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/explore_chip_padding_horizontal</item>
+        <item name="android:drawablePadding">@dimen/explore_chip_icon_gap</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+        <item name="android:textSize">@dimen/explore_chip_text_size</item>
+    </style>
+
+    <!-- PAGE 4 — Search tab label (14sp Medium, no caps) -->
+    <style name="TextAppearance.Insta.SearchTab" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/search_tab_text_size</item>
+    </style>
+
+    <!-- PAGE 9 — Editor card corner (12dp rounded image card) -->
+    <style name="ShapeAppearance.Insta.EditorCard" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/editor_card_radius</item>
+    </style>
+
+    <!-- PAGE 10 — selected photo strip corner (8dp rounded) -->
+    <style name="ShapeAppearance.Insta.DetailsPhoto" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/details_photo_radius</item>
+    </style>
+
+    <!-- PAGE 9 — Editor tab label (13sp bold caps white) -->
+    <style name="TextAppearance.Insta.EditorTab" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textSize">@dimen/editor_tab_text_size</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- PAGE 9 — Filter preset name (12sp white, one line) -->
+    <style name="TextAppearance.Insta.FilterName" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/filter_name_size</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- PAGE 10 — Details row label (16sp, theme aware) -->
+    <style name="TextAppearance.Insta.DetailsRow" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textSize">@dimen/text_title</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <!-- PAGE 10 — Poll / Prompt chip label (14sp Medium) -->
+    <style name="TextAppearance.Insta.DetailsChip" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textSize">@dimen/details_chip_text_size</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <!-- PAGE 8 — Create sheet row label (16sp, one line) -->
+    <style name="TextAppearance.Insta.CreateRow" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textSize">@dimen/text_title</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <!-- PAGE 8 — Picker 'SELECT MULTIPLE' pill label (12sp bold caps) -->
+    <style name="TextAppearance.Insta.PickerPill" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textSize">@dimen/picker_select_pill_text_size</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <!-- PAGE 8 — Picker bottom POST / STORY / REEL switch (13sp bold caps) -->
+    <style name="TextAppearance.Insta.PickerMode" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textSize">@dimen/picker_mode_text_size</item>
+        <item name="android:textColor">@color/color_icon_muted</item>
+    </style>
+
+    <!-- PAGE 8 — Picker top bar title / action (16sp bold) -->
+    <style name="TextAppearance.Insta.PickerBar" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textSize">@dimen/picker_action_text_size</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- PAGE 6 — DM Inbox section row ('Messages' / 'Requests') -->
+    <style name="TextAppearance.Insta.SectionTitle" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/text_title</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.SectionAction" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/inbox_section_action_size</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+    </style>
+
+    <!-- PAGE 5 — Reels action counts (14sp white, drawn on top of the video) -->
+    <style name="TextAppearance.Insta.ReelCount" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/reel_action_count_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <!-- PAGE 5 — Reels outlined 'Follow' pill (28dp, 8dp radius, 1dp 70% border) -->
+    <style name="Widget.Insta.ReelFollowPill" parent="">
+        <item name="android:layout_height">@dimen/reel_follow_pill_height</item>
+        <item name="android:background">@drawable/bg_reel_follow_pill</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/reel_follow_pill_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/reel_follow_pill_padding_horizontal</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/reel_follow_pill_text_size</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget.Insta.Button.Primary" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/bg_button_primary</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textAppearance">@style/TextAppearance.Insta.Button</item>
+        <item name="android:gravity">center</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+    </style>
+
+    <style name="Widget.Insta.Button.Secondary" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/bg_button_secondary</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+        <item name="android:textAppearance">@style/TextAppearance.Insta.Button</item>
+        <item name="android:gravity">center</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+    </style>
+
+    <!-- Auth input field -->
     <style name="InstaAuthField" parent="Widget.AppCompat.EditText">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_height">@dimen/input_field_height</item>
         <item name="android:background">@drawable/bg_input_field</item>
         <item name="android:paddingStart">12dp</item>
         <item name="android:paddingEnd">12dp</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">@dimen/text_body</item>
         <item name="android:textColor">?attr/themeTextPrimary</item>
         <item name="android:textColorHint">?attr/themeTextSecondary</item>
     </style>

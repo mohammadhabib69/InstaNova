@@ -5,18 +5,19 @@
     android:layout_height="wrap_content"
     android:background="?attr/themeBackground"
     android:orientation="vertical"
-    android:paddingBottom="12dp">
+    android:paddingBottom="@dimen/post_spacing_bottom">
 
-    <!-- Post Header (54dp) -->
+    <!-- Post header — 56dp: avatar 32dp, 10dp gap, username 14sp Medium, 24dp more -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/top_bar_height"
-        android:paddingHorizontal="12dp">
+        android:layout_height="@dimen/post_header_height"
+        android:paddingStart="@dimen/post_padding_horizontal"
+        android:paddingEnd="@dimen/post_padding_horizontal">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/ivAvatar"
-            android:layout_width="@dimen/avatar_feed_header"
-            android:layout_height="@dimen/avatar_feed_header"
+            android:layout_width="@dimen/post_header_avatar_size"
+            android:layout_height="@dimen/post_header_avatar_size"
             android:src="@drawable/ic_person_placeholder"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -26,7 +27,7 @@
             android:id="@+id/layoutAuthor"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="@dimen/post_header_avatar_gap"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/ivOptions"
@@ -43,15 +44,13 @@
                     android:id="@+id/tvUsername"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="@dimen/text_body"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.Insta.Username" />
 
                 <com.insta.clone.ui.widget.VerifiedBadgeView
                     android:id="@+id/badgeVerified"
                     android:layout_width="@dimen/badge_verified_size"
                     android:layout_height="@dimen/badge_verified_size"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="@dimen/post_line_gap"
                     android:visibility="gone" />
             </LinearLayout>
 
@@ -68,9 +67,8 @@
 
         <ImageView
             android:id="@+id/ivOptions"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:padding="4dp"
+            android:layout_width="@dimen/post_icon_more"
+            android:layout_height="@dimen/post_icon_more"
             android:src="@drawable/ic_more_horiz"
             app:tint="?attr/themeTextPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -80,7 +78,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Post Media Container (Aspect 1:1) with Double-Tap Heart Support -->
+    <!-- Post media — full width, 1:1, edge to edge -->
     <com.insta.clone.ui.widget.DoubleTapHeartLayout
         android:id="@+id/doubleTapLayout"
         android:layout_width="match_parent"
@@ -102,29 +100,73 @@
             android:layout_height="match_parent"
             android:visibility="gone" />
 
-        <!-- Carousel Badge (top right icon indicating multiple photos) -->
-        <ImageView
+        <!-- Carousel position chip (1/N) -->
+        <TextView
             android:id="@+id/ivCarouselBadge"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="top|end"
-            android:layout_margin="12dp"
+            android:layout_margin="@dimen/post_media_overlay_margin"
             android:background="@drawable/bg_pill_surface"
-            android:padding="4dp"
-            android:src="@drawable/ic_photo_library"
-            app:tint="@color/white"
+            android:paddingStart="@dimen/post_chip_padding_horizontal"
+            android:paddingTop="@dimen/post_chip_padding_vertical"
+            android:paddingEnd="@dimen/post_chip_padding_horizontal"
+            android:paddingBottom="@dimen/post_chip_padding_vertical"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_meta"
             android:visibility="gone"
             android:contentDescription="Multiple photos" />
+
+        <!-- Audio attribution overlay (decorative) -->
+        <LinearLayout
+            android:id="@+id/layoutMediaAttribution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_margin="@dimen/post_media_overlay_margin"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <FrameLayout
+                android:layout_width="@dimen/post_media_avatar_size"
+                android:layout_height="@dimen/post_media_avatar_size">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/ivMediaAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_person_placeholder"
+                    app:civ_border_width="@dimen/post_media_avatar_border"
+                    app:civ_border_color="@color/white" />
+
+                <FrameLayout
+                    android:id="@+id/ivMediaBadge"
+                    android:layout_width="@dimen/post_media_badge_size"
+                    android:layout_height="@dimen/post_media_badge_size"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/bg_media_badge">
+
+                    <ImageView
+                        android:layout_width="@dimen/post_media_badge_icon"
+                        android:layout_height="@dimen/post_media_badge_icon"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_repost"
+                        app:tint="@color/white"
+                        android:contentDescription="@null" />
+                </FrameLayout>
+            </FrameLayout>
+        </LinearLayout>
 
         <!-- Reel Play / Audio Toggle Overlay -->
         <ImageView
             android:id="@+id/ivAudioToggle"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="@dimen/post_media_control_icon"
+            android:layout_height="@dimen/post_media_control_icon"
             android:layout_gravity="bottom|end"
-            android:layout_margin="12dp"
+            android:layout_margin="@dimen/post_media_overlay_margin"
             android:background="@drawable/bg_pill_surface"
-            android:padding="5dp"
+            android:padding="@dimen/post_media_control_padding"
             android:src="@drawable/ic_volume_off"
             app:tint="@color/white"
             android:visibility="gone"
@@ -132,11 +174,20 @@
 
     </com.insta.clone.ui.widget.DoubleTapHeartLayout>
 
-    <!-- Action Buttons Row (44dp) -->
+    <!-- Carousel dots -->
+    <com.insta.clone.ui.widget.DotsIndicatorView
+        android:id="@+id/dotsIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/post_dots_margin_top" />
+
+    <!-- Action row — 48dp, icons 26dp, 16dp apart, bookmark at the far right -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:paddingHorizontal="12dp">
+        android:layout_height="@dimen/post_action_row_height"
+        android:paddingStart="@dimen/post_padding_horizontal"
+        android:paddingEnd="@dimen/post_padding_horizontal">
 
         <LinearLayout
             android:id="@+id/layoutLeftActions"
@@ -150,50 +201,63 @@
 
             <ImageView
                 android:id="@+id/ivLike"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="4dp"
-                android:src="@drawable/ic_favorite_outline"
+                android:layout_width="@dimen/post_action_icon"
+                android:layout_height="@dimen/post_action_icon"
+                android:src="@drawable/ic_heart"
                 app:tint="?attr/themeTextPrimary"
                 android:contentDescription="Like" />
 
+            <TextView
+                android:id="@+id/tvLikeCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/post_count_gap"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/text_body"
+                android:visibility="gone" />
+
             <ImageView
                 android:id="@+id/ivComment"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:padding="4dp"
+                android:layout_width="@dimen/post_action_icon"
+                android:layout_height="@dimen/post_action_icon"
+                android:layout_marginStart="@dimen/post_action_gap"
                 android:src="@drawable/ic_comment"
                 app:tint="?attr/themeTextPrimary"
                 android:contentDescription="Comment" />
 
+            <TextView
+                android:id="@+id/tvCommentCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/post_count_gap"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/text_body"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/ivRepost"
+                android:layout_width="@dimen/post_action_icon"
+                android:layout_height="@dimen/post_action_icon"
+                android:layout_marginStart="@dimen/post_action_gap"
+                android:src="@drawable/ic_repost"
+                app:tint="?attr/themeTextPrimary"
+                android:contentDescription="Repost" />
+
             <ImageView
                 android:id="@+id/ivShare"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:padding="4dp"
+                android:layout_width="@dimen/post_action_icon"
+                android:layout_height="@dimen/post_action_icon"
+                android:layout_marginStart="@dimen/post_action_gap"
                 android:rotation="-20"
                 android:src="@drawable/ic_send"
                 app:tint="?attr/themeTextPrimary"
                 android:contentDescription="Share" />
         </LinearLayout>
 
-        <!-- Carousel Dots Indicator (Centered) -->
-        <com.insta.clone.ui.widget.DotsIndicatorView
-            android:id="@+id/dotsIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <ImageView
             android:id="@+id/ivBookmark"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:padding="4dp"
+            android:layout_width="@dimen/post_action_icon"
+            android:layout_height="@dimen/post_action_icon"
             android:src="@drawable/ic_bookmark_outline"
             app:tint="?attr/themeTextPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -203,23 +267,28 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Likes Count ("1,234 likes") -->
+    <!-- Likes line ("Liked by <user> and <n> others"), hidden at 0 likes -->
     <TextView
         android:id="@+id/tvLikesCount"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="14dp"
+        android:layout_marginTop="@dimen/post_line_gap"
+        android:paddingStart="@dimen/post_padding_horizontal"
+        android:paddingEnd="@dimen/post_padding_horizontal"
         android:textColor="?attr/themeTextPrimary"
         android:textSize="@dimen/text_body"
-        android:textStyle="bold" />
+        android:visibility="gone" />
 
-    <!-- Caption (Username + expandable caption) -->
+    <!-- Caption — bold username + text, 2 lines + "more" -->
     <com.insta.clone.ui.widget.ExpandableCaptionTextView
         android:id="@+id/tvCaption"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:paddingHorizontal="14dp"
+        android:layout_marginTop="@dimen/post_line_gap_tight"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:paddingStart="@dimen/post_padding_horizontal"
+        android:paddingEnd="@dimen/post_padding_horizontal"
         android:textColor="?attr/themeTextPrimary"
         android:textSize="@dimen/text_body" />
 
@@ -228,21 +297,21 @@
         android:id="@+id/tvViewComments"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:paddingHorizontal="14dp"
+        android:layout_marginTop="@dimen/post_line_gap"
+        android:paddingStart="@dimen/post_padding_horizontal"
+        android:paddingEnd="@dimen/post_padding_horizontal"
         android:textColor="?attr/themeTextSecondary"
-        android:textSize="@dimen/text_meta" />
+        android:textSize="@dimen/text_body" />
 
-    <!-- Relative Timestamp ("2 hours ago") -->
+    <!-- Relative timestamp -->
     <TextView
         android:id="@+id/tvTimestamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:paddingHorizontal="14dp"
-        android:textAllCaps="true"
+        android:layout_marginTop="@dimen/post_line_gap_tight"
+        android:paddingStart="@dimen/post_padding_horizontal"
+        android:paddingEnd="@dimen/post_padding_horizontal"
         android:textColor="?attr/themeTextSecondary"
-        android:textSize="10sp"
-        android:letterSpacing="0.04" />
+        android:textSize="@dimen/text_meta" />
 
 </LinearLayout>
