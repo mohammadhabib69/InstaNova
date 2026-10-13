@@ -5,19 +5,21 @@
     android:background="?attr/themeBackground"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingVertical="40dp"
-    android:paddingHorizontal="24dp">
+    android:paddingTop="@dimen/caught_up_padding_vertical"
+    android:paddingBottom="@dimen/caught_up_padding_vertical"
+    android:paddingStart="@dimen/empty_state_padding"
+    android:paddingEnd="@dimen/empty_state_padding">
 
     <ImageView
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="@dimen/caught_up_icon_size"
+        android:layout_height="@dimen/caught_up_icon_size"
         android:src="@drawable/ic_caught_up"
         android:contentDescription="All caught up" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="@dimen/caught_up_gap"
         android:text="@string/all_caught_up"
         android:textColor="?attr/themeTextPrimary"
         android:textSize="@dimen/text_title"
@@ -26,7 +28,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="@dimen/caught_up_gap_tight"
         android:gravity="center"
         android:text="@string/all_caught_up_subtitle"
         android:textColor="?attr/themeTextSecondary"

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 4 — Search result leading circle (tags / places / recents):
+    1dp divider border, transparent fill.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/transparent" />
+    <stroke
+        android:width="@dimen/divider_hairline"
+        android:color="@color/color_divider" />
+</shape>

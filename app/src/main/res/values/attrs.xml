@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Custom Theme Attributes -->
+    <!-- ============================================================= -->
+    <!-- PAGE 0 — Custom theme attributes (semantic, config-aware)      -->
+    <!-- ============================================================= -->
     <attr name="themeBackground" format="color|reference" />
-    <attr name="themeDivider" format="color|reference" />
-    <attr name="themePrimary" format="color|reference" />
     <attr name="themeTextPrimary" format="color|reference" />
     <attr name="themeTextSecondary" format="color|reference" />
+    <attr name="themeSurfaceVariant" format="color|reference" />
+    <attr name="themeDivider" format="color|reference" />
+    <attr name="themePrimary" format="color|reference" />
+    <attr name="themeLike" format="color|reference" />
+    <attr name="themeSheet" format="color|reference" />
 
-    <!-- StoryRingView Attributes -->
+    <!-- StoryRingView attributes -->
     <declare-styleable name="StoryRingView">
         <attr name="ringState" format="enum">
             <enum name="none" value="0" />

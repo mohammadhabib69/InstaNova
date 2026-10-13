@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 8 — Made for you: four-point sparkle with a smaller companion. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@color/color_text_primary"
+        android:pathData="M9.5,3.5l1.7,4.6l4.6,1.7l-4.6,1.7l-1.7,4.6l-1.7,-4.6l-4.6,-1.7l4.6,-1.7z" />
+    <path
+        android:fillColor="@color/color_text_primary"
+        android:pathData="M17,13.5l0.9,2.4l2.4,0.9l-2.4,0.9l-0.9,2.4l-0.9,-2.4l-2.4,-0.9l2.4,-0.9z" />
+</vector>
