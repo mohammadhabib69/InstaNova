@@ -2,6 +2,8 @@ package com.insta.clone.ui.chat;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,32 +18,54 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.insta.clone.R;
+import com.insta.clone.data.local.SessionManager;
 import com.insta.clone.data.model.Conversation;
 import com.insta.clone.data.model.Profile;
 import com.insta.clone.data.repository.ChatRepository;
 import com.insta.clone.data.repository.SearchRepository;
+import com.insta.clone.util.Constants;
 import com.insta.clone.util.Resource;
+import com.insta.clone.util.TimeUtils;
+import com.insta.clone.util.ToastUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Direct messaging inbox activity showing conversation threads.
+ *
+ * PAGE 6 presentation only: the repository, the empty state and the
+ * Conversation -> ChatActivity navigation are unchanged. Added here: the
+ * own-username top bar, the conversation filter over the already loaded list,
+ * the row typography/colour states, the compact "{message} · {time}" second
+ * line and the decorative chrome (title chevron, video, requests, row camera).
  */
 public class InboxActivity extends AppCompatActivity {
 
     private ChatRepository chatRepository;
     private SearchRepository searchRepository;
+    private SessionManager sessionManager;
     private SwipeRefreshLayout swipeRefresh;
     private RecyclerView rvConversations;
     private View layoutEmpty;
+    private View layoutRequestsEmpty;
+    private TextView tvTitle;
+    private TextView tvMessages;
+    private TextView tvRequests;
+    private ImageView ivTitleChevron;
+    private ImageView ivVideo;
+    private EditText etSearch;
     private ConversationAdapter adapter;
-    private final List<Conversation> conversationList = new ArrayList<>();
+    private final List<Conversation> allConversations = new ArrayList<>();
+    private final List<Conversation> visibleConversations = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,12 +74,20 @@ public class InboxActivity extends AppCompatActivity {
 
         chatRepository = ChatRepository.getInstance(this);
         searchRepository = new SearchRepository(this);
+        sessionManager = SessionManager.getInstance(this);
 
         ImageView ivBack = findViewById(R.id.iv_back);
         ImageView ivNewChat = findViewById(R.id.iv_new_chat);
         swipeRefresh = findViewById(R.id.swipe_refresh);
         rvConversations = findViewById(R.id.rv_conversations);
         layoutEmpty = findViewById(R.id.layout_empty);
+        layoutRequestsEmpty = findViewById(R.id.layout_requests_empty);
+        tvTitle = findViewById(R.id.tv_title);
+        tvMessages = findViewById(R.id.tv_messages);
+        tvRequests = findViewById(R.id.tv_requests);
+        ivTitleChevron = findViewById(R.id.iv_title_chevron);
+        ivVideo = findViewById(R.id.iv_video);
+        etSearch = findViewById(R.id.et_inbox_search);
         Button btnEmptySend = findViewById(R.id.btn_empty_send);
 
         ivBack.setOnClickListener(v -> finish());
@@ -64,7 +96,12 @@ public class InboxActivity extends AppCompatActivity {
             btnEmptySend.setOnClickListener(v -> showNewMessageSheet());
         }
 
-        adapter = new ConversationAdapter(conversationList, conv -> {
+        bindOwnUsername();
+        setupSearchField();
+        setupSectionRow();
+        setupDecorativeChrome();
+
+        adapter = new ConversationAdapter(visibleConversations, conv -> {
             Intent intent = new Intent(InboxActivity.this, ChatActivity.class);
             intent.putExtra("EXTRA_CONVERSATION_ID", conv.getId());
             intent.putExtra("EXTRA_OTHER_USER_ID", conv.getOtherUserId());
@@ -87,18 +124,98 @@ public class InboxActivity extends AppCompatActivity {
         loadInbox();
     }
 
+    /** Top bar title: the signed-in username, 22sp bold. */
+    private void bindOwnUsername() {
+        String username = sessionManager != null ? sessionManager.getUsername() : null;
+        if (username != null && !username.trim().isEmpty()) {
+            tvTitle.setText(username);
+        }
+        // otherwise the layout keeps @string/direct_messages, as before
+    }
+
+    /** Existing conversation filter: filters the list already loaded in memory. */
+    private void setupSearchField() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                applyConversationFilter(s != null ? s.toString() : "");
+            }
+        });
+    }
+
+    /** 'Messages' restores the thread list, 'Requests' opens the empty screen. */
+    private void setupSectionRow() {
+        tvMessages.setOnClickListener(v -> showMessageRequests(false));
+        tvRequests.setOnClickListener(v -> showMessageRequests(true));
+    }
+
+    /**
+     * Design-only chrome follows the shared Constants.DECORATIVE_UI contract:
+     * visible with a 'Not available' toast when enabled, hidden when off.
+     */
+    private void setupDecorativeChrome() {
+        if (Constants.DECORATIVE_UI) {
+            ivTitleChevron.setVisibility(View.VISIBLE);
+            ivVideo.setVisibility(View.VISIBLE);
+            tvRequests.setVisibility(View.VISIBLE);
+            ivTitleChevron.setOnClickListener(v -> ToastUtil.showNotAvailable(this));
+            ivVideo.setOnClickListener(v -> ToastUtil.showNotAvailable(this));
+        } else {
+            ivTitleChevron.setVisibility(View.GONE);
+            ivVideo.setVisibility(View.GONE);
+            tvRequests.setVisibility(View.GONE);
+            showMessageRequests(false);
+        }
+    }
+
+    private void showMessageRequests(boolean show) {
+        if (!Constants.DECORATIVE_UI) {
+            show = false;
+        }
+        layoutRequestsEmpty.setVisibility(show ? View.VISIBLE : View.GONE);
+        swipeRefresh.setVisibility(show ? View.GONE : View.VISIBLE);
+        if (show) {
+            layoutEmpty.setVisibility(View.GONE);
+        } else {
+            layoutEmpty.setVisibility(allConversations.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void applyConversationFilter(String query) {
+        String needle = query == null ? "" : query.trim().toLowerCase(Locale.US);
+        visibleConversations.clear();
+        if (needle.isEmpty()) {
+            visibleConversations.addAll(allConversations);
+        } else {
+            for (Conversation c : allConversations) {
+                String username = c.getOtherUsername() == null ? "" : c.getOtherUsername().toLowerCase(Locale.US);
+                String fullName = c.getOtherFullName() == null ? "" : c.getOtherFullName().toLowerCase(Locale.US);
+                if (username.contains(needle) || fullName.contains(needle)) {
+                    visibleConversations.add(c);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
+    }
+
     private void loadInbox() {
         swipeRefresh.setRefreshing(true);
         chatRepository.getConversations().observe(this, resource -> {
             swipeRefresh.setRefreshing(false);
             if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
-                conversationList.clear();
-                conversationList.addAll(resource.data);
-                adapter.notifyDataSetChanged();
-                layoutEmpty.setVisibility(conversationList.isEmpty() ? View.VISIBLE : View.GONE);
-                rvConversations.setVisibility(conversationList.isEmpty() ? View.GONE : View.VISIBLE);
+                allConversations.clear();
+                allConversations.addAll(resource.data);
+                applyConversationFilter(etSearch.getText() != null ? etSearch.getText().toString() : "");
+                layoutEmpty.setVisibility(allConversations.isEmpty() ? View.VISIBLE : View.GONE);
+                rvConversations.setVisibility(allConversations.isEmpty() ? View.GONE : View.VISIBLE);
             } else if (resource != null && resource.status == Resource.Status.ERROR) {
-                if (conversationList.isEmpty()) {
+                if (allConversations.isEmpty()) {
                     layoutEmpty.setVisibility(View.VISIBLE);
                     rvConversations.setVisibility(View.GONE);
                 }
@@ -224,13 +341,36 @@ public class InboxActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Conversation c = items.get(position);
+            Context context = holder.itemView.getContext();
+            boolean unread = c.isUnread();
+
             holder.tvUsername.setText(c.getOtherUsername());
+            // Name: bold while unread, regular once read
+            holder.tvUsername.setTypeface(null, unread ? Typeface.BOLD : Typeface.NORMAL);
+
+            // Second line: "{last message} · {time}"
             String lastMsg = c.getLastMessage();
             if (lastMsg == null || lastMsg.trim().isEmpty() || "Photo".equalsIgnoreCase(lastMsg.trim())) {
-                lastMsg = "Sent a photo";
+                lastMsg = context.getString(R.string.inbox_sent_a_photo);
             }
-            holder.tvLastMessage.setText(lastMsg);
-            holder.ivUnreadDot.setVisibility(c.isUnread() ? View.VISIBLE : View.GONE);
+            String time = compactTime(c.getLastMessageAt());
+            holder.tvLastMessage.setText(time.isEmpty() ? lastMsg : lastMsg + " · " + time);
+            holder.tvLastMessage.setTypeface(null, unread ? Typeface.BOLD : Typeface.NORMAL);
+            holder.tvLastMessage.setTextColor(ContextCompat.getColor(context,
+                    unread ? R.color.color_text_primary : R.color.color_text_secondary));
+
+            holder.ivUnreadDot.setVisibility(unread ? View.VISIBLE : View.GONE);
+
+            // Camera: textPrimary while unread, muted grey once read
+            ImageViewCompat.setImageTintList(holder.ivCamera, ColorStateList.valueOf(
+                    ContextCompat.getColor(context, unread ? R.color.color_text_primary : R.color.color_icon_muted)));
+            holder.ivCamera.setVisibility(Constants.DECORATIVE_UI ? View.VISIBLE : View.GONE);
+            holder.ivCamera.setOnClickListener(Constants.DECORATIVE_UI
+                    ? v -> ToastUtil.showNotAvailable(context) : null);
+
+            // Story ring: only when the other user has an active story.
+            // The Conversation model carries no story flag, so it stays hidden.
+            holder.ringStory.setVisibility(View.GONE);
 
             if (c.getOtherAvatarUrl() != null && !c.getOtherAvatarUrl().isEmpty()) {
                 com.insta.clone.util.GlideUtils.loadAvatar(holder.ivAvatar, c.getOtherAvatarUrl());
@@ -248,20 +388,41 @@ public class InboxActivity extends AppCompatActivity {
             return items.size();
         }
 
+        /** 30s -> "1m", 45m -> "45m", 2h -> "2h", 3d -> "3d". */
+        private static String compactTime(String iso) {
+            long timestamp = TimeUtils.parseTimestamp(iso);
+            if (timestamp <= 0L) {
+                return "";
+            }
+            long minutes = Math.max(1L, (System.currentTimeMillis() - timestamp) / 60000L);
+            if (minutes < 60L) {
+                return minutes + "m";
+            }
+            long hours = minutes / 60L;
+            if (hours < 24L) {
+                return hours + "h";
+            }
+            return (hours / 24L) + "d";
+        }
+
         static class ViewHolder extends RecyclerView.ViewHolder {
             final ImageView ivAvatar;
+            final View ringStory;
             final TextView tvUsername;
             final TextView tvLastMessage;
             final TextView tvTime;
             final View ivUnreadDot;
+            final ImageView ivCamera;
 
             ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 ivAvatar = itemView.findViewById(R.id.iv_avatar);
+                ringStory = itemView.findViewById(R.id.ring_story);
                 tvUsername = itemView.findViewById(R.id.tv_username);
                 tvLastMessage = itemView.findViewById(R.id.tv_last_message);
                 tvTime = itemView.findViewById(R.id.tv_time);
                 ivUnreadDot = itemView.findViewById(R.id.iv_unread_dot);
+                ivCamera = itemView.findViewById(R.id.iv_camera);
             }
         }
     }

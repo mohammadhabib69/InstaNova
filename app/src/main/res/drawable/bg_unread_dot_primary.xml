@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 6 — DM Inbox unread marker: 8dp filled dot in the brand blue
+    (#0095F6). The PAGE 0 red dot (bg_unread_dot) is still used by the Home
+    top bar and is intentionally left untouched.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/color_primary" />
+</shape>
