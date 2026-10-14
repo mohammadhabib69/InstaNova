@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 4 — search result row (72dp, no divider): account / tag / place / recent.
+    Account rows show the avatar, tag / place / recent rows show the outlined
+    leading circle with their icon.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/search_row_height"
+    android:background="?attr/themeBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/search_row_padding_horizontal"
+    android:paddingEnd="@dimen/search_row_padding_horizontal">
+
+    <FrameLayout
+        android:layout_width="@dimen/search_row_avatar_size"
+        android:layout_height="@dimen/search_row_avatar_size">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivRowAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_person_placeholder" />
+
+        <FrameLayout
+            android:id="@+id/layoutRowCircle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_circle_outline"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/ivRowCircleIcon"
+                android:layout_width="@dimen/search_row_icon_size"
+                android:layout_height="@dimen/search_row_icon_size"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_hashtag"
+                app:tint="?attr/themeTextPrimary"
+                android:contentDescription="@null" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/search_row_gap"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvRowTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/search_row_text_size"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivRowVerified"
+                android:layout_width="@dimen/search_row_verified_size"
+                android:layout_height="@dimen/search_row_verified_size"
+                android:layout_marginStart="@dimen/search_row_title_icon_gap"
+                android:src="@drawable/ic_verified"
+                android:visibility="gone"
+                android:contentDescription="Verified" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvRowSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/search_row_line_gap"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/themeTextSecondary"
+            android:textSize="@dimen/search_row_text_size" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/ivRowTrailing"
+        android:layout_width="@dimen/search_row_trailing_size"
+        android:layout_height="@dimen/search_row_trailing_size"
+        android:layout_marginStart="@dimen/search_row_gap"
+        android:src="@drawable/ic_close"
+        app:tint="?attr/themeTextPrimary"
+        android:visibility="gone"
+        android:contentDescription="Remove" />
+
+</LinearLayout>

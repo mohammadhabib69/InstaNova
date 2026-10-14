@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 4 — "Recent" header of the empty-query search state: 16sp Bold title
+    with the blue "Clear all" action on the right.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/search_recent_header_height"
+    android:background="?attr/themeBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/search_row_padding_horizontal"
+    android:paddingEnd="@dimen/search_row_padding_horizontal">
+
+    <TextView
+        android:id="@+id/tvRecentTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/search_recent"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/search_page_title_size"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvRecentClearAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/search_clear_all"
+        android:textColor="@color/color_primary"
+        android:textSize="@dimen/search_clear_all_size" />
+
+</LinearLayout>

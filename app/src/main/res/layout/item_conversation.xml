@@ -1,49 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 6 — one DM inbox conversation row (76dp, 16dp horizontal padding,
+    no divider).
+
+    Ids consumed by InboxActivity.ConversationAdapter are preserved:
+    iv_avatar, tv_username, tv_last_message, tv_time, iv_unread_dot.
+    tv_time is kept (hidden) because the adapter still resolves it: the PAGE 6
+    design folds the timestamp into the second line "{message} · {time}" via
+    tv_last_message.
+
+    The avatar sits in a 56dp frame so it starts exactly at the 16dp page
+    padding; the story ring is a 64dp layer behind it and may overflow the
+    frame (clipChildren=false), which is why the avatar size never changes.
+-->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="72dp"
+    android:layout_height="@dimen/inbox_row_height"
     android:background="?attr/selectableItemBackground"
-    android:paddingHorizontal="16dp">
+    android:paddingStart="@dimen/inbox_row_padding_horizontal"
+    android:paddingEnd="@dimen/inbox_row_padding_horizontal">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/iv_avatar"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
+    <FrameLayout
+        android:id="@+id/frame_avatar"
+        android:layout_width="@dimen/inbox_avatar_size"
+        android:layout_height="@dimen/inbox_avatar_size"
         android:layout_centerVertical="true"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_person_placeholder"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+        android:clipChildren="false">
 
+        <!-- Gradient story ring: shown only when the other user has an
+             active story (the Conversation model carries no story flag yet) -->
+        <View
+            android:id="@+id/ring_story"
+            android:layout_width="@dimen/inbox_avatar_ring_size"
+            android:layout_height="@dimen/inbox_avatar_ring_size"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_story_avatar_ring"
+            android:visibility="gone" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/iv_avatar"
+            android:layout_width="@dimen/inbox_avatar_size"
+            android:layout_height="@dimen/inbox_avatar_size"
+            android:layout_gravity="center"
+            android:contentDescription="@string/not_available"
+            android:src="@drawable/ic_person_placeholder" />
+    </FrameLayout>
+
+    <!-- Text column: username (15sp) over "{last message} · {time}" (14sp) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginStart="@dimen/inbox_avatar_gap"
+        android:layout_marginEnd="@dimen/inbox_avatar_gap"
         android:layout_toStartOf="@id/layout_end"
-        android:layout_toEndOf="@id/iv_avatar"
+        android:layout_toEndOf="@id/frame_avatar"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/tv_username"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="?attr/themeTextPrimary"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            android:textSize="@dimen/inbox_name_size" />
 
         <TextView
             android:id="@+id/tv_last_message"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/inbox_row_line_gap"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="?attr/themeTextSecondary"
-            android:textSize="13sp" />
+            android:textSize="@dimen/inbox_message_size" />
     </LinearLayout>
 
+    <!-- Right cluster: unread dot + camera -->
     <LinearLayout
         android:id="@+id/layout_end"
         android:layout_width="wrap_content"
@@ -53,19 +88,31 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <View
+            android:id="@+id/iv_unread_dot"
+            android:layout_width="@dimen/inbox_unread_dot_size"
+            android:layout_height="@dimen/inbox_unread_dot_size"
+            android:background="@drawable/bg_unread_dot_primary"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/iv_camera"
+            android:layout_width="@dimen/inbox_camera_size"
+            android:layout_height="@dimen/inbox_camera_size"
+            android:layout_marginStart="@dimen/inbox_unread_dot_gap"
+            android:contentDescription="@string/inbox_camera"
+            android:src="@drawable/ic_camera"
+            app:tint="?attr/themeTextPrimary" />
+
+        <!-- Legacy timestamp view: the PAGE 6 row shows the time inside
+             tv_last_message, so this stays hidden but resolvable. -->
         <TextView
             android:id="@+id/tv_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
+            android:layout_marginStart="@dimen/inbox_row_line_gap"
             android:textColor="?attr/themeTextSecondary"
-            android:textSize="12sp" />
-
-        <View
-            android:id="@+id/iv_unread_dot"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:background="@drawable/bg_unread_dot"
+            android:textSize="@dimen/text_meta"
             android:visibility="gone" />
     </LinearLayout>
 

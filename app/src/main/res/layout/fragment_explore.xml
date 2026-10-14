@@ -1,43 +1,249 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/color_background">
+    android:background="?attr/themeBackground"
+    android:orientation="vertical">
 
-    <!-- Search Input Bar -->
+    <!-- ============================================================= -->
+    <!-- Search row — idle (PAGE 3): centred hint + scan button.        -->
+    <!-- Focused (PAGE 4): back arrow + field + clear.                  -->
+    <!-- ============================================================= -->
     <LinearLayout
+        android:id="@+id/searchRow"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginVertical="8dp"
-        android:background="@drawable/bg_search_input"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:paddingHorizontal="12dp">
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/explore_search_row_margin"
+        android:paddingTop="@dimen/explore_search_row_margin"
+        android:paddingEnd="@dimen/explore_search_row_margin"
+        android:paddingBottom="@dimen/explore_search_row_margin">
 
         <ImageView
-            android:layout_width="18dp"
-            android:layout_height="18dp"
-            android:src="@drawable/ic_search"
-            android:contentDescription="@string/cd_search" />
+            android:id="@+id/ivSearchBack"
+            android:layout_width="@dimen/search_back_icon_size"
+            android:layout_height="@dimen/search_back_icon_size"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="?attr/themeTextPrimary"
+            android:visibility="gone"
+            android:contentDescription="Back" />
 
-        <EditText
-            android:id="@+id/et_search"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:background="@null"
-            android:hint="Search"
-            android:textColor="@color/color_text_primary"
-            android:textColorHint="@color/color_text_secondary"
-            android:textSize="14sp"
-            android:inputType="text" />
+        <LinearLayout
+            android:id="@+id/layoutSearchField"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/search_field_height_idle"
+            android:layout_weight="1"
+            android:background="@drawable/bg_search_field"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/search_field_padding_horizontal"
+            android:paddingEnd="@dimen/search_field_padding_horizontal">
+
+            <ImageView
+                android:id="@+id/ivSearchIcon"
+                android:layout_width="@dimen/search_field_icon_size"
+                android:layout_height="@dimen/search_field_icon_size"
+                android:layout_marginEnd="@dimen/search_field_icon_gap"
+                android:src="@drawable/ic_search"
+                app:tint="?attr/themeTextSecondary"
+                android:contentDescription="@string/cd_search" />
+
+            <EditText
+                android:id="@+id/et_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:hint="@string/search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:padding="0dp"
+                android:textColor="?attr/themeTextPrimary"
+                android:textColorHint="?attr/themeTextSecondary"
+                android:textSize="@dimen/search_field_text_size" />
+
+            <ImageView
+                android:id="@+id/ivSearchClear"
+                android:layout_width="@dimen/search_field_close_size"
+                android:layout_height="@dimen/search_field_close_size"
+                android:layout_marginStart="@dimen/search_field_icon_gap"
+                android:src="@drawable/ic_close"
+                app:tint="?attr/themeTextPrimary"
+                android:visibility="gone"
+                android:contentDescription="Clear search" />
+        </LinearLayout>
+
+        <!-- Decorative: camera / scan lookup -->
+        <FrameLayout
+            android:id="@+id/btnSearchScan"
+            android:layout_width="@dimen/search_scan_button_size"
+            android:layout_height="@dimen/search_scan_button_size"
+            android:layout_marginStart="@dimen/search_scan_gap">
+
+            <ImageView
+                android:layout_width="@dimen/search_scan_icon_size"
+                android:layout_height="@dimen/search_scan_icon_size"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_scan"
+                app:tint="?attr/themeTextPrimary"
+                android:contentDescription="@string/cd_search" />
+        </FrameLayout>
     </LinearLayout>
 
-    <!-- Explore Grid -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_explore_grid"
+    <!-- ============================================================= -->
+    <!-- PAGE 3 — filter chips (horizontal scroll)                      -->
+    <!-- ============================================================= -->
+    <HorizontalScrollView
+        android:id="@+id/chipsScroll"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/explore_chips_margin_top"
+        android:clipToPadding="false"
+        android:paddingStart="@dimen/explore_chips_padding_start"
+        android:paddingEnd="@dimen/explore_chips_padding_start"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/chipsRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chipReels"
+                style="@style/Widget.Insta.Chip"
+                android:text="@string/explore_chip_reels"
+                app:drawableStartCompat="@drawable/ic_reels" />
+
+            <TextView
+                android:id="@+id/chipShop"
+                style="@style/Widget.Insta.Chip"
+                android:text="@string/explore_chip_shop"
+                app:drawableStartCompat="@drawable/ic_shopping_bag" />
+
+            <TextView
+                android:id="@+id/chipArchitecture"
+                style="@style/Widget.Insta.Chip"
+                android:text="@string/explore_tag_architecture" />
+
+            <TextView
+                android:id="@+id/chipTravel"
+                style="@style/Widget.Insta.Chip"
+                android:text="@string/explore_tag_travel" />
+
+            <TextView
+                android:id="@+id/chipDecor"
+                style="@style/Widget.Insta.Chip"
+                android:text="@string/explore_tag_decor" />
+
+            <TextView
+                android:id="@+id/chipFood"
+                style="@style/Widget.Insta.Chip"
+                android:text="@string/explore_tag_food" />
+
+            <TextView
+                android:id="@+id/chipArt"
+                style="@style/Widget.Insta.Chip"
+                android:text="@string/explore_tag_art" />
+
+            <TextView
+                android:id="@+id/chipNature"
+                style="@style/Widget.Insta.Chip"
+                android:text="@string/explore_tag_nature" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- ============================================================= -->
+    <!-- PAGE 4 — result tabs + divider                                 -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:id="@+id/searchTabsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/search_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/search_tabs_height"
+            android:background="?attr/themeBackground"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="?attr/themeTextPrimary"
+            app:tabIndicatorHeight="@dimen/search_tab_indicator"
+            app:tabMode="fixed"
+            app:tabRippleColor="@null"
+            app:tabTextAppearance="@style/TextAppearance.Insta.SearchTab"
+            app:tabTextColor="@color/selector_search_tab_text">
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/search_tab_top"
+                android:text="@string/search_tab_top" />
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/search_tab_accounts"
+                android:text="@string/search_tab_accounts" />
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/search_tab_audio"
+                android:text="@string/search_tab_audio" />
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/search_tab_tags"
+                android:text="@string/search_tab_tags" />
+
+            <com.google.android.material.tabs.TabItem
+                android:id="@+id/search_tab_places"
+                android:text="@string/search_tab_places" />
+        </com.google.android.material.tabs.TabLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/divider_hairline"
+            android:background="?attr/themeDivider" />
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- Results: explore grid (PAGE 3) / search rows (PAGE 4)          -->
+    <!-- ============================================================= -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_explore_grid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:id="@+id/searchEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/empty_state_padding"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/ivSearchEmptyIcon"
+                android:layout_width="@dimen/search_empty_icon_size"
+                android:layout_height="@dimen/search_empty_icon_size"
+                android:src="@drawable/ic_search"
+                app:tint="?attr/themeTextSecondary"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/tvSearchEmptyTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/search_empty_margin_top"
+                android:text="@string/search_no_results"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/text_title" />
+        </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>
