@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 10 — one photo in the selected-photos strip (120dp, 8dp radius). -->
+<com.google.android.material.imageview.ShapeableImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/iv_details_photo"
+    android:layout_width="@dimen/details_photo_size"
+    android:layout_height="@dimen/details_photo_size"
+    android:layout_marginEnd="@dimen/details_photo_gap"
+    android:background="@drawable/bg_filter_thumb"
+    android:contentDescription="@string/not_available"
+    android:scaleType="centerCrop"
+    app:shapeAppearanceOverlay="@style/ShapeAppearance.Insta.DetailsPhoto" />

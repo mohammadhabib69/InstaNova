@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 8B — one gallery tile: square thumbnail plus the selection chrome.
+    Single mode: the chosen tile is dimmed 50%.
+    Multi mode: the chosen tile shows a 22dp blue circle with its index,
+    the others show an empty 22dp circle with a 1.5dp white outline.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.insta.clone.ui.widget.SquareImageView
+        android:id="@+id/iv_thumb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/not_available"
+        android:scaleType="centerCrop" />
+
+    <!-- 50% dim while this tile is the single selection -->
+    <View
+        android:id="@+id/view_thumb_dim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_picker_thumb_dim"
+        android:visibility="gone" />
+
+    <!-- Multi-select index badge -->
+    <TextView
+        android:id="@+id/tv_thumb_index"
+        android:layout_width="@dimen/picker_thumb_badge"
+        android:layout_height="@dimen/picker_thumb_badge"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/picker_recents_gap"
+        android:background="@drawable/bg_picker_selected_circle"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="@dimen/picker_thumb_badge_text_size"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Empty outline shown on the unselected tiles in multi mode -->
+    <View
+        android:id="@+id/view_thumb_ring"
+        android:layout_width="@dimen/picker_thumb_badge"
+        android:layout_height="@dimen/picker_thumb_badge"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/picker_recents_gap"
+        android:background="@drawable/bg_picker_rest_circle"
+        android:visibility="gone" />
+
+</FrameLayout>

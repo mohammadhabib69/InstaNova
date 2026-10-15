@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 10 — full-width Share button (48dp, 12dp radius, brand blue). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/details_share_radius" />
+    <solid android:color="@color/color_primary" />
+</shape>

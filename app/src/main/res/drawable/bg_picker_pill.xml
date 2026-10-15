@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 8 — Picker 'SELECT MULTIPLE' pill: surfaceVariant, fully rounded.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/picker_select_pill_radius" />
+    <solid android:color="@color/color_surface_variant" />
+</shape>
