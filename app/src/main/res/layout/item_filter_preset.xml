@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 9 — one filter preset: 72dp square thumbnail (8dp radius, 2dp white
+    border when selected) with its name underneath.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/filter_item_width"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="@dimen/filter_thumb"
+        android:layout_height="@dimen/filter_thumb">
+
+        <com.insta.clone.ui.widget.SquareImageView
+            android:id="@+id/iv_filter_thumb"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_filter_thumb"
+            android:clipToOutline="true"
+            android:contentDescription="@string/not_available"
+            android:scaleType="centerCrop" />
+
+        <View
+            android:id="@+id/view_filter_border"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_filter_selected_border"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_filter_name"
+        style="@style/TextAppearance.Insta.FilterName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/filter_name_gap" />
+
+</LinearLayout>
