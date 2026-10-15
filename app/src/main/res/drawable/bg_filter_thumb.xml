@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 9 — 8dp rounded background of a filter preset thumbnail. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/filter_thumb_radius" />
+    <solid android:color="@color/color_surface_variant" />
+</shape>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 9 — Post editor (step 2 of the create flow, the screen after 'Next').
+
+    Full-screen black. Top bar (close / filters / add photos / Aa), the
+    horizontal 4:5 image pager, the Filter | Edit | Crop tab row, the filter
+    preset strip, and the bottom row with the add-more thumbnail and Next.
+
+    The filter preset list is fed from the existing ColorMatrixPresets source.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:orientation="vertical">
+
+    <!-- Top bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/editor_top_bar_padding_horizontal"
+        android:paddingTop="@dimen/editor_top_bar_padding_top"
+        android:paddingEnd="@dimen/editor_top_bar_padding_horizontal"
+        android:paddingBottom="@dimen/editor_top_bar_padding_bottom">
+
+        <ImageView
+            android:id="@+id/btn_editor_close"
+            android:layout_width="@dimen/editor_icon"
+            android:layout_height="@dimen/editor_icon"
+            android:contentDescription="@string/not_available"
+            android:src="@drawable/ic_close"
+            app:tint="@color/white" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/btn_editor_filters"
+            android:layout_width="@dimen/editor_icon"
+            android:layout_height="@dimen/editor_icon"
+            android:contentDescription="@string/editor_tab_filter"
+            android:src="@drawable/ic_filters"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/btn_editor_gallery"
+            android:layout_width="@dimen/editor_icon"
+            android:layout_height="@dimen/editor_icon"
+            android:layout_marginStart="@dimen/editor_icon_gap"
+            android:contentDescription="@string/editor_add_photos"
+            android:src="@drawable/ic_gallery"
+            app:tint="@color/white" />
+
+        <TextView
+            android:id="@+id/btn_editor_aa"
+            android:layout_width="@dimen/editor_icon"
+            android:layout_height="@dimen/editor_icon"
+            android:layout_marginStart="@dimen/editor_icon_gap"
+            android:gravity="center"
+            android:text="@string/editor_aa"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_title"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Image pager: 88% wide cards, 4:5, next card peeking -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_editor_cards"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingStart="@dimen/details_padding_horizontal"
+        android:paddingEnd="@dimen/details_padding_horizontal" />
+
+    <!-- Filter | Edit | Crop -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/editor_tabs_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/details_padding_horizontal"
+        android:paddingEnd="@dimen/details_padding_horizontal">
+
+        <LinearLayout
+            android:id="@+id/btn_editor_tab_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_editor_filter"
+                style="@style/TextAppearance.Insta.EditorTab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/editor_tab_filter" />
+
+            <View
+                android:id="@+id/view_tab_underline_filter"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/editor_tab_underline"
+                android:layout_marginTop="@dimen/filter_name_gap"
+                android:background="@color/white" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btn_editor_tab_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/editor_tab_gap"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_editor_edit"
+                style="@style/TextAppearance.Insta.EditorTab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/editor_tab_edit" />
+
+            <View
+                android:id="@+id/view_tab_underline_edit"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/editor_tab_underline"
+                android:layout_marginTop="@dimen/filter_name_gap"
+                android:background="@color/white"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btn_editor_tab_crop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/editor_tab_gap"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_editor_crop"
+                style="@style/TextAppearance.Insta.EditorTab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/editor_tab_crop" />
+
+            <View
+                android:id="@+id/view_tab_underline_crop"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/editor_tab_underline"
+                android:layout_marginTop="@dimen/filter_name_gap"
+                android:background="@color/white"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Filter preset strip -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_filter_strip"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/editor_strip_height"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingStart="@dimen/details_padding_horizontal"
+        android:paddingEnd="@dimen/details_padding_horizontal" />
+
+    <!-- Bottom row: add more photos (left) and Next (right) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/editor_bottom_row_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/details_padding_horizontal"
+        android:paddingEnd="@dimen/details_padding_horizontal">
+
+        <FrameLayout
+            android:id="@+id/btn_editor_gallery_thumb"
+            android:layout_width="@dimen/editor_gallery_thumb"
+            android:layout_height="@dimen/editor_gallery_thumb"
+            android:background="@drawable/bg_editor_gallery_thumb">
+
+            <ImageView
+                android:id="@+id/iv_editor_gallery_thumb"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToOutline="true"
+                android:contentDescription="@string/editor_add_photos"
+                android:scaleType="centerCrop" />
+
+            <ImageView
+                android:layout_width="@dimen/editor_card_close_icon"
+                android:layout_height="@dimen/editor_card_close_icon"
+                android:layout_gravity="bottom|end"
+                android:contentDescription="@string/editor_add_photos"
+                android:src="@drawable/ic_add"
+                app:tint="@color/white" />
+        </FrameLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:id="@+id/btn_editor_next"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/editor_next_pill_height"
+            android:background="@drawable/bg_editor_next_pill"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/editor_next_pill_padding_horizontal"
+            android:paddingEnd="@dimen/editor_next_pill_padding_horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/picker_next"
+                android:textColor="@color/white"
+                android:textSize="@dimen/editor_next_text_size"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:layout_width="@dimen/editor_next_icon"
+                android:layout_height="@dimen/editor_next_icon"
+                android:layout_marginStart="@dimen/picker_row_gap"
+                android:contentDescription="@string/picker_next"
+                android:src="@drawable/ic_arrow_forward"
+                app:tint="@color/white" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
