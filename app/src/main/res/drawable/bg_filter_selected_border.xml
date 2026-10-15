@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 9 — 2dp white border drawn over the selected filter preset. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/filter_thumb_radius" />
+    <solid android:color="@color/transparent" />
+    <stroke
+        android:width="@dimen/filter_thumb_border"
+        android:color="@color/white" />
+</shape>

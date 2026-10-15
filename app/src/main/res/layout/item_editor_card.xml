@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 9 — one image card in the horizontal pager (4:5, 12dp radius).
+    The card width (88% of the screen) is applied by the adapter.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/iv_editor_card"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/not_available"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Insta.EditorCard" />
+
+    <!-- Remove this image -->
+    <ImageView
+        android:id="@+id/btn_editor_remove"
+        android:layout_width="@dimen/editor_card_close_circle"
+        android:layout_height="@dimen/editor_card_close_circle"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/editor_card_inset"
+        android:background="@drawable/bg_picker_overlay_circle"
+        android:contentDescription="@string/not_available"
+        android:padding="@dimen/reel_audio_badge_padding"
+        android:src="@drawable/ic_close"
+        app:tint="@color/white" />
+
+    <!-- Fit / fill toggle -->
+    <ImageView
+        android:id="@+id/btn_editor_expand"
+        android:layout_width="@dimen/picker_overlay_circle"
+        android:layout_height="@dimen/picker_overlay_circle"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="@dimen/editor_card_inset"
+        android:background="@drawable/bg_picker_overlay_circle"
+        android:contentDescription="@string/picker_fit_toggle"
+        android:padding="@dimen/picker_overlay_padding"
+        android:src="@drawable/ic_expand"
+        app:tint="@color/white" />
+
+</FrameLayout>

@@ -1,9 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="16dp" android:background="?attr/themeBackground">
-    <TextView android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center" android:text="New Post" android:textColor="?attr/themeTextPrimary" android:textSize="18sp" android:textStyle="bold" />
-    <Button android:id="@+id/btnPickImage" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Choose photo" />
-    <ImageView android:id="@+id/ivPreview" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="12dp" android:scaleType="centerCrop" android:visibility="gone" android:contentDescription="Selected photo" />
-    <EditText android:id="@+id/etCaption" style="@style/InstaAuthField" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:hint="Write a caption…" android:minHeight="48dp" android:gravity="top" android:inputType="textCapSentences|textMultiLine" />
-    <Button android:id="@+id/btnPublish" android:layout_width="match_parent" android:layout_height="40dp" android:layout_marginTop="12dp" android:enabled="false" android:text="Share" />
-    <ProgressBar android:id="@+id/progress" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:visibility="gone" />
-</LinearLayout>
+<!--
+    Create flow host (PAGE 8 → 10). One activity, four steps swapped in place,
+    so no new navigation target is introduced:
+
+      step_picker  — PAGE 8B, the picker (also opened by the Create tab)
+      step_editor  — PAGE 9,  the post editor behind 'Next'
+      step_details — PAGE 10A, the new post details behind the editor 'Next'
+      step_caption — PAGE 10B, the caption screen
+
+    All ids consumed by CreatePostActivity are preserved: iv_preview,
+    btn_pick_image, et_caption, btn_publish and progress.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <include
+        android:id="@+id/step_picker"
+        layout="@layout/create_step_picker" />
+
+    <include
+        android:id="@+id/step_editor"
+        layout="@layout/create_step_editor" />
+
+    <include
+        android:id="@+id/step_details"
+        layout="@layout/create_step_details" />
+
+    <include
+        android:id="@+id/step_caption"
+        layout="@layout/create_step_caption" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</FrameLayout>

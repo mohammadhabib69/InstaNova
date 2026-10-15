@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 8 — Create sheet drag handle: 36x4dp, #A8A8A8, centred 8dp from the top.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="2dp" />
+    <solid android:color="@color/color_icon_muted" />
+</shape>
