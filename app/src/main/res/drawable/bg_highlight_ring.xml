@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 2 — Profile highlights row: 1dp divider ring around a highlight circle.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/transparent" />
+    <stroke
+        android:width="@dimen/profile_highlight_ring"
+        android:color="@color/color_divider" />
+</shape>

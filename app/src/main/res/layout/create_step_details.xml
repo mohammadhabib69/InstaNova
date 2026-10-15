@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 10A — New post (details) step of the create flow.
+
+    Theme-aware screen: 56dp bar with a centred 'New post', the scrolling
+    content (photo strip, caption area, Poll / Prompt chips and the option
+    rows) and the full-width Share button pinned above the bottom inset.
+
+    et_caption keeps its id and stays an EditText (not focusable: tapping it
+    opens the PAGE 10B caption screen); btn_publish is the existing
+    upload/share button.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/themeBackground"
+    android:orientation="vertical">
+
+    <!-- Top bar -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/details_top_bar_height">
+
+        <ImageView
+            android:id="@+id/btn_details_back"
+            android:layout_width="@dimen/search_back_icon_size"
+            android:layout_height="@dimen/search_back_icon_size"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="@dimen/details_padding_horizontal"
+            android:contentDescription="@string/inbox_back"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/picker_new_post"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="@dimen/text_title"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/details_section_gap">
+
+            <!-- Selected photos -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_details_photos"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/details_photo_size"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingStart="@dimen/details_padding_horizontal"
+                android:paddingEnd="@dimen/details_padding_horizontal" />
+
+            <!-- Caption area (tapping opens the caption screen) -->
+            <EditText
+                android:id="@+id/et_caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/details_padding_horizontal"
+                android:layout_marginTop="@dimen/details_caption_margin_top"
+                android:layout_marginEnd="@dimen/details_padding_horizontal"
+                android:background="@null"
+                android:cursorVisible="false"
+                android:focusable="false"
+                android:gravity="top"
+                android:hint="@string/caption_hint"
+                android:inputType="none"
+                android:minHeight="@dimen/details_row_height"
+                android:textColor="?attr/themeTextPrimary"
+                android:textColorHint="?attr/themeTextSecondary"
+                android:textSize="@dimen/details_caption_size" />
+
+            <!-- Poll / Prompt chips (decorative) -->
+            <LinearLayout
+                android:id="@+id/layout_details_chips"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/details_padding_horizontal"
+                android:layout_marginTop="@dimen/details_chip_gap"
+                android:layout_marginEnd="@dimen/details_padding_horizontal"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/btn_chip_poll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/details_chip_height"
+                    android:background="@drawable/bg_details_chip"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/details_chip_padding_horizontal"
+                    android:paddingEnd="@dimen/details_chip_padding_horizontal">
+
+                    <ImageView
+                        android:layout_width="@dimen/details_chip_icon"
+                        android:layout_height="@dimen/details_chip_icon"
+                        android:contentDescription="@string/details_chip_poll"
+                        android:src="@drawable/ic_poll"
+                        app:tint="?attr/themeTextPrimary" />
+
+                    <TextView
+                        style="@style/TextAppearance.Insta.DetailsChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/picker_row_gap"
+                        android:text="@string/details_chip_poll" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_chip_prompt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/details_chip_height"
+                    android:layout_marginStart="@dimen/details_chip_gap"
+                    android:background="@drawable/bg_details_chip"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/details_chip_padding_horizontal"
+                    android:paddingEnd="@dimen/details_chip_padding_horizontal">
+
+                    <ImageView
+                        android:layout_width="@dimen/details_chip_icon"
+                        android:layout_height="@dimen/details_chip_icon"
+                        android:contentDescription="@string/details_chip_prompt"
+                        android:src="@drawable/ic_comment"
+                        app:tint="?attr/themeTextPrimary" />
+
+                    <TextView
+                        style="@style/TextAppearance.Insta.DetailsChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/picker_row_gap"
+                        android:text="@string/details_chip_prompt" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Tag people (decorative) -->
+            <LinearLayout
+                android:id="@+id/row_tag_people"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/details_row_height"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/details_padding_horizontal"
+                android:paddingEnd="@dimen/details_padding_horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_icon"
+                    android:layout_height="@dimen/details_row_icon"
+                    android:contentDescription="@string/details_tag_people"
+                    android:src="@drawable/ic_tagged"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <TextView
+                    style="@style/TextAppearance.Insta.DetailsRow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/details_row_icon_gap"
+                    android:layout_weight="1"
+                    android:text="@string/details_tag_people" />
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_chevron"
+                    android:layout_height="@dimen/details_row_chevron"
+                    android:contentDescription="@string/not_available"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/themeTextSecondary" />
+            </LinearLayout>
+
+            <!-- Add location -->
+            <LinearLayout
+                android:id="@+id/row_add_location"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/details_row_height"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/details_padding_horizontal"
+                android:paddingEnd="@dimen/details_padding_horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_icon"
+                    android:layout_height="@dimen/details_row_icon"
+                    android:contentDescription="@string/details_add_location"
+                    android:src="@drawable/ic_location"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <TextView
+                    style="@style/TextAppearance.Insta.DetailsRow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/details_row_icon_gap"
+                    android:layout_weight="1"
+                    android:text="@string/details_add_location" />
+
+                <TextView
+                    android:id="@+id/tv_location_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/picker_row_gap"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="?attr/themeTextSecondary"
+                    android:textSize="@dimen/details_row_value_size"
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_chevron"
+                    android:layout_height="@dimen/details_row_chevron"
+                    android:contentDescription="@string/not_available"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/themeTextSecondary" />
+            </LinearLayout>
+
+            <!-- Add music (decorative) -->
+            <LinearLayout
+                android:id="@+id/row_add_music"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/details_row_height"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/details_padding_horizontal"
+                android:paddingEnd="@dimen/details_padding_horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_icon"
+                    android:layout_height="@dimen/details_row_icon"
+                    android:contentDescription="@string/details_add_music"
+                    android:src="@drawable/ic_music"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <TextView
+                    style="@style/TextAppearance.Insta.DetailsRow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/details_row_icon_gap"
+                    android:layout_weight="1"
+                    android:text="@string/details_add_music" />
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_chevron"
+                    android:layout_height="@dimen/details_row_chevron"
+                    android:contentDescription="@string/not_available"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/themeTextSecondary" />
+            </LinearLayout>
+
+            <!-- Add AI label (decorative) -->
+            <LinearLayout
+                android:id="@+id/row_ai_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/details_padding_horizontal"
+                android:paddingTop="@dimen/details_chip_gap"
+                android:paddingEnd="@dimen/details_padding_horizontal"
+                android:paddingBottom="@dimen/details_chip_gap">
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_icon"
+                    android:layout_height="@dimen/details_row_icon"
+                    android:contentDescription="@string/details_ai_label"
+                    android:src="@drawable/ic_ai_label"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/details_row_icon_gap"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TextAppearance.Insta.DetailsRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/details_ai_label" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/filter_name_gap"
+                        android:text="@string/details_ai_label_desc"
+                        android:textColor="?attr/themeTextSecondary"
+                        android:textSize="@dimen/details_row_desc_size" />
+                </LinearLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switch_ai_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/details_chip_gap" />
+            </LinearLayout>
+
+            <!-- 8dp surfaceVariant gap -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/details_section_gap"
+                android:background="?attr/themeSurfaceVariant" />
+
+            <!-- Audience (decorative) -->
+            <LinearLayout
+                android:id="@+id/row_audience"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/details_row_height"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/details_padding_horizontal"
+                android:paddingEnd="@dimen/details_padding_horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_icon"
+                    android:layout_height="@dimen/details_row_icon"
+                    android:contentDescription="@string/details_audience"
+                    android:src="@drawable/ic_audience"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <TextView
+                    style="@style/TextAppearance.Insta.DetailsRow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/details_row_icon_gap"
+                    android:layout_weight="1"
+                    android:text="@string/details_audience" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/picker_row_gap"
+                    android:text="@string/details_audience_value"
+                    android:textColor="?attr/themeTextSecondary"
+                    android:textSize="@dimen/details_row_value_size" />
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_chevron"
+                    android:layout_height="@dimen/details_row_chevron"
+                    android:contentDescription="@string/not_available"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/themeTextSecondary" />
+            </LinearLayout>
+
+            <!-- Also share on... (decorative) -->
+            <LinearLayout
+                android:id="@+id/row_also_share"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/details_row_height"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/details_padding_horizontal"
+                android:paddingEnd="@dimen/details_padding_horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_icon"
+                    android:layout_height="@dimen/details_row_icon"
+                    android:contentDescription="@string/details_also_share"
+                    android:src="@drawable/ic_send"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <TextView
+                    style="@style/TextAppearance.Insta.DetailsRow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/details_row_icon_gap"
+                    android:layout_weight="1"
+                    android:text="@string/details_also_share" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/picker_row_gap"
+                    android:text="@string/details_also_share_value"
+                    android:textColor="?attr/themeTextSecondary"
+                    android:textSize="@dimen/details_row_value_size" />
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_chevron"
+                    android:layout_height="@dimen/details_row_chevron"
+                    android:contentDescription="@string/not_available"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/themeTextSecondary" />
+            </LinearLayout>
+
+            <!-- More options (decorative) -->
+            <LinearLayout
+                android:id="@+id/row_more_options"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/details_row_height"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/details_padding_horizontal"
+                android:paddingEnd="@dimen/details_padding_horizontal">
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_icon"
+                    android:layout_height="@dimen/details_row_icon"
+                    android:contentDescription="@string/details_more_options"
+                    android:src="@drawable/ic_more_horiz"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <TextView
+                    style="@style/TextAppearance.Insta.DetailsRow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/details_row_icon_gap"
+                    android:layout_weight="1"
+                    android:text="@string/details_more_options" />
+
+                <ImageView
+                    android:layout_width="@dimen/details_row_chevron"
+                    android:layout_height="@dimen/details_row_chevron"
+                    android:contentDescription="@string/not_available"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/themeTextSecondary" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Share (existing upload flow). A TextView so the brand-blue background
+         is never re-tinted by the button widget; the disabled / uploading
+         states are driven from the activity. -->
+    <TextView
+        android:id="@+id/btn_publish"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/details_share_height"
+        android:layout_marginStart="@dimen/details_share_margin"
+        android:layout_marginTop="@dimen/details_chip_gap"
+        android:layout_marginEnd="@dimen/details_share_margin"
+        android:layout_marginBottom="@dimen/details_share_margin"
+        android:background="@drawable/bg_create_share_button"
+        android:enabled="false"
+        android:gravity="center"
+        android:maxLines="1"
+        android:text="@string/details_share"
+        android:textColor="@color/white"
+        android:textSize="@dimen/details_share_text_size"
+        android:textStyle="bold" />
+
+</LinearLayout>

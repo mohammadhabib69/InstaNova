@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 8 — 'SELECT MULTIPLE' pill while multi-select is active: it collapses
+    into a 32dp brand-blue circle holding a white icon.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/color_primary" />
+</shape>

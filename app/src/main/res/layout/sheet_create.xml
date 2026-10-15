@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 8A — Create sheet, opened by the '+' on Home and Profile.
+    Reel / Post / Story / Story highlight open the existing flows;
+    Live and Made for you are decorative (Constants.DECORATIVE_UI).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/text_title">
+
+    <View
+        android:layout_width="@dimen/create_sheet_handle_width"
+        android:layout_height="@dimen/create_sheet_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/create_sheet_handle_margin_top"
+        android:background="@drawable/bg_sheet_drag_handle" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="@dimen/create_sheet_title_padding_vertical"
+        android:paddingBottom="@dimen/create_sheet_title_padding_vertical"
+        android:text="@string/create_title"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/text_title"
+        android:textStyle="bold" />
+
+    <!-- Reel -->
+    <LinearLayout
+        android:id="@+id/row_create_reel"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/create_sheet_row_height"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/create_sheet_row_padding_horizontal"
+        android:paddingEnd="@dimen/create_sheet_row_padding_horizontal">
+
+        <ImageView
+            android:layout_width="@dimen/create_sheet_row_icon"
+            android:layout_height="@dimen/create_sheet_row_icon"
+            android:contentDescription="@string/create_reel"
+            android:src="@drawable/ic_reels"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            style="@style/TextAppearance.Insta.CreateRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/create_sheet_row_icon_gap"
+            android:layout_weight="1"
+            android:text="@string/create_reel" />
+    </LinearLayout>
+
+    <!-- Post -->
+    <LinearLayout
+        android:id="@+id/row_create_post"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/create_sheet_row_height"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/create_sheet_row_padding_horizontal"
+        android:paddingEnd="@dimen/create_sheet_row_padding_horizontal">
+
+        <ImageView
+            android:layout_width="@dimen/create_sheet_row_icon"
+            android:layout_height="@dimen/create_sheet_row_icon"
+            android:contentDescription="@string/create_post"
+            android:src="@drawable/ic_grid"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            style="@style/TextAppearance.Insta.CreateRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/create_sheet_row_icon_gap"
+            android:layout_weight="1"
+            android:text="@string/create_post" />
+    </LinearLayout>
+
+    <!-- Story -->
+    <LinearLayout
+        android:id="@+id/row_create_story"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/create_sheet_row_height"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/create_sheet_row_padding_horizontal"
+        android:paddingEnd="@dimen/create_sheet_row_padding_horizontal">
+
+        <ImageView
+            android:layout_width="@dimen/create_sheet_row_icon"
+            android:layout_height="@dimen/create_sheet_row_icon"
+            android:contentDescription="@string/create_story"
+            android:src="@drawable/ic_add"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            style="@style/TextAppearance.Insta.CreateRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/create_sheet_row_icon_gap"
+            android:layout_weight="1"
+            android:text="@string/create_story" />
+    </LinearLayout>
+
+    <!-- Story highlight -->
+    <LinearLayout
+        android:id="@+id/row_create_highlight"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/create_sheet_row_height"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/create_sheet_row_padding_horizontal"
+        android:paddingEnd="@dimen/create_sheet_row_padding_horizontal">
+
+        <ImageView
+            android:layout_width="@dimen/create_sheet_row_icon"
+            android:layout_height="@dimen/create_sheet_row_icon"
+            android:contentDescription="@string/create_story_highlight"
+            android:src="@drawable/ic_highlight"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            style="@style/TextAppearance.Insta.CreateRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/create_sheet_row_icon_gap"
+            android:layout_weight="1"
+            android:text="@string/create_story_highlight" />
+    </LinearLayout>
+
+    <!-- Live (decorative) -->
+    <LinearLayout
+        android:id="@+id/row_create_live"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/create_sheet_row_height"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/create_sheet_row_padding_horizontal"
+        android:paddingEnd="@dimen/create_sheet_row_padding_horizontal">
+
+        <ImageView
+            android:layout_width="@dimen/create_sheet_row_icon"
+            android:layout_height="@dimen/create_sheet_row_icon"
+            android:contentDescription="@string/create_live"
+            android:src="@drawable/ic_live"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            style="@style/TextAppearance.Insta.CreateRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/create_sheet_row_icon_gap"
+            android:layout_weight="1"
+            android:text="@string/create_live" />
+    </LinearLayout>
+
+    <!-- Made for you (decorative) -->
+    <LinearLayout
+        android:id="@+id/row_create_made_for_you"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/create_sheet_row_height"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/create_sheet_row_padding_horizontal"
+        android:paddingEnd="@dimen/create_sheet_row_padding_horizontal">
+
+        <ImageView
+            android:layout_width="@dimen/create_sheet_row_icon"
+            android:layout_height="@dimen/create_sheet_row_icon"
+            android:contentDescription="@string/create_made_for_you"
+            android:src="@drawable/ic_sparkle"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            style="@style/TextAppearance.Insta.CreateRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/create_sheet_row_icon_gap"
+            android:layout_weight="1"
+            android:text="@string/create_made_for_you" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 8/9 — translucent control circle drawn on top of media (#99000000).
+    Used for the fit/fill toggle and the per-card remove button.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/color_scrim" />
+</shape>

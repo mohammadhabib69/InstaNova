@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 10B — Caption screen, opened by tapping the caption area on the
+    details step. 'OK' returns to the details step with the typed text.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/themeBackground"
+    android:orientation="vertical">
+
+    <!-- Top bar -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/caption_top_bar_height">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/caption_title"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="@dimen/text_title"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btn_caption_ok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="@dimen/details_padding_horizontal"
+            android:background="?attr/selectableItemBackground"
+            android:text="@string/caption_ok"
+            android:textColor="@color/color_primary"
+            android:textSize="@dimen/text_title"
+            android:textStyle="bold" />
+    </FrameLayout>
+
+    <!-- Caption field + edit affordance -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="top"
+        android:orientation="horizontal"
+        android:padding="@dimen/caption_field_padding">
+
+        <EditText
+            android:id="@+id/et_caption_screen"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:gravity="top"
+            android:hint="@string/caption_hint"
+            android:inputType="textCapSentences|textMultiLine"
+            android:minHeight="@dimen/details_row_height"
+            android:textColor="?attr/themeTextPrimary"
+            android:textColorHint="?attr/themeTextSecondary"
+            android:textSize="@dimen/caption_field_size" />
+
+        <ImageView
+            android:id="@+id/btn_caption_edit"
+            android:layout_width="@dimen/caption_action_button"
+            android:layout_height="@dimen/caption_action_button"
+            android:layout_marginStart="@dimen/details_chip_gap"
+            android:background="@drawable/bg_picker_circle_surface"
+            android:contentDescription="@string/not_available"
+            android:padding="@dimen/picker_overlay_padding"
+            android:src="@drawable/ic_edit"
+            app:tint="?attr/themeTextPrimary" />
+    </LinearLayout>
+
+    <!-- Poll / Prompt chips (decorative) -->
+    <LinearLayout
+        android:id="@+id/layout_caption_chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/details_padding_horizontal"
+        android:layout_marginEnd="@dimen/details_padding_horizontal"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/btn_caption_chip_poll"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/details_chip_height"
+            android:background="@drawable/bg_details_chip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/details_chip_padding_horizontal"
+            android:paddingEnd="@dimen/details_chip_padding_horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/details_chip_icon"
+                android:layout_height="@dimen/details_chip_icon"
+                android:contentDescription="@string/details_chip_poll"
+                android:src="@drawable/ic_poll"
+                app:tint="?attr/themeTextPrimary" />
+
+            <TextView
+                style="@style/TextAppearance.Insta.DetailsChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/picker_row_gap"
+                android:text="@string/details_chip_poll" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btn_caption_chip_prompt"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/details_chip_height"
+            android:layout_marginStart="@dimen/details_chip_gap"
+            android:background="@drawable/bg_details_chip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/details_chip_padding_horizontal"
+            android:paddingEnd="@dimen/details_chip_padding_horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/details_chip_icon"
+                android:layout_height="@dimen/details_chip_icon"
+                android:contentDescription="@string/details_chip_prompt"
+                android:src="@drawable/ic_comment"
+                app:tint="?attr/themeTextPrimary" />
+
+            <TextView
+                style="@style/TextAppearance.Insta.DetailsChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/picker_row_gap"
+                android:text="@string/details_chip_prompt" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

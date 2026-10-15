@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 8 — floating POST / STORY / REEL switch: #CC000000, fully rounded.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/picker_mode_pill_radius" />
+    <solid android:color="@color/color_scrim_strong" />
+</shape>
