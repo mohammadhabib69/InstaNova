@@ -1,33 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 5 — REELS TAB (full screen, black).
+
+    Layout only: the ViewPager2 id (vp_reels), the camera id (btn_camera) and
+    the empty-state ids are unchanged so ReelsFragment keeps working. The
+    status-bar inset is applied to layout_reel_top_bar at runtime so the
+    chrome clears the system bar while the video stays edge to edge.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black">
 
+    <!-- Full-bleed vertical reel pager (each page draws its own scrims) -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/vp_reels"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Top Reels Title Overlay -->
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Top chrome: 'Reels' + chevron (start) / camera (end) -->
+    <LinearLayout
+        android:id="@+id/layout_reel_top_bar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="Reels"
-        android:textColor="@color/white"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/reel_top_bar_min_height"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/reel_top_bar_padding_horizontal"
+        android:paddingTop="@dimen/reel_top_bar_padding_vertical"
+        android:paddingEnd="@dimen/reel_top_bar_padding_horizontal"
+        android:paddingBottom="@dimen/reel_top_bar_padding_vertical">
 
-    <!-- Camera Icon -->
-    <ImageView
-        android:id="@+id/btn_camera"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_gravity="end"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_camera"
-        android:contentDescription="Camera" />
+        <LinearLayout
+            android:id="@+id/btn_reel_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/nav_reels"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_screen_title"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/iv_reel_title_chevron"
+                android:layout_width="@dimen/reel_chevron_size"
+                android:layout_height="@dimen/reel_chevron_size"
+                android:layout_marginStart="@dimen/reel_chevron_gap"
+                android:contentDescription="@string/not_available"
+                android:src="@drawable/ic_chevron_down"
+                app:tint="@color/white" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/btn_camera"
+            android:layout_width="@dimen/reel_camera_size"
+            android:layout_height="@dimen/reel_camera_size"
+            android:contentDescription="@string/reel_camera"
+            android:src="@drawable/ic_camera"
+            app:tint="@color/white" />
+    </LinearLayout>
 
     <!-- Empty State -->
     <LinearLayout
@@ -40,26 +83,30 @@
         android:visibility="gone">
 
         <ImageView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="@dimen/caught_up_icon_size"
+            android:layout_height="@dimen/caught_up_icon_size"
+            android:contentDescription="@string/not_available"
             android:src="@drawable/ic_movie"
-            android:tint="@color/white" />
+            app:tint="@color/white" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="No Reels Yet"
+            android:layout_marginTop="@dimen/caught_up_gap"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/reel_empty_title"
             android:textColor="@color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textSize="@dimen/text_title" />
 
         <Button
             android:id="@+id/btn_empty_create_reel"
+            style="@style/Widget.Insta.Button.Primary"
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginTop="16dp"
-            android:text="Create reel" />
+            android:layout_height="@dimen/profile_button_height"
+            android:layout_marginTop="@dimen/caught_up_gap"
+            android:paddingStart="@dimen/profile_button_gap"
+            android:paddingEnd="@dimen/profile_button_gap"
+            android:text="@string/reel_empty_action" />
     </LinearLayout>
 
 </FrameLayout>

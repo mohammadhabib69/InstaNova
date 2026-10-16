@@ -1,6 +1,7 @@
 package com.insta.clone.ui.profile;
 
 import android.content.Intent;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +16,9 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,15 +36,18 @@ import com.insta.clone.data.remote.dto.ProfileDto;
 import com.insta.clone.data.repository.PostRepository;
 import com.insta.clone.data.repository.ProfileRepository;
 import com.insta.clone.data.repository.ReelRepository;
-import com.insta.clone.ui.create.CreatePostActivity;
+import com.insta.clone.ui.create.CreateSheet;
 import com.insta.clone.ui.post.PostDetailActivity;
 import com.insta.clone.ui.settings.SettingsActivity;
+import com.insta.clone.util.Constants;
 import com.insta.clone.util.ImageUtils;
 import com.insta.clone.util.Resource;
+import com.insta.clone.util.ToastUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import okhttp3.MediaType;
@@ -57,8 +64,15 @@ public class ProfileFragment extends Fragment {
     private static final String TAG_API = "InstaApi";
     private static final String TAG_GLIDE = "InstaGlide";
 
+    /** PAGE 2 tab positions: 0 = grid, 1 = reels, 2 = reposts, 3 = tagged. */
+    private static final int TAB_REPOSTS = 2;
+    private static final int TAB_TAGGED = 3;
+
     private ImageView ivAvatar;
     private TextView tvUsername, tvPostsCount, tvFollowersCount, tvFollowingCount, tvBio;
+    private TextView tvDisplayName, tvEmptyTitle;
+    private View profileEmptyState;
+    private ImageView ivEmptyIcon;
     private TabLayout tabLayout;
     private RecyclerView rvMediaGrid;
 
@@ -88,8 +102,31 @@ public class ProfileFragment extends Fragment {
         tvFollowersCount = view.findViewById(R.id.tv_followers_count);
         tvFollowingCount = view.findViewById(R.id.tv_following_count);
         tvBio = view.findViewById(R.id.tv_bio);
+        tvDisplayName = view.findViewById(R.id.tv_display_name);
+        profileEmptyState = view.findViewById(R.id.profileEmptyState);
+        ivEmptyIcon = view.findViewById(R.id.ivEmptyIcon);
+        tvEmptyTitle = view.findViewById(R.id.tvEmptyTitle);
         tabLayout = view.findViewById(R.id.tab_layout_profile);
         rvMediaGrid = view.findViewById(R.id.rv_media_grid);
+
+        // PAGE 2: keep the 56dp top bar clear of the status bar (edge-to-edge window).
+        // The inset goes on the fragment root so the bar keeps its 56dp height.
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), bars.top, v.getPaddingRight(), v.getPaddingBottom());
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(view);
+
+        // PAGE 2: design-only elements -> "Not available" toast (DECORATIVE_UI).
+        // hideWhenOff = the element itself is decorative in the reference design.
+        wireDecorative(view.findViewById(R.id.ivChevronDown), true);
+        wireDecorative(view.findViewById(R.id.btnAddPerson), true);
+        wireDecorative(view.findViewById(R.id.layoutHighlightNew), true);
+        wireDecorative(view.findViewById(R.id.btnEditProfile), false);
+        wireDecorative(view.findViewById(R.id.btnShareProfile), false);
+        wireDecorative(view.findViewById(R.id.btnFollow), false);
+        wireDecorative(view.findViewById(R.id.btnMessage), false);
 
         sessionManager = SessionManager.getInstance(requireContext());
         currentUserId = sessionManager.getUserId();
@@ -105,7 +142,8 @@ public class ProfileFragment extends Fragment {
         // Top bar buttons
         View ivCreate = view.findViewById(R.id.iv_settings); // Add box icon
         if (ivCreate != null) {
-            ivCreate.setOnClickListener(v -> startActivity(new Intent(requireContext(), CreatePostActivity.class)));
+            // PAGE 8A — the '+' opens the Create sheet, whose rows launch the existing flows
+            ivCreate.setOnClickListener(v -> CreateSheet.show(requireContext()));
         }
 
         View ivMenu = view.findViewById(R.id.iv_menu);
@@ -121,8 +159,10 @@ public class ProfileFragment extends Fragment {
                     .build());
         });
 
-        // Grid setup
+        // Grid setup (3 columns, 1dp gutters)
         rvMediaGrid.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        rvMediaGrid.addItemDecoration(new GridGapDecoration(
+                getResources().getDimensionPixelSize(R.dimen.profile_grid_gap)));
         gridAdapter = new MediaGridAdapter(gridPosts, post -> {
             Intent intent = new Intent(requireContext(), PostDetailActivity.class);
             intent.putExtra("post", post);
@@ -135,7 +175,13 @@ public class ProfileFragment extends Fragment {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                loadTabContent(tab.getPosition());
+                int position = tab.getPosition();
+                // PAGE 2: reposts / tagged tabs are design-only (no feature behind them).
+                if (Constants.DECORATIVE_UI
+                        && (position == TAB_REPOSTS || position == TAB_TAGGED)) {
+                    ToastUtil.showNotAvailable(requireContext());
+                }
+                loadTabContent(position);
             }
             @Override public void onTabUnselected(TabLayout.Tab tab) {}
             @Override public void onTabReselected(TabLayout.Tab tab) {}
@@ -145,6 +191,20 @@ public class ProfileFragment extends Fragment {
         loadTabContent(0);
 
         return view;
+    }
+
+    /**
+     * PAGE 2 — design-only element. When {@link Constants#DECORATIVE_UI} is on the
+     * element surfaces the shared "Not available" pill toast; when it is off the
+     * element either disappears (hideWhenOff) or stays inert.
+     */
+    private void wireDecorative(@Nullable View view, boolean hideWhenOff) {
+        if (view == null) return;
+        if (Constants.DECORATIVE_UI) {
+            view.setOnClickListener(v -> ToastUtil.showNotAvailable(requireContext()));
+        } else if (hideWhenOff) {
+            view.setVisibility(View.GONE);
+        }
     }
 
     private void setupAvatarPicker() {
@@ -275,19 +335,21 @@ public class ProfileFragment extends Fragment {
             if (resource.status == Resource.Status.SUCCESS && resource.data != null) {
                 Profile profile = resource.data;
                 tvUsername.setText(profile.getUsername());
-                tvPostsCount.setText(String.valueOf(profile.getPostsCount()));
-                tvFollowersCount.setText(String.valueOf(profile.getFollowersCount()));
-                tvFollowingCount.setText(String.valueOf(profile.getFollowingCount()));
+                tvPostsCount.setText(formatStatCount(profile.getPostsCount()));
+                tvFollowersCount.setText(formatStatCount(profile.getFollowersCount()));
+                tvFollowingCount.setText(formatStatCount(profile.getFollowingCount()));
 
-                StringBuilder bioText = new StringBuilder();
-                if (profile.getFullName() != null && !profile.getFullName().isEmpty()) {
-                    bioText.append(profile.getFullName());
+                // PAGE 2: the display name sits above the stats, the bio holds the bio.
+                String displayName = profile.getFullName() == null ? "" : profile.getFullName().trim();
+                if (displayName.isEmpty()) {
+                    tvDisplayName.setText("");
+                    tvDisplayName.setVisibility(View.GONE);
+                } else {
+                    tvDisplayName.setText(displayName);
+                    tvDisplayName.setVisibility(View.VISIBLE);
                 }
-                if (profile.getBio() != null && !profile.getBio().isEmpty()) {
-                    if (bioText.length() > 0) bioText.append("\n");
-                    bioText.append(profile.getBio());
-                }
-                tvBio.setText(bioText.toString());
+                String bio = profile.getBio() == null ? "" : profile.getBio().trim();
+                tvBio.setText(bio);
 
                 if (isAdded()) {
                     com.insta.clone.util.GlideUtils.loadAvatar(ivAvatar, profile.getAvatarUrl());
@@ -296,7 +358,45 @@ public class ProfileFragment extends Fragment {
         });
     }
 
+    /** 84 / 1,134 / 12.3K / 1.2M (PAGE 2 header format). */
+    private String formatStatCount(int count) {
+        if (count < 10_000) {
+            return String.format(Locale.US, "%,d", count);
+        }
+        if (count < 1_000_000) {
+            return trimTrailingZero(count / 1000.0) + "K";
+        }
+        return trimTrailingZero(count / 1_000_000.0) + "M";
+    }
+
+    private String trimTrailingZero(double value) {
+        String text = String.format(Locale.US, "%.1f", value);
+        return text.endsWith(".0") ? text.substring(0, text.length() - 2) : text;
+    }
+
+    private void showEmptyState(int tabPosition) {
+        if (profileEmptyState == null || ivEmptyIcon == null || tvEmptyTitle == null) return;
+        boolean reposts = tabPosition == TAB_REPOSTS;
+        ivEmptyIcon.setImageResource(reposts ? R.drawable.ic_repost : R.drawable.ic_tagged);
+        tvEmptyTitle.setText(reposts ? R.string.profile_no_reposts : R.string.profile_no_photos_of_you);
+        profileEmptyState.setVisibility(View.VISIBLE);
+    }
+
+    private void hideEmptyState() {
+        if (profileEmptyState != null) profileEmptyState.setVisibility(View.GONE);
+    }
+
     private void loadTabContent(int tabPosition) {
+        if (tabPosition == TAB_REPOSTS || tabPosition == TAB_TAGGED) {
+            // PAGE 2: design-only tabs show their empty state instead of feed data.
+            gridPosts.clear();
+            gridAdapter.notifyDataSetChanged();
+            showEmptyState(tabPosition);
+            return;
+        }
+
+        hideEmptyState();
+
         if (tabPosition == 0) {
             // Posts Grid: v_posts?user_id=eq.{id}&is_reel=eq.false
             postRepository.getUserPosts(currentUserId).observe(getViewLifecycleOwner(), resource -> {
@@ -315,15 +415,28 @@ public class ProfileFragment extends Fragment {
                     gridAdapter.notifyDataSetChanged();
                 }
             });
-        } else if (tabPosition == 2) {
-            // Saved Posts: v_saved
-            postRepository.getSavedPosts().observe(getViewLifecycleOwner(), resource -> {
-                if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
-                    gridPosts.clear();
-                    gridPosts.addAll(resource.data);
-                    gridAdapter.notifyDataSetChanged();
-                }
-            });
+        }
+        // Tabs 3 and 4 (reposts / tagged) are design-only and never reach here.
+    }
+
+    /**
+     * PAGE 2 grid gutters: the 1dp gap is split across neighbours (3px total at
+     * 440dpi = 1.09dp, the closest achievable value). Equal insets keep the three
+     * columns the same width.
+     */
+    static class GridGapDecoration extends RecyclerView.ItemDecoration {
+        private final int leadingGap;
+        private final int trailingGap;
+
+        GridGapDecoration(int gapPx) {
+            this.leadingGap = gapPx / 2;
+            this.trailingGap = gapPx - leadingGap;
+        }
+
+        @Override
+        public void getItemOffsets(@NonNull Rect outRect, @NonNull View view,
+                                   @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+            outRect.set(leadingGap, leadingGap, trailingGap, trailingGap);
         }
     }
 
@@ -369,6 +482,11 @@ public class ProfileFragment extends Fragment {
 
             com.insta.clone.util.GlideUtils.load(holder.ivMedia, "posts", url);
 
+            // PAGE 2: carousel / reel markers (real post data, not decoration).
+            boolean carousel = post.getMediaUrls() != null && post.getMediaUrls().size() > 1;
+            holder.ivMultiBadge.setVisibility(carousel ? View.VISIBLE : View.GONE);
+            holder.ivReelBadge.setVisibility(post.isReel() ? View.VISIBLE : View.GONE);
+
             holder.itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onPostClick(post);
             });
@@ -381,9 +499,13 @@ public class ProfileFragment extends Fragment {
 
         static class GridViewHolder extends RecyclerView.ViewHolder {
             final ImageView ivMedia;
+            final ImageView ivMultiBadge;
+            final ImageView ivReelBadge;
             GridViewHolder(@NonNull View itemView) {
                 super(itemView);
                 ivMedia = itemView.findViewById(R.id.ivMedia);
+                ivMultiBadge = itemView.findViewById(R.id.ivMultiBadge);
+                ivReelBadge = itemView.findViewById(R.id.ivReelBadge);
             }
         }
     }

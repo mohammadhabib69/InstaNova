@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 13 — Settings and activity tokens (from the two references). -->
+<resources>
+
+    <dimen name="settings_top_bar_height">56dp</dimen>
+    <dimen name="settings_title_size">20sp</dimen>
+    <dimen name="settings_back_icon">16dp</dimen>
+    <dimen name="settings_search_margin">16dp</dimen>
+    <dimen name="settings_search_height">40dp</dimen>
+    <dimen name="settings_search_radius">10dp</dimen>
+    <dimen name="settings_search_icon">18dp</dimen>
+    <dimen name="settings_search_hint_size">16sp</dimen>
+
+    <dimen name="settings_section_pad_h">16dp</dimen>
+    <dimen name="settings_section_pad_top">16dp</dimen>
+    <dimen name="settings_section_pad_bottom">8dp</dimen>
+    <dimen name="settings_section_header_size">14sp</dimen>
+    <dimen name="settings_section_gap">8dp</dimen>
+
+    <dimen name="settings_row_height">56dp</dimen>
+    <dimen name="settings_row_pad_h">16dp</dimen>
+    <dimen name="settings_row_icon">24dp</dimen>
+    <dimen name="settings_row_icon_gap">16dp</dimen>
+    <dimen name="settings_row_label_size">16sp</dimen>
+    <dimen name="settings_row_value_size">14sp</dimen>
+    <dimen name="settings_row_chevron">20dp</dimen>
+    <dimen name="settings_row_desc_size">14sp</dimen>
+    <dimen name="settings_row_two_line_height">72dp</dimen>
+    <dimen name="settings_row_value_gap">8dp</dimen>
+
+    <dimen name="settings_logout_size">16sp</dimen>
+
+    <dimen name="settings_grid_gap">1dp</dimen>
+    <dimen name="settings_empty_pad">32dp</dimen>
+
+    <!-- PAGE 14 — account privacy -->
+    <dimen name="privacy_row_pad">16dp</dimen>
+    <dimen name="privacy_title_size">20sp</dimen>
+    <dimen name="privacy_switch_width">51dp</dimen>
+    <dimen name="privacy_switch_height">31dp</dimen>
+    <dimen name="privacy_switch_gap">16dp</dimen>
+    <dimen name="privacy_body_size">14sp</dimen>
+    <dimen name="privacy_lock_circle">62dp</dimen>
+    <dimen name="privacy_lock_icon">28dp</dimen>
+    <dimen name="privacy_lock_title_size">16sp</dimen>
+
+    <color name="color_switch_track_off">#DBDBDB</color>
+    <color name="color_switch_track_on">#262626</color>
+    <color name="color_grid_placeholder">#1F1F1F</color>
+
+    <string name="settings_title">Settings and activity</string>
+    <string name="settings_search_hint">Search</string>
+    <string name="settings_no_results">No results</string>
+    <string name="settings_section_account">Your account</string>
+    <string name="settings_section_how_you_use">How you use %1$s</string>
+    <string name="settings_section_who_can_see">Who can see your content</string>
+    <string name="settings_section_professionals">For professionals</string>
+    <string name="settings_section_more_info">More info and support</string>
+    <string name="settings_section_login">Login</string>
+
+    <string name="settings_accounts_center">Accounts Center</string>
+    <string name="settings_accounts_center_desc">Password, security, personal details, ad preferences, including subscription for no ads</string>
+    <string name="settings_accounts_center_footer">Manage your connected experiences and account settings.</string>
+    <string name="settings_saved">Saved</string>
+    <string name="settings_archive">Archive</string>
+    <string name="settings_your_activity">Your activity</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_time_management">Time management</string>
+    <string name="settings_account_privacy">Account privacy</string>
+    <string name="settings_close_friends">Close Friends</string>
+    <string name="settings_insights">Insights</string>
+    <string name="settings_verified">Verified</string>
+    <string name="settings_scheduled_content">Scheduled content</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_help">Help</string>
+    <string name="settings_about">About</string>
+    <string name="settings_diagnostics">Diagnostics</string>
+    <string name="settings_logout">Log out</string>
+
+    <string name="settings_value_public">Public</string>
+    <string name="settings_value_private">Private</string>
+    <string name="settings_value_zero">0</string>
+    <string name="settings_value_not_subscribed">Not subscribed</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_system">System default</string>
+    <string name="settings_theme_dialog_title">Theme</string>
+
+    <string name="settings_logout_confirm">Log out of %1$s?</string>
+    <string name="settings_cancel">Cancel</string>
+    <string name="settings_ed_done_ok">OK</string>
+    <string name="settings_password_security">Password and security</string>
+    <string name="settings_personal_details">Personal details</string>
+    <string name="settings_email">Email</string>
+    <string name="settings_username">Username</string>
+    <string name="settings_joined">Joined</string>
+    <string name="settings_change_password">Change password</string>
+    <string name="settings_new_password">New password</string>
+    <string name="settings_confirm_password">Confirm password</string>
+    <string name="settings_password_saved">Password updated</string>
+    <string name="settings_password_too_short">Password must be at least 6 characters</string>
+    <string name="settings_password_mismatch">Passwords do not match</string>
+
+    <string name="settings_saved_title">Saved</string>
+    <string name="settings_saved_empty">No saved posts yet</string>
+    <string name="settings_archive_title">Archive</string>
+    <string name="settings_archive_empty">No archived stories yet</string>
+
+    <string name="settings_help_body">Settings and activity\n\nSaved — review the posts you saved.\nArchive — every story you have shared, including expired ones.\nAccount privacy — choose who can see your content.\nTheme — switch between Light, Dark and System default.\n\nFor anything else, use the Diagnostics screen from a debug build.</string>
+    <string name="settings_about_body">%1$s %2$s\n\nA Java + XML Instagram-style client backed by Supabase: feed, reels, stories, direct messages, search and profile management.</string>
+
+
+    <string name="story_vw_private_account">Private account</string>
+    <string name="privacy_public_body">When your account is public, your profile and posts can be seen by anyone, on or off the app, even if they don\'t have an account.</string>
+    <string name="privacy_private_body">When your account is private, only the followers you approve can see what you share, including your photos or videos on hashtag and location pages, and your followers and following lists. Certain info on your profile, like your profile picture and username, is visible to everyone on and off the app.</string>
+    <string name="privacy_learn_more">Learn more</string>
+    <string name="privacy_locked_title">This account is private</string>
+    <string name="privacy_locked_body">Follow this account to see their photos and videos.</string>
+    <string name="privacy_switch_public_title">Switch to public account?</string>
+    <string name="privacy_switch_public_body">Anyone will be able to see your photos and videos. Pending follow requests will be approved.</string>
+    <string name="privacy_switch_public_confirm">Switch to public</string>
+    <string name="privacy_update_failed">Could not update account privacy</string>
+
+    <style name="TextAppearance.Insta.SettingsTitle" parent="">
+        <item name="android:textSize">@dimen/settings_title_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.SettingsSection" parent="">
+        <item name="android:textSize">@dimen/settings_section_header_size</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.SettingsLabel" parent="">
+        <item name="android:textSize">@dimen/settings_row_label_size</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.SettingsValue" parent="">
+        <item name="android:textSize">@dimen/settings_row_value_size</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.SettingsDesc" parent="">
+        <item name="android:textSize">@dimen/settings_row_desc_size</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.SettingsLogout" parent="">
+        <item name="android:textSize">@dimen/settings_logout_size</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/color_primary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.PrivacyTitle" parent="">
+        <item name="android:textSize">@dimen/privacy_title_size</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="TextAppearance.Insta.PrivacyBody" parent="">
+        <item name="android:textSize">@dimen/privacy_body_size</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+        <item name="android:lineSpacingMultiplier">1.4</item>
+    </style>
+
+    <!-- 51x31dp switch: track textPrimary when on (dark #363636 in light mode), knob = background -->
+    <style name="Widget.Insta.PrivacySwitch" parent="Widget.MaterialComponents.CompoundButton.Switch">
+        <item name="android:switchMinWidth">@dimen/privacy_switch_width</item>
+        <item name="android:layout_width">@dimen/privacy_switch_width</item>
+        <item name="android:layout_height">@dimen/privacy_switch_height</item>
+    </style>
+
+</resources>

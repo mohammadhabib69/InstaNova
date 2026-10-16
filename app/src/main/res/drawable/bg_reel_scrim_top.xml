@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 5 — Reels top scrim (140dp).
+    #99000000 at the top fading to fully transparent at the bottom, so the
+    'Reels' title and the camera icon stay legible over any reel video.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@color/color_scrim"
+        android:endColor="@color/transparent"
+        android:type="linear" />
+</shape>

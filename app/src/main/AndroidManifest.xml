@@ -105,6 +105,16 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <activity
+            android:name=".ui.settings.AccountCenterActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.settings.ArchiveActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.settings.AccountPrivacyActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

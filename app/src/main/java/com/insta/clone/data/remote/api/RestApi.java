@@ -48,6 +48,15 @@ public interface RestApi {
     @POST("rest/v1/rpc/get_inbox")
     Call<List<ConversationDto>> getInbox(@Body Map<String, Object> body);
 
+    @POST("rest/v1/rpc/set_account_privacy")
+    Call<Void> setAccountPrivacy(@Body Map<String, Object> body);
+
+    @POST("rest/v1/rpc/approve_follow_request")
+    Call<Void> approveFollowRequest(@Body Map<String, Object> body);
+
+    @GET("rest/v1/profiles")
+    Call<List<Map<String, Object>>> getProfilesRaw(@QueryMap Map<String, String> query);
+
     @POST("rest/v1/rpc/get_unread_counts")
     Call<UnreadCountsDto> getUnreadCounts(@Body Map<String, Object> body);
 
@@ -122,6 +131,10 @@ public interface RestApi {
 
     @GET("rest/v1/follows")
     Call<List<Map<String, Object>>> getFollows(@QueryMap Map<String, String> query);
+
+    /** PostgREST resource embedding: likes joined to the liker's profile. */
+    @GET("rest/v1/likes")
+    Call<List<Map<String, Object>>> getLikes(@QueryMap Map<String, String> query);
 
     // Stories & Views
     @GET("rest/v1/v_stories")

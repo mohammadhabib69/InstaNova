@@ -3,148 +3,458 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/color_background">
+    android:background="?attr/themeBackground"
+    android:orientation="vertical">
 
-    <!-- Top Bar -->
+    <!-- ============================================================= -->
+    <!-- Top bar — 56dp. Own profile: username + chevron (decorative),  -->
+    <!-- right: create (+), settings (menu).                            -->
+    <!-- ============================================================= -->
     <LinearLayout
+        android:id="@+id/topBar"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:paddingHorizontal="16dp"
+        android:layout_height="@dimen/profile_top_bar_height"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/profile_top_bar_padding_horizontal"
+        android:paddingEnd="@dimen/profile_top_bar_padding_horizontal">
 
         <TextView
             android:id="@+id/tv_username"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text=""
-            android:textColor="@color/color_text_primary"
-            android:textSize="20sp"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="@dimen/profile_username_size"
             android:textStyle="bold" />
 
         <ImageView
+            android:id="@+id/ivChevronDown"
+            android:layout_width="@dimen/profile_chevron_size"
+            android:layout_height="@dimen/profile_chevron_size"
+            android:layout_marginStart="@dimen/profile_chevron_gap"
+            android:src="@drawable/ic_chevron_down"
+            app:tint="?attr/themeTextPrimary"
+            android:contentDescription="@null" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageView
             android:id="@+id/iv_settings"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_add_box"
-            android:layout_marginEnd="16dp"
+            android:layout_width="@dimen/profile_top_bar_icon"
+            android:layout_height="@dimen/profile_top_bar_icon"
+            android:layout_marginEnd="@dimen/profile_top_bar_icon_gap"
+            android:src="@drawable/ic_add"
+            app:tint="?attr/themeTextPrimary"
             android:contentDescription="Create" />
 
         <ImageView
             android:id="@+id/iv_menu"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="@dimen/profile_top_bar_icon"
+            android:layout_height="@dimen/profile_top_bar_icon"
             android:src="@drawable/ic_menu"
-            android:tint="?attr/themeTextPrimary"
+            app:tint="?attr/themeTextPrimary"
             android:contentDescription="Settings" />
     </LinearLayout>
 
-    <!-- Header Stats -->
+    <!--
+        Top bar — other user (design variant: back arrow, 20sp username, more).
+        Not reachable today: the app has no other-user profile destination, so it
+        stays gone until such a navigation target exists.
+    -->
+    <LinearLayout
+        android:id="@+id/topBarOther"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/profile_top_bar_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/profile_top_bar_padding_horizontal"
+        android:paddingEnd="@dimen/profile_top_bar_padding_horizontal"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/ivArrowBack"
+            android:layout_width="@dimen/profile_nav_icon"
+            android:layout_height="@dimen/profile_nav_icon"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="?attr/themeTextPrimary"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:id="@+id/tv_username_other"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/profile_chevron_gap"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text=""
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="@dimen/profile_username_other_size"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/iv_more_horiz_other"
+            android:layout_width="@dimen/profile_nav_icon"
+            android:layout_height="@dimen/profile_nav_icon"
+            android:src="@drawable/ic_more_horiz"
+            app:tint="?attr/themeTextPrimary"
+            android:contentDescription="More options" />
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- Header — avatar 86dp (gradient ring when there is a story) +  -->
+    <!-- display name over three equal stat columns.                    -->
+    <!-- ============================================================= -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="@dimen/profile_header_padding">
 
-        <ImageView
-            android:id="@+id/iv_avatar"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@drawable/ic_person_placeholder"
-            android:contentDescription="Profile Picture" />
+        <FrameLayout
+            android:layout_width="@dimen/profile_avatar_frame"
+            android:layout_height="@dimen/profile_avatar_frame">
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/tv_posts_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textColor="@color/color_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Posts"
-                android:textColor="@color/color_text_secondary"
-                android:textSize="12sp" />
-        </LinearLayout>
+            <com.insta.clone.ui.widget.StoryRingView
+                android:id="@+id/profileAvatarRing"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:gapWidth="@dimen/profile_ring_gap"
+                app:ringState="unseen"
+                app:ringStrokeWidth="@dimen/profile_ring_stroke" />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/iv_avatar"
+                android:layout_width="@dimen/profile_avatar_size"
+                android:layout_height="@dimen/profile_avatar_size"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_person_placeholder"
+                android:contentDescription="Profile Picture" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/profile_header_gap"
             android:layout_weight="1"
-            android:gravity="center"
             android:orientation="vertical">
-            <TextView
-                android:id="@+id/tv_followers_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textColor="@color/color_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Followers"
-                android:textColor="@color/color_text_secondary"
-                android:textSize="12sp" />
-        </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
             <TextView
-                android:id="@+id/tv_following_count"
+                android:id="@+id/tv_display_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text=""
-                android:textColor="@color/color_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-            <TextView
-                android:layout_width="wrap_content"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/profile_display_name_size"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Following"
-                android:textColor="@color/color_text_secondary"
-                android:textSize="12sp" />
+                android:layout_marginTop="@dimen/profile_stat_margin_top"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_posts_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="@dimen/profile_stat_number_size"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/profile_stat_posts"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="@dimen/profile_stat_label_size" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_followers_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="@dimen/profile_stat_number_size"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/profile_stat_followers"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="@dimen/profile_stat_label_size" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_following_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="@dimen/profile_stat_number_size"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/profile_stat_following"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="@dimen/profile_stat_label_size" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Bio -->
+    <!-- Bio — 14sp, 4 lines max then "more" -->
     <TextView
         android:id="@+id/tv_bio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="16dp"
+        android:layout_marginTop="@dimen/profile_bio_margin_top"
+        android:ellipsize="end"
+        android:maxLines="4"
+        android:paddingStart="@dimen/profile_header_padding"
+        android:paddingEnd="@dimen/profile_header_padding"
         android:text=""
-        android:textColor="@color/color_text_primary"
-        android:textSize="13sp" />
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/profile_bio_size" />
 
-    <!-- Tabs -->
+    <!-- ============================================================= -->
+    <!-- Buttons — 34dp, radius 8dp, surfaceVariant, 14sp Bold          -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/profile_buttons_margin_top"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/profile_header_padding"
+        android:paddingEnd="@dimen/profile_header_padding">
+
+        <!-- Other user (design variant, not reachable) -->
+        <TextView
+            android:id="@+id/btnFollow"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/profile_button_height"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_primary"
+            android:gravity="center"
+            android:text="@string/profile_follow"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_button"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/btnMessage"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/profile_button_height"
+            android:layout_marginStart="@dimen/profile_button_gap"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_secondary"
+            android:gravity="center"
+            android:text="@string/profile_message"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="@dimen/text_button"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- Own profile -->
+        <TextView
+            android:id="@+id/btnEditProfile"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/profile_button_height"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_secondary"
+            android:gravity="center"
+            android:text="@string/profile_edit"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="@dimen/text_button"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnShareProfile"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/profile_button_height"
+            android:layout_marginStart="@dimen/profile_button_gap"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_secondary"
+            android:gravity="center"
+            android:text="@string/profile_share"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="@dimen/text_button"
+            android:textStyle="bold" />
+
+        <!-- Decorative: suggest / add people -->
+        <FrameLayout
+            android:id="@+id/btnAddPerson"
+            android:layout_width="@dimen/profile_button_square"
+            android:layout_height="@dimen/profile_button_height"
+            android:layout_marginStart="@dimen/profile_button_gap"
+            android:background="@drawable/bg_button_secondary">
+
+            <ImageView
+                android:layout_width="@dimen/profile_button_icon"
+                android:layout_height="@dimen/profile_button_icon"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_add_person"
+                app:tint="?attr/themeTextPrimary"
+                android:contentDescription="@null" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- Highlights — own list starts with "New" (decorative)           -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:id="@+id/highlightsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/profile_highlights_margin_top"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/profile_header_padding"
+        android:paddingEnd="@dimen/profile_header_padding">
+
+        <LinearLayout
+            android:id="@+id/layoutHighlightNew"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="@dimen/profile_highlight_size"
+                android:layout_height="@dimen/profile_highlight_size"
+                android:background="@drawable/bg_highlight_ring">
+
+                <ImageView
+                    android:id="@+id/ivHighlightIcon"
+                    android:layout_width="@dimen/profile_highlight_icon"
+                    android:layout_height="@dimen/profile_highlight_icon"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_add"
+                    app:tint="?attr/themeTextPrimary"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tvHighlightTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/profile_highlight_title_margin_top"
+                android:text="@string/profile_highlight_new"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/profile_highlight_title_size" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- Tabs — 48dp, icons only, 4 equal columns                       -->
+    <!-- ============================================================= -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout_profile"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginTop="12dp"
-        android:background="@color/color_background" />
+        android:layout_height="@dimen/profile_tabs_height"
+        android:background="?attr/themeBackground"
+        app:tabGravity="fill"
+        app:tabIconTint="@color/selector_profile_tab_icon"
+        app:tabIndicatorColor="?attr/themeTextPrimary"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="@dimen/profile_tab_indicator"
+        app:tabMode="fixed"
+        app:tabPaddingStart="@dimen/profile_tab_padding"
+        app:tabPaddingEnd="@dimen/profile_tab_padding"
+        app:tabRippleColor="@null">
 
-    <!-- Grid -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_media_grid"
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_posts"
+            android:icon="@drawable/ic_grid" />
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_reels"
+            android:icon="@drawable/ic_reels" />
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_reposts"
+            android:icon="@drawable/ic_repost" />
+
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/tab_tagged"
+            android:icon="@drawable/ic_tagged" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- ============================================================= -->
+    <!-- Grid — 3 columns, 1dp gaps, square cells + empty state         -->
+    <!-- ============================================================= -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_media_grid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:id="@+id/profileEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/profile_empty_padding"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/ivEmptyIcon"
+                android:layout_width="@dimen/profile_empty_icon"
+                android:layout_height="@dimen/profile_empty_icon"
+                android:src="@drawable/ic_repost"
+                app:tint="?attr/themeTextSecondary"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/tvEmptyTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/profile_empty_margin_top"
+                android:gravity="center"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/text_title" />
+        </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>

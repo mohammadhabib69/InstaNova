@@ -1,0 +1,4 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@color/white" />
+    <stroke android:width="@dimen/story_ed_dot_stroke" android:color="@color/color_story_dot_ring" />
+</shape>

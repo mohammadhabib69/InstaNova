@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_settings_row"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/settings_row_height"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/settings_row_pad_h"
+    android:paddingEnd="@dimen/settings_row_pad_h">
+
+    <ImageView
+        android:id="@+id/iv_icon"
+        android:layout_width="@dimen/settings_row_icon"
+        android:layout_height="@dimen/settings_row_icon"
+        android:contentDescription="@null"
+        app:tint="?attr/themeTextPrimary" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/settings_row_icon_gap"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="@style/TextAppearance.Insta.SettingsLabel" />
+
+        <TextView
+            android:id="@+id/tv_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="@style/TextAppearance.Insta.SettingsDesc"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/settings_row_value_gap"
+        android:textAppearance="@style/TextAppearance.Insta.SettingsValue"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/iv_chevron"
+        android:layout_width="@dimen/settings_row_chevron"
+        android:layout_height="@dimen/settings_row_chevron"
+        android:layout_marginStart="@dimen/settings_row_value_gap"
+        android:src="@drawable/ic_chevron_right"
+        android:contentDescription="@null"
+        app:tint="?attr/themeTextSecondary" />
+</LinearLayout>

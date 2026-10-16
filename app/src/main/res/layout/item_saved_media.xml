@@ -1,9 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.insta.clone.ui.widget.SquareImageView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/ivMedia"
+<!--
+    Grid cell (Profile / Explore / Saved): square media with optional
+    carousel (ic_multi_image) and reel (ic_play) badges — white 18dp with a soft
+    dark halo, top-right. The badges stay hidden unless the hosting adapter turns
+    them on.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:scaleType="centerCrop"
-    android:adjustViewBounds="false"
-    android:background="@color/color_surface_variant"
-    android:contentDescription="Post media" />
+    android:layout_height="wrap_content">
+
+    <com.insta.clone.ui.widget.SquareImageView
+        android:id="@+id/ivMedia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="false"
+        android:background="@color/color_surface_variant"
+        android:scaleType="centerCrop"
+        android:contentDescription="Post media" />
+
+    <ImageView
+        android:id="@+id/ivMultiBadge"
+        android:layout_width="@dimen/profile_grid_badge"
+        android:layout_height="@dimen/profile_grid_badge"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/profile_grid_badge_margin"
+        android:background="@drawable/bg_badge_shadow"
+        android:src="@drawable/ic_multi_image"
+        app:tint="@color/white"
+        android:visibility="gone"
+        android:contentDescription="Multiple photos" />
+
+    <ImageView
+        android:id="@+id/ivReelBadge"
+        android:layout_width="@dimen/profile_grid_badge"
+        android:layout_height="@dimen/profile_grid_badge"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/profile_grid_badge_margin"
+        android:background="@drawable/bg_badge_shadow"
+        android:src="@drawable/ic_play"
+        app:tint="@color/white"
+        android:visibility="gone"
+        android:contentDescription="Reel" />
+
+</FrameLayout>

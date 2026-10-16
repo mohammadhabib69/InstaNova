@@ -1,79 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  PAGE 12 — Story viewer. Media fills the space between the top and the bottom
+  bar; the reply bar is solid black and 96dp tall.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/story_viewer_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <!-- Story Image Media -->
     <ImageView
         android:id="@+id/iv_story_media"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:contentDescription="Story media" />
+        android:scaleType="fitCenter"
+        android:contentDescription="@string/your_story" />
 
-    <!-- Top Gradient / Overlay for Controls -->
-    <LinearLayout
+    <!-- Reply-focused dim. -->
+    <View
+        android:id="@+id/view_dim"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="12dp"
-        android:paddingHorizontal="12dp">
+        android:layout_height="match_parent"
+        android:background="@color/color_story_dim"
+        android:visibility="gone" />
 
-        <!-- Progress Bars Container -->
-        <LinearLayout
-            android:id="@+id/layout_progress_bars"
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:orientation="horizontal"
-            android:layout_marginBottom="12dp" />
-
-        <!-- User Info Bar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/iv_story_avatar"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_person_placeholder" />
-
-            <TextView
-                android:id="@+id/tv_story_username"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_story_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textColor="#B3FFFFFF"
-                android:textSize="12sp" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <ImageView
-                android:id="@+id/btn_close_story"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_close"
-                android:tint="@color/white"
-                android:contentDescription="Close story" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Touch Navigation Overlay (Invisible) -->
+    <!-- Touch navigation overlay: left third = previous, right two thirds = next. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -92,21 +44,248 @@
             android:layout_weight="2" />
     </LinearLayout>
 
-    <!-- Bottom Views Count (For own story) -->
-    <TextView
-        android:id="@+id/tv_viewers_count"
-        android:layout_width="wrap_content"
+    <!-- Header: progress bars + avatar / username / time / more / close. -->
+    <LinearLayout
+        android:id="@+id/layout_viewer_top"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_pill_surface"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp"
-        android:textColor="@color/white"
-        android:textSize="13sp"
-        android:visibility="gone" />
+        android:orientation="vertical"
+        android:paddingStart="@dimen/story_ed_top_margin"
+        android:paddingEnd="@dimen/story_ed_top_margin">
 
-    <!-- Loading Indicator -->
+        <LinearLayout
+            android:id="@+id/layout_progress_bars"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/story_vw_progress_height"
+            android:orientation="horizontal" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/story_vw_avatar"
+            android:layout_marginTop="@dimen/story_vw_header_gap"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/iv_story_avatar"
+                android:layout_width="@dimen/story_vw_avatar"
+                android:layout_height="@dimen/story_vw_avatar"
+                android:src="@drawable/ic_person_placeholder" />
+
+            <TextView
+                android:id="@+id/tv_story_username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/story_vw_header_gap"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textAppearance="@style/TextAppearance.Insta.StoryHeaderName" />
+
+            <TextView
+                android:id="@+id/tv_story_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/story_vw_header_gap"
+                android:textAppearance="@style/TextAppearance.Insta.StoryHeaderTime" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/btn_story_more"
+                android:layout_width="@dimen/story_vw_more"
+                android:layout_height="@dimen/story_vw_more"
+                android:src="@drawable/ic_more_horiz"
+                android:contentDescription="@string/story_vw_more" />
+
+            <ImageView
+                android:id="@+id/btn_close_story"
+                android:layout_width="@dimen/story_vw_close"
+                android:layout_height="@dimen/story_vw_close"
+                android:layout_marginStart="@dimen/story_vw_actions_gap"
+                android:src="@drawable/ic_close"
+                android:contentDescription="@string/delete" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Emoji panel (reply focused). -->
+    <LinearLayout
+        android:id="@+id/layout_emoji_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/story_vw_bar_height"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/layout_segmented"
+            android:layout_width="@dimen/story_vw_seg_width"
+            android:layout_height="@dimen/story_vw_seg_height"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_story_seg_track"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_seg_emoji"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_story_seg_selected"
+                android:gravity="center"
+                android:text="@string/story_vw_emoji_tab"
+                android:textAppearance="@style/TextAppearance.Insta.StorySeg" />
+
+            <TextView
+                android:id="@+id/tv_seg_avatar"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/story_vw_avatar_tab"
+                android:textAppearance="@style/TextAppearance.Insta.StorySeg" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_emoji_row_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/story_vw_emoji_gap"
+            android:gravity="center"
+            android:orientation="horizontal" />
+
+        <LinearLayout
+            android:id="@+id/layout_emoji_row_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/story_vw_top_gap_row"
+            android:gravity="center"
+            android:orientation="horizontal" />
+    </LinearLayout>
+
+    <!-- Own story: Seen by + More. -->
+    <LinearLayout
+        android:id="@+id/layout_owner_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/story_vw_field_height"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="@dimen/story_vw_bar_height"
+        android:paddingStart="@dimen/story_vw_bar_pad"
+        android:paddingEnd="@dimen/story_vw_bar_pad"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/btn_seen_by"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/story_vw_more"
+                android:layout_height="@dimen/story_vw_more"
+                android:src="@drawable/ic_visibility"
+                android:contentDescription="@string/story_vw_seen_by" />
+
+            <TextView
+                android:id="@+id/tv_viewers_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/story_vw_header_gap"
+                android:textAppearance="@style/TextAppearance.Insta.StoryPill" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btn_owner_more"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/story_vw_more"
+            android:textAppearance="@style/TextAppearance.Insta.StoryPill" />
+    </LinearLayout>
+
+    <!-- Bottom bar. -->
+    <LinearLayout
+        android:id="@+id/layout_reply_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/story_vw_bar_height"
+        android:layout_gravity="bottom"
+        android:background="@color/black"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/story_vw_bar_pad">
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="@dimen/story_vw_field_height"
+            android:layout_weight="1"
+            android:background="@drawable/bg_story_reply_field">
+
+            <EditText
+                android:id="@+id/et_story_reply"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:hint="@string/story_vw_send_message"
+                android:imeOptions="actionSend"
+                android:inputType="textCapSentences"
+                android:maxLines="1"
+                android:paddingStart="@dimen/story_vw_field_pad_h"
+                android:paddingEnd="@dimen/story_vw_gif"
+                android:textAppearance="@style/TextAppearance.Insta.StoryReplyHint" />
+
+            <FrameLayout
+                android:id="@+id/iv_gif_badge"
+                android:layout_width="@dimen/story_vw_gif"
+                android:layout_height="@dimen/story_vw_gif"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="@dimen/story_ed_bottom_gap"
+                android:background="@drawable/bg_story_gif">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/story_vw_gif"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/story_vw_gif_text" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/btn_story_send"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:layout_marginEnd="@dimen/story_vw_bar_pad"
+                android:gravity="center"
+                android:minWidth="@dimen/story_vw_send_min_width"
+                android:text="@string/story_vw_send"
+                android:textColor="@color/color_primary"
+                android:textSize="@dimen/story_vw_seg_text"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/btn_story_heart"
+            android:layout_width="@dimen/story_vw_action_icon"
+            android:layout_height="@dimen/story_vw_action_icon"
+            android:layout_marginStart="@dimen/story_vw_actions_gap"
+            android:src="@drawable/ic_heart"
+            android:contentDescription="@string/liked_by" />
+
+        <ImageView
+            android:id="@+id/btn_story_send_icon"
+            android:layout_width="@dimen/story_vw_action_icon"
+            android:layout_height="@dimen/story_vw_action_icon"
+            android:layout_marginStart="@dimen/story_vw_actions_gap"
+            android:src="@drawable/ic_send"
+            android:contentDescription="@string/share" />
+    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/progress_story"
         android:layout_width="36dp"

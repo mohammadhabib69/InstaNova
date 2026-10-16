@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Accounts Center sub-screen: the same list style as PAGE 13. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/themeBackground"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/settings_top_bar_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/settings_row_pad_h"
+        android:paddingEnd="@dimen/settings_row_pad_h">
+
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="@dimen/settings_back_icon"
+            android:layout_height="@dimen/settings_back_icon"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="@string/settings_cancel"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/settings_row_icon_gap"
+            android:text="@string/settings_accounts_center"
+            android:textAppearance="@style/TextAppearance.Insta.SettingsTitle" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_account_center"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:scrollbars="none" />
+</LinearLayout>

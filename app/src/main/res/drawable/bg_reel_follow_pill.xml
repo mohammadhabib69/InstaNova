@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 5 — Reels outlined 'Follow' pill.
+    28dp tall, 8dp radius, 1dp 70%-white outline, transparent fill so the
+    video shows through.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/reel_follow_pill_radius" />
+    <solid android:color="@color/transparent" />
+    <stroke
+        android:width="@dimen/reel_follow_pill_border"
+        android:color="@color/color_reel_pill_border" />
+</shape>

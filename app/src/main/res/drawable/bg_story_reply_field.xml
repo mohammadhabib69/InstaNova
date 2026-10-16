@@ -1,0 +1,5 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+    <stroke android:width="@dimen/story_vw_field_stroke" android:color="@color/color_reel_pill_border" />
+    <corners android:radius="@dimen/story_vw_field_radius" />
+</shape>

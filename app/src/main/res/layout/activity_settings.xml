@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 13 — Settings and activity: 56dp bar, search field, sectioned rows. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -6,208 +7,80 @@
     android:background="?attr/themeBackground"
     android:orientation="vertical">
 
-    <!-- Top Toolbar -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar_settings"
+    <LinearLayout
+        android:id="@+id/layout_top_bar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/top_bar_height"
-        android:background="?attr/themeBackground"
-        app:contentInsetStart="8dp">
+        android:layout_height="@dimen/settings_top_bar_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/settings_row_pad_h"
+        android:paddingEnd="@dimen/settings_row_pad_h">
 
         <ImageView
-            android:id="@+id/btn_back_settings"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:padding="10dp"
+            android:id="@+id/btn_back"
+            android:layout_width="@dimen/settings_back_icon"
+            android:layout_height="@dimen/settings_back_icon"
             android:src="@drawable/ic_arrow_back"
-            app:tint="?attr/themeTextPrimary"
-            android:contentDescription="Back" />
+            android:contentDescription="@string/settings_cancel"
+            app:tint="?attr/themeTextPrimary" />
 
         <TextView
+            android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Settings"
-            android:textColor="?attr/themeTextPrimary"
-            android:textSize="@dimen/text_title"
-            android:textStyle="bold" />
-    </androidx.appcompat.widget.Toolbar>
+            android:layout_marginStart="@dimen/settings_row_icon_gap"
+            android:text="@string/settings_title"
+            android:textAppearance="@style/TextAppearance.Insta.SettingsTitle" />
+    </LinearLayout>
 
-    <View
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:background="?attr/themeDivider" />
+        android:layout_height="@dimen/settings_search_height"
+        android:layout_marginStart="@dimen/settings_search_margin"
+        android:layout_marginEnd="@dimen/settings_search_margin"
+        android:background="@drawable/bg_search_field"
+        android:backgroundTint="?attr/themeSurfaceVariant">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:overScrollMode="never">
+        <ImageView
+            android:layout_width="@dimen/settings_search_icon"
+            android:layout_height="@dimen/settings_search_icon"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="@dimen/settings_row_value_gap"
+            android:src="@drawable/ic_search"
+            android:contentDescription="@null"
+            app:tint="?attr/themeTextSecondary" />
 
-        <LinearLayout
+        <EditText
+            android:id="@+id/et_search"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="8dp">
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:hint="@string/settings_search_hint"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingStart="32dp"
+            android:paddingEnd="@dimen/settings_row_value_gap"
+            android:textAppearance="@style/TextAppearance.Insta.SettingsLabel"
+            android:textColorHint="?attr/themeTextSecondary" />
+    </FrameLayout>
 
-            <!-- Theme Row -->
-            <LinearLayout
-                android:id="@+id/row_theme"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp">
+    <TextView
+        android:id="@+id/tv_no_results"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/settings_empty_pad"
+        android:gravity="center"
+        android:text="@string/settings_no_results"
+        android:textAppearance="@style/TextAppearance.Insta.SettingsValue"
+        android:visibility="gone" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Theme"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/tv_current_theme"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="?attr/themeTextSecondary"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <!-- Saved Row -->
-            <LinearLayout
-                android:id="@+id/row_saved"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Saved"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <!-- Archive Row -->
-            <LinearLayout
-                android:id="@+id/row_archive"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Archive"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <!-- Change Password Row -->
-            <LinearLayout
-                android:id="@+id/row_change_password"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Change password"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <!-- Help Row -->
-            <LinearLayout
-                android:id="@+id/row_help"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Help"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <!-- About Row -->
-            <LinearLayout
-                android:id="@+id/row_about"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="About"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <!-- Diagnostics (debug) Row -->
-            <LinearLayout
-                android:id="@+id/row_diagnostics"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Diagnostics (debug)"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:layout_marginVertical="8dp"
-                android:background="?attr/themeDivider" />
-
-            <!-- Log Out Row -->
-            <LinearLayout
-                android:id="@+id/row_logout"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Log out"
-                    android:textColor="#ED4956"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
-
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_settings"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/settings_section_gap"
+        android:scrollbars="none" />
 </LinearLayout>
