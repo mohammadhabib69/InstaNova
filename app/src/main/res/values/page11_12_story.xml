@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PAGE 11 (story editor / share) + PAGE 12 (story viewer) design tokens.
+  Every value below comes from the two reference screenshots. No screen may
+  hard-code a colour or a size: all PAGE 11/12 views reference these tokens.
+-->
+<resources>
+
+    <!-- PAGE 11 — story editor -->
+    <dimen name="story_ed_top_margin">12dp</dimen>
+    <dimen name="story_ed_top_gap">8dp</dimen>
+    <dimen name="story_ed_circle">40dp</dimen>
+    <dimen name="story_ed_icon">22dp</dimen>
+    <dimen name="story_ed_text_glyph">18sp</dimen>
+    <dimen name="story_ed_card_margin">56dp</dimen>
+    <dimen name="story_ed_card_radius">14dp</dimen>
+    <dimen name="story_ed_tooltip_radius">12dp</dimen>
+    <dimen name="story_ed_tooltip_pad_h">16dp</dimen>
+    <dimen name="story_ed_tooltip_pad_v">10dp</dimen>
+    <dimen name="story_ed_tooltip_gap">12dp</dimen>
+    <dimen name="story_ed_caret_size">8dp</dimen>
+    <dimen name="story_ed_bottom_solid">96dp</dimen>
+    <dimen name="story_ed_bottom_height">44dp</dimen>
+    <dimen name="story_ed_bottom_gap">8dp</dimen>
+    <dimen name="story_ed_bottom_margin">12dp</dimen>
+    <dimen name="story_ed_pill_radius">22dp</dimen>
+    <dimen name="story_ed_pill_avatar">24dp</dimen>
+    <dimen name="story_ed_pill_icon">14dp</dimen>
+    <dimen name="story_ed_pill_text_start">8dp</dimen>
+    <dimen name="story_ed_arrow">44dp</dimen>
+    <dimen name="story_ed_arrow_icon">22dp</dimen>
+    <dimen name="story_ed_panel_height">96dp</dimen>
+    <dimen name="story_ed_dot">28dp</dimen>
+    <dimen name="story_ed_dot_stroke">2dp</dimen>
+    <dimen name="story_ed_dot_gap">12dp</dimen>
+    <dimen name="story_ed_slider_width">160dp</dimen>
+    <dimen name="story_ed_slider_height">24dp</dimen>
+    <dimen name="story_ed_trash">44dp</dimen>
+    <dimen name="story_ed_text_overlay_size">28sp</dimen>
+    <dimen name="story_ed_stroke_min">6dp</dimen>
+    <dimen name="story_ed_stroke_max">28dp</dimen>
+    <dimen name="story_ed_stroke_default">14dp</dimen>
+
+    <!-- PAGE 12 — story viewer -->
+    <dimen name="story_vw_progress_height">2dp</dimen>
+    <dimen name="story_vw_progress_gap">4dp</dimen>
+    <dimen name="story_vw_progress_radius">1dp</dimen>
+    <dimen name="story_vw_header_gap">8dp</dimen>
+    <dimen name="story_vw_avatar">32dp</dimen>
+    <dimen name="story_vw_more">24dp</dimen>
+    <dimen name="story_vw_close">28dp</dimen>
+    <dimen name="story_vw_actions_gap">16dp</dimen>
+    <dimen name="story_vw_end_padding">12dp</dimen>
+    <dimen name="story_vw_bar_height">96dp</dimen>
+    <dimen name="story_vw_bar_pad">16dp</dimen>
+    <dimen name="story_vw_field_height">44dp</dimen>
+    <dimen name="story_vw_field_radius">24dp</dimen>
+    <dimen name="story_vw_field_stroke">1dp</dimen>
+    <dimen name="story_vw_field_pad_h">16dp</dimen>
+    <dimen name="story_vw_action_icon">28dp</dimen>
+    <dimen name="story_vw_seg_width">240dp</dimen>
+    <dimen name="story_vw_seg_height">36dp</dimen>
+    <dimen name="story_vw_seg_radius">18dp</dimen>
+    <dimen name="story_vw_emoji_size">48sp</dimen>
+    <dimen name="story_vw_emoji_gap">36dp</dimen>
+    <dimen name="story_vw_gif">28dp</dimen>
+    <dimen name="story_vw_gif_radius">8dp</dimen>
+    <dimen name="story_vw_emoji_panel_height">200dp</dimen>
+    <dimen name="story_vw_send_min_width">72dp</dimen>
+    <dimen name="story_vw_top_gap_row">8dp</dimen>
+    <dimen name="story_vw_gif_text">10sp</dimen>
+    <dimen name="story_vw_seg_text">14sp</dimen>
+    <dimen name="story_vw_bar_text_size">14sp</dimen>
+
+    <!-- PAGE 11 + 12 — colours -->
+    <color name="color_story_scrim_circle">#66000000</color>
+    <color name="color_story_pill_bg">#262626</color>
+    <color name="color_story_close_friends">#1DB954</color>
+    <color name="color_story_track">#59FFFFFF</color>
+    <color name="color_story_dim">#99000000</color>
+    <color name="color_story_seg_track">#3A3A3C</color>
+    <color name="color_story_text_muted">#99FFFFFF</color>
+    <color name="color_story_progress_thumb">#1F1F1F</color>
+    <color name="color_story_dot_ring">#4DFFFFFF</color>
+    <color name="color_pen_white">#FFFFFFFF</color>
+    <color name="color_pen_black">#FF000000</color>
+    <color name="color_pen_red">#FFFF3040</color>
+    <color name="color_pen_yellow">#FFFFD600</color>
+    <color name="color_pen_green">#FF1DB954</color>
+    <color name="color_pen_blue">#FF0095F6</color>
+
+    <!-- PAGE 11 — strings -->
+    <string name="story_ed_tooltip_tap_size">Tap to change size</string>
+    <string name="story_ed_close_friends">Close Friends</string>
+    <string name="story_ed_aa">Aa</string>
+    <string name="story_ed_save">Save</string>
+    <string name="story_ed_discard">Discard</string>
+    <string name="story_ed_discard_title">Discard story?</string>
+    <string name="story_ed_keep_editing">Keep editing</string>
+    <string name="story_ed_saved">Saved</string>
+    <string name="story_ed_undo">Undo</string>
+    <string name="story_ed_done">Done</string>
+    <string name="story_ed_add_text">Add text</string>
+    <string name="story_ed_delete_hint">Drag here to delete</string>
+    <string name="story_ed_no_image">Choose a photo first</string>
+    <string name="story_vw_gif">GIF</string>
+
+    <!-- PAGE 12 — strings -->
+    <string name="story_vw_send_message">Send message</string>
+    <string name="story_vw_send">Send</string>
+    <string name="story_vw_seen_by">Seen by %1$d</string>
+    <string name="story_vw_emoji_tab">Emoji</string>
+    <string name="story_vw_avatar_tab">Avatar</string>
+    <string name="story_vw_report">Report</string>
+    <string name="story_vw_reported">Thanks for letting us know</string>
+    <string name="story_vw_delete">Delete</string>
+    <string name="story_vw_save">Save</string>
+    <string name="story_vw_highlight">Highlight</string>
+    <string name="story_vw_cancel">Cancel</string>
+    <string name="story_vw_more">More</string>
+    <string name="story_vw_delete_confirm">Delete this story?</string>
+    <string name="story_vw_delete_confirm_msg">This story will be removed from your profile.</string>
+    <string name="story_vw_media_error">Couldn\'t load this story</string>
+    <string name="story_vw_new_highlight">New highlight</string>
+    <string name="story_vw_highlight_name_hint">Highlight name</string>
+    <string name="story_vw_no_viewers">No viewers yet</string>
+    <string name="story_vw_heart">❤️</string>
+    <string name="story_vw_open_failed">Story unavailable</string>
+
+    <!-- PAGE 11 — styles -->
+    <style name="ShapeAppearance.Insta.StoryCard" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/story_ed_card_radius</item>
+    </style>
+
+    <style name="Widget.Insta.StoryCircleButton" parent="">
+        <item name="android:layout_width">@dimen/story_ed_circle</item>
+        <item name="android:layout_height">@dimen/story_ed_circle</item>
+        <item name="android:background">@drawable/bg_story_scrim_circle</item>
+        <item name="android:padding">9dp</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+
+    <style name="TextAppearance.Insta.StoryPill" parent="">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.Insta.StoryTooltip" parent="">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.Insta.StorySeg" parent="">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="TextAppearance.Insta.StoryReplyHint" parent="">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/color_story_text_muted</item>
+    </style>
+
+    <style name="TextAppearance.Insta.StoryHeaderName" parent="">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="TextAppearance.Insta.StoryHeaderTime" parent="">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/color_story_text_muted</item>
+    </style>
+
+</resources>

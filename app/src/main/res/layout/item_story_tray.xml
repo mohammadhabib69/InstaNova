@@ -4,44 +4,51 @@
     android:layout_width="@dimen/story_item_width"
     android:layout_height="match_parent"
     android:gravity="center"
-    android:orientation="vertical"
-    android:paddingHorizontal="4dp">
+    android:orientation="vertical">
 
+    <!-- Ring outer 76dp, avatar 64dp (64 + 2 * (2dp stroke + 4dp gap) = 76dp) -->
     <FrameLayout
-        android:layout_width="@dimen/story_avatar_size"
-        android:layout_height="@dimen/story_avatar_size">
+        android:layout_width="@dimen/story_ring_outer_size"
+        android:layout_height="@dimen/story_ring_outer_size">
 
         <com.insta.clone.ui.widget.StoryRingView
             android:id="@+id/storyRingView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:gapWidth="@dimen/story_ring_gap"
+            app:gapWidth="@dimen/story_ring_gap_item"
             app:ringState="unseen"
-            app:ringStrokeWidth="@dimen/story_ring_stroke_unseen" />
+            app:ringStrokeWidth="@dimen/story_ring_stroke_item" />
 
-        <!-- Add Story Plus Badge for current user -->
-        <ImageView
+        <!-- "Your story" add badge: 22dp, bg textPrimary, ic_add in bg color,
+             2dp background-colored border -->
+        <FrameLayout
             android:id="@+id/ivAddBadge"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="@dimen/story_add_badge_size"
+            android:layout_height="@dimen/story_add_badge_size"
             android:layout_gravity="bottom|end"
-            android:background="@drawable/bg_story_add_badge"
-            android:padding="3dp"
-            android:src="@drawable/ic_add_box"
-            app:tint="@color/white"
-            android:visibility="gone"
-            android:contentDescription="Add story" />
+            android:background="@drawable/bg_story_add_badge_owner"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="@dimen/story_add_badge_icon"
+                android:layout_height="@dimen/story_add_badge_icon"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_add"
+                app:tint="@color/color_background"
+                android:contentDescription="Add story" />
+        </FrameLayout>
     </FrameLayout>
 
+    <!-- Unseen -> textPrimary, seen -> textSecondary (set in the adapter) -->
     <TextView
         android:id="@+id/tvUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/story_label_margin_top"
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="1"
-        android:textColor="?attr/themeTextSecondary"
+        android:textColor="?attr/themeTextPrimary"
         android:textSize="@dimen/text_meta" />
 
 </LinearLayout>

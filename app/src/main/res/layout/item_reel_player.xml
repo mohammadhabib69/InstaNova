@@ -1,16 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 5 — single full-screen reel page.
+
+    Every id consumed by ReelsFragment (player_view, iv_reel_thumbnail,
+    iv_reel_like, tv_reel_likes_count, iv_reel_comment, tv_reel_comments_count,
+    iv_reel_mute, iv_reel_avatar, tv_reel_username, badge_reel_verified,
+    tv_reel_caption, iv_play_indicator) is preserved. The scrims live inside
+    the page so the video is tinted while this page's own chrome stays above
+    them; the fragment-level chrome (title / camera) stays above everything.
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black">
 
+    <!-- Video, edge to edge -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:use_controller="false"
-        app:resize_mode="zoom" />
+        app:resize_mode="zoom"
+        app:use_controller="false" />
 
     <ImageView
         android:id="@+id/iv_reel_thumbnail"
@@ -19,121 +30,242 @@
         android:scaleType="centerCrop"
         android:visibility="gone" />
 
-    <!-- Right Interaction Sidebar -->
+    <!-- 140dp top scrim: #99000000 -> transparent -->
+    <View
+        android:id="@+id/reel_scrim_top"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/reel_scrim_top_height"
+        android:layout_gravity="top"
+        android:background="@drawable/bg_reel_scrim_top" />
+
+    <!-- 280dp bottom scrim: transparent -> #99000000 -->
+    <View
+        android:id="@+id/reel_scrim_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/reel_scrim_bottom_height"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_reel_scrim_bottom" />
+
+    <!-- ============================================================= -->
+    <!-- Right action column: 16dp from the right edge, 24dp above the  -->
+    <!-- bottom navigation, groups 24dp apart, white, centred.          -->
+    <!-- ============================================================= -->
     <LinearLayout
+        android:id="@+id/layout_reel_actions"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginEnd="@dimen/reel_actions_margin_end"
+        android:layout_marginBottom="@dimen/reel_actions_margin_bottom"
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
-        <!-- Like Button -->
-        <ImageView
-            android:id="@+id/iv_reel_like"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_favorite_outline"
-            android:tint="@color/white"
-            android:contentDescription="Like reel" />
-
-        <TextView
-            android:id="@+id/tv_reel_likes_count"
+        <!-- Like -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="16dp"
-            android:textColor="@color/white"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:layout_marginBottom="@dimen/reel_action_group_gap"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-        <!-- Comment Button -->
-        <ImageView
-            android:id="@+id/iv_reel_comment"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_comment"
-            android:tint="@color/white"
-            android:contentDescription="Comment reel" />
+            <ImageView
+                android:id="@+id/iv_reel_like"
+                android:layout_width="@dimen/reel_action_icon_size"
+                android:layout_height="@dimen/reel_action_icon_size"
+                android:contentDescription="@string/not_available"
+                android:src="@drawable/ic_heart" />
 
-        <TextView
-            android:id="@+id/tv_reel_comments_count"
+            <TextView
+                android:id="@+id/tv_reel_likes_count"
+                style="@style/TextAppearance.Insta.ReelCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/reel_action_count_gap" />
+        </LinearLayout>
+
+        <!-- Comment -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="16dp"
-            android:textColor="@color/white"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:layout_marginBottom="@dimen/reel_action_group_gap"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-        <!-- Audio Mute Toggle -->
+            <ImageView
+                android:id="@+id/iv_reel_comment"
+                android:layout_width="@dimen/reel_action_icon_size"
+                android:layout_height="@dimen/reel_action_icon_size"
+                android:contentDescription="@string/not_available"
+                android:src="@drawable/ic_comment"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/tv_reel_comments_count"
+                style="@style/TextAppearance.Insta.ReelCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/reel_action_count_gap" />
+        </LinearLayout>
+
+        <!-- Mute toggle: still wired in ReelsFragment, hidden by the PAGE 5 design -->
         <ImageView
             android:id="@+id/iv_reel_mute"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="@dimen/reel_action_icon_more_size"
+            android:layout_height="@dimen/reel_action_icon_more_size"
+            android:contentDescription="@string/not_available"
             android:src="@drawable/ic_volume_up"
-            android:tint="@color/white"
-            android:contentDescription="Mute audio" />
+            android:visibility="gone"
+            app:tint="@color/white" />
+
+        <!-- Send / share (design-only: no share flow exists for reels) -->
+        <LinearLayout
+            android:id="@+id/layout_reel_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/reel_action_group_gap"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/iv_reel_send"
+                android:layout_width="@dimen/reel_action_icon_size"
+                android:layout_height="@dimen/reel_action_icon_size"
+                android:contentDescription="@string/not_available"
+                android:src="@drawable/ic_send"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/tv_reel_shares_count"
+                style="@style/TextAppearance.Insta.ReelCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/reel_action_count_gap"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- More options (design-only: no reel options flow exists) -->
+        <ImageView
+            android:id="@+id/iv_reel_more"
+            android:layout_width="@dimen/reel_action_icon_more_size"
+            android:layout_height="@dimen/reel_action_icon_more_size"
+            android:layout_marginBottom="@dimen/reel_action_group_gap"
+            android:contentDescription="@string/reel_more_options"
+            android:src="@drawable/ic_more_horiz"
+            app:tint="@color/white" />
+
+        <!-- Audio thumbnail: 32dp rounded square, 2dp white border, author avatar -->
+        <FrameLayout
+            android:id="@+id/layout_reel_audio"
+            android:layout_width="@dimen/reel_audio_thumb_size"
+            android:layout_height="@dimen/reel_audio_thumb_size"
+            android:background="@drawable/bg_reel_audio_thumb"
+            android:padding="@dimen/reel_audio_thumb_border">
+
+            <ImageView
+                android:id="@+id/iv_reel_audio_thumb"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_reel_audio_inner"
+                android:clipToOutline="true"
+                android:contentDescription="@string/reel_audio_thumbnail"
+                android:scaleType="centerCrop" />
+
+            <ImageView
+                android:id="@+id/iv_reel_audio_badge"
+                android:layout_width="@dimen/reel_audio_badge_size"
+                android:layout_height="@dimen/reel_audio_badge_size"
+                android:layout_gravity="bottom|end"
+                android:background="@drawable/bg_reel_audio_badge"
+                android:contentDescription="@string/not_available"
+                android:padding="@dimen/reel_audio_badge_padding"
+                android:src="@drawable/ic_music"
+                app:tint="@color/black" />
+        </FrameLayout>
     </LinearLayout>
 
-    <!-- Bottom Metadata: Author + Caption -->
+    <!-- ============================================================= -->
+    <!-- Bottom-left author + caption block, max 75% of the page width  -->
+    <!-- ============================================================= -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="72dp"
-        android:layout_marginBottom="32dp"
-        android:orientation="vertical">
+        android:layout_marginStart="@dimen/reel_meta_margin_start"
+        android:layout_marginEnd="@dimen/reel_meta_margin_start"
+        android:layout_marginBottom="@dimen/reel_meta_margin_bottom"
+        android:orientation="horizontal">
 
+        <!-- 3/4 of the remaining width == 75% of the full page width -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="3"
+            android:orientation="vertical">
 
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/iv_reel_avatar"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_person_placeholder" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/iv_reel_avatar"
+                    android:layout_width="@dimen/reel_meta_avatar_size"
+                    android:layout_height="@dimen/reel_meta_avatar_size"
+                    android:src="@drawable/ic_person_placeholder" />
+
+                <TextView
+                    android:id="@+id/tv_reel_username"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/reel_meta_avatar_gap"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/reel_meta_username_size"
+                    android:textStyle="bold" />
+
+                <com.insta.clone.ui.widget.VerifiedBadgeView
+                    android:id="@+id/badge_reel_verified"
+                    android:layout_width="@dimen/reel_meta_badge_size"
+                    android:layout_height="@dimen/reel_meta_badge_size"
+                    android:layout_marginStart="@dimen/reel_meta_badge_gap" />
+
+                <TextView
+                    android:id="@+id/btn_reel_follow"
+                    style="@style/Widget.Insta.ReelFollowPill"
+                    android:layout_width="wrap_content"
+                    android:layout_marginStart="@dimen/reel_meta_pill_gap"
+                    android:text="@string/profile_follow" />
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/tv_reel_username"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_reel_caption"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginTop="@dimen/reel_meta_caption_gap"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <com.insta.clone.ui.widget.VerifiedBadgeView
-                android:id="@+id/badge_reel_verified"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:layout_marginStart="4dp" />
+                android:textSize="@dimen/reel_meta_caption_size" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tv_reel_caption"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="@color/white"
-            android:textSize="13sp" />
+        <!-- Reserved 1/4 so the caption never runs under the action column -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
     </LinearLayout>
 
     <!-- Center Play/Pause Indicator -->
     <ImageView
         android:id="@+id/iv_play_indicator"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="@dimen/reel_play_indicator_size"
+        android:layout_height="@dimen/reel_play_indicator_size"
         android:layout_gravity="center"
+        android:contentDescription="@string/not_available"
         android:src="@drawable/ic_play"
-        android:tint="@color/white"
-        android:visibility="gone" />
+        android:visibility="gone"
+        app:tint="@color/white" />
 
 </FrameLayout>

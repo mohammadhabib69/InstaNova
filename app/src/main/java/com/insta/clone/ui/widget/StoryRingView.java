@@ -38,7 +38,9 @@ public class StoryRingView extends FrameLayout {
     private int backgroundColor;
 
     private Paint ringPaint;
+    private Paint gapPaint;
     private RectF ringBounds;
+    private RectF gapBounds;
     private CircleImageView avatarImageView;
 
     public StoryRingView(@NonNull Context context) {
@@ -78,7 +80,10 @@ public class StoryRingView extends FrameLayout {
 
         ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         ringPaint.setStyle(Paint.Style.STROKE);
+        gapPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        gapPaint.setStyle(Paint.Style.STROKE);
         ringBounds = new RectF();
+        gapBounds = new RectF();
 
         // Add child CircleImageView
         avatarImageView = new CircleImageView(context);
@@ -142,26 +147,37 @@ public class StoryRingView extends FrameLayout {
             ringPaint.setShader(null);
             ringPaint.setColor(ringSeenColor);
             ringPaint.setStrokeWidth(getResources().getDimension(R.dimen.story_ring_stroke_seen));
-        } else {
-            // Instagram linear gradient: bottom-left -> top-right
-            int[] colors = new int[]{
-                    ContextCompat.getColor(getContext(), R.color.story_gradient_1),
-                    ContextCompat.getColor(getContext(), R.color.story_gradient_2),
-                    ContextCompat.getColor(getContext(), R.color.story_gradient_3),
-                    ContextCompat.getColor(getContext(), R.color.story_gradient_4),
-                    ContextCompat.getColor(getContext(), R.color.story_gradient_5)
-            };
-            LinearGradient gradient = new LinearGradient(
-                    0, getHeight(),
-                    getWidth(), 0,
-                    colors,
-                    null,
-                    Shader.TileMode.CLAMP
-            );
-            ringPaint.setShader(gradient);
-            ringPaint.setStrokeWidth(ringStrokeWidth);
+            canvas.drawOval(ringBounds, ringPaint);
+            return;
         }
 
+        // UNSEEN: Instagram 5-color linear gradient (bottom-left -> top-right),
+        // separated from the avatar by a gap drawn in the background color.
+        int[] colors = new int[]{
+                ContextCompat.getColor(getContext(), R.color.story_gradient_1),
+                ContextCompat.getColor(getContext(), R.color.story_gradient_2),
+                ContextCompat.getColor(getContext(), R.color.story_gradient_3),
+                ContextCompat.getColor(getContext(), R.color.story_gradient_4),
+                ContextCompat.getColor(getContext(), R.color.story_gradient_5)
+        };
+        LinearGradient gradient = new LinearGradient(
+                0, getHeight(),
+                getWidth(), 0,
+                colors,
+                null,
+                Shader.TileMode.CLAMP
+        );
+        ringPaint.setShader(gradient);
+        ringPaint.setStrokeWidth(ringStrokeWidth);
         canvas.drawOval(ringBounds, ringPaint);
+
+        // Background-colored gap between the gradient ring and the avatar.
+        if (gapWidth > 0) {
+            gapPaint.setColor(backgroundColor);
+            gapPaint.setStrokeWidth(gapWidth);
+            float inset = ringStrokeWidth + gapWidth / 2f;
+            gapBounds.set(inset, inset, getWidth() - inset, getHeight() - inset);
+            canvas.drawOval(gapBounds, gapPaint);
+        }
     }
 }

@@ -1,9 +1,12 @@
 package com.insta.clone.ui.home;
 
+import android.content.Context;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.insta.clone.R;
 import com.insta.clone.data.model.StoryGroup;
@@ -73,22 +76,33 @@ public class StoryTrayAdapter extends RecyclerView.Adapter<StoryTrayAdapter.View
                 return;
             }
             binding.getRoot().setVisibility(View.VISIBLE);
+            Context context = binding.getRoot().getContext();
+            boolean owner = group.isOwner();
+            boolean unseen = group.hasUnseen();
             String username = group.getUsername() == null ? "" : group.getUsername();
-            binding.tvUsername.setText(group.isOwner() ? binding.getRoot().getContext().getString(R.string.your_story) : username);
+            binding.tvUsername.setText(owner ? context.getString(R.string.your_story) : username);
             binding.storyRingView.loadAvatar(group.getAvatarUrl());
 
-            if (group.isOwner()) {
-                if (group.hasUnseen()) {
-                    binding.storyRingView.setRingState(StoryRingView.RingState.UNSEEN);
-                    binding.ivAddBadge.setVisibility(View.GONE);
-                } else {
-                    binding.storyRingView.setRingState(StoryRingView.RingState.NONE);
-                    binding.ivAddBadge.setVisibility(View.VISIBLE);
-                }
+            if (owner) {
+                // Active story -> gradient ring, no badge. No active story ->
+                // grey ring + the 22dp "add" badge on the avatar corner.
+                binding.storyRingView.setRingState(unseen
+                        ? StoryRingView.RingState.UNSEEN
+                        : StoryRingView.RingState.SEEN);
+                binding.ivAddBadge.setVisibility(unseen ? View.GONE : View.VISIBLE);
             } else {
                 binding.ivAddBadge.setVisibility(View.GONE);
-                binding.storyRingView.setRingState(group.hasUnseen() ? StoryRingView.RingState.UNSEEN : StoryRingView.RingState.SEEN);
+                binding.storyRingView.setRingState(unseen
+                        ? StoryRingView.RingState.UNSEEN
+                        : StoryRingView.RingState.SEEN);
             }
+
+            // Unseen -> textPrimary, seen -> textSecondary ("Your story" stays
+            // textPrimary so it never greys out).
+            boolean secondaryLabel = !owner && !unseen;
+            binding.tvUsername.setTextColor(themeColor(context,
+                    secondaryLabel ? R.attr.themeTextSecondary : R.attr.themeTextPrimary,
+                    secondaryLabel ? R.color.color_text_secondary : R.color.color_text_primary));
 
             binding.getRoot().setOnClickListener(v -> {
                 if (group.isOwner() && !group.hasUnseen()) {
@@ -97,6 +111,22 @@ public class StoryTrayAdapter extends RecyclerView.Adapter<StoryTrayAdapter.View
                     if (listener != null) listener.onStoryClick(group, position);
                 }
             });
+        }
+
+        /** Resolves a PAGE 0 semantic theme attribute to a concrete color. */
+        private int themeColor(Context context, int attr, int fallbackColorRes) {
+            try {
+                TypedValue tv = new TypedValue();
+                if (context.getTheme().resolveAttribute(attr, tv, true)) {
+                    if (tv.resourceId != 0) {
+                        return ContextCompat.getColor(context, tv.resourceId);
+                    }
+                    return tv.data;
+                }
+            } catch (Exception ignored) {
+                // Fall through to the token default.
+            }
+            return ContextCompat.getColor(context, fallbackColorRes);
         }
     }
 }
