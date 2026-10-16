@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 5 — tiny music badge pinned to the bottom-right corner of the audio
+    thumbnail: white rounded square with the black note stamped on top.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/reel_audio_badge_radius" />
+    <solid android:color="@color/white" />
+</shape>

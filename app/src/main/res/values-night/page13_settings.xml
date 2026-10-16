@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 13/14 — night overrides. The switch track is #DBDBDB in light, #363636 in dark. -->
+<resources>
+    <color name="color_switch_track_off">#363636</color>
+    <color name="color_grid_placeholder">#2A2A2A</color>
+</resources>

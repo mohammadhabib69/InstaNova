@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Original gradient camera glyph for the Welcome screen (74dp, 5dp stroke).
+  Drawn from scratch for this app: a rounded-square outline, an inner ring and a
+  small dot at the top-right, stroked with a purple-pink-orange-yellow gradient.
+  No official logo artwork is reproduced here.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="74dp"
+    android:height="74dp"
+    android:viewportWidth="74"
+    android:viewportHeight="74">
+
+    <!-- rounded-square camera body -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeWidth="5"
+        android:pathData="M20,4L54,4A16,16 0 0 1 70,20L70,54A16,16 0 0 1 54,70L20,70A16,16 0 0 1 4,54L4,20A16,16 0 0 1 20,4Z">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="6"
+                android:startY="68"
+                android:endX="68"
+                android:endY="6">
+                <item android:offset="0.0" android:color="#FF7A2BD4" />
+                <item android:offset="0.35" android:color="#FFDD2A7B" />
+                <item android:offset="0.7" android:color="#FFF58529" />
+                <item android:offset="1.0" android:color="#FFFEDA77" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- inner lens ring -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeWidth="5"
+        android:pathData="M37,27A13,13 0 1 0 37,53A13,13 0 1 0 37,27Z">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="6"
+                android:startY="68"
+                android:endX="68"
+                android:endY="6">
+                <item android:offset="0.0" android:color="#FF7A2BD4" />
+                <item android:offset="0.35" android:color="#FFDD2A7B" />
+                <item android:offset="0.7" android:color="#FFF58529" />
+                <item android:offset="1.0" android:color="#FFFEDA77" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- top-right dot -->
+    <path
+        android:pathData="M57,12.5A4.5,4.5 0 1 0 57,21.5A4.5,4.5 0 1 0 57,12.5Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="6"
+                android:startY="68"
+                android:endX="68"
+                android:endY="6">
+                <item android:offset="0.0" android:color="#FF7A2BD4" />
+                <item android:offset="1.0" android:color="#FFFEDA77" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

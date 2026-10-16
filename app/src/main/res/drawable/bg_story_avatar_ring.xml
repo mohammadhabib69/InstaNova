@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 6 — DM Inbox story ring: a 4dp ring built from the PAGE 0 story
+    gradient (5-color linear gradient, bottom-left -> top-right). The inner
+    oval is punched out in the theme background colour and is exactly the size
+    of the 56dp avatar, so the ring hugs the avatar.
+
+    Used by the conversation row when the other user has an active story.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:angle="45"
+                android:startColor="@color/story_gradient_1"
+                android:centerColor="@color/story_gradient_3"
+                android:endColor="@color/story_gradient_5"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item
+        android:bottom="@dimen/inbox_avatar_ring_thickness"
+        android:left="@dimen/inbox_avatar_ring_thickness"
+        android:right="@dimen/inbox_avatar_ring_thickness"
+        android:top="@dimen/inbox_avatar_ring_thickness">
+        <shape android:shape="oval">
+            <solid android:color="@color/color_background" />
+        </shape>
+    </item>
+
+</layer-list>

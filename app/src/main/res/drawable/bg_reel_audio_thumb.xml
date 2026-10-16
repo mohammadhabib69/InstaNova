@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    PAGE 5 — 32dp audio thumbnail frame: 6dp rounded square with a 2dp white
+    border. The 2dp body padding of the view leaves room for the border and
+    the inner avatar is clipped to the 4dp radius defined below.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/reel_audio_thumb_radius" />
+    <solid android:color="@color/transparent" />
+    <stroke
+        android:width="@dimen/reel_audio_thumb_border"
+        android:color="@color/white" />
+</shape>
