@@ -10,7 +10,7 @@ echo "2. Building and installing debug APK:"
 ./gradlew assembleDebug installDebug
 
 echo "3. Launching app:"
-adb shell am start -n com.insta.clone/.ui.auth.SplashActivity
+adb shell am start -n com.insta.nova/.ui.auth.SplashActivity
 
 echo "4. Capturing logcat:"
 adb logcat -d | grep -E 'InstaApi|InstaGlide|AndroidRuntime|FATAL' | tail -n 50
