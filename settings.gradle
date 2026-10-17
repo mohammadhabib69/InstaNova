@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'Insta_Clone'
+rootProject.name = 'InstaNova'
 include ':app'

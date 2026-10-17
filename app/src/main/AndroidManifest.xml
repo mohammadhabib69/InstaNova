@@ -6,7 +6,18 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
@@ -14,9 +25,14 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="@string/app_name"
+        android:label="InstaNova"
         android:supportsRtl="true"
-        android:theme="@style/Theme.InstaClone">
+        android:theme="@style/Theme.InstaClone"
+        android:usesCleartextTraffic="true">
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_logo_mark_mono" />
 
         <!-- Launcher Splash Activity -->
         <activity
@@ -32,14 +48,24 @@
         <!-- Authentication Wizard Activity -->
         <activity
             android:name=".ui.auth.AuthActivity"
-            android:exported="false"
+            android:exported="true"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- Authenticated, but no Supabase profile row exists for this Firebase UID -->
+        <activity
+            android:name=".ui.auth.ProfileMissingActivity"
+            android:exported="true" />
 
         <!-- Main 5-Tab Navigation Container -->
         <activity
             android:name=".ui.main.MainActivity"
-            android:exported="false"
+            android:exported="true"
             android:windowSoftInputMode="adjustPan" />
+
+        <!-- Activity feed (likes, comments, follows) -->
+        <activity
+            android:name=".ui.activity.NotificationsActivity"
+            android:exported="false" />
 
         <!-- Create Post Modal Activity -->
         <activity
@@ -54,13 +80,14 @@
 
         <!-- Fullscreen Story Viewer Activity -->
         <activity
-            android:name=".ui.story.StoryViewerActivity"
+            android:name=".ui.story.StoryViewerActivity" 
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode" 
             android:exported="false" />
 
         <!-- Direct Message Inbox Activity -->
         <activity
             android:name=".ui.chat.InboxActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <activity
             android:name=".ui.settings.SyncTestActivity"
@@ -77,11 +104,129 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.create.NewPostActivity" 
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode" 
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.create.NewStoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.InstaClone.Live" />
+
+        <activity
+            android:name=".ui.create.NewReelActivity" 
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode" 
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.story.LocalStoryViewerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.InstaClone.Live" />
+
+        <!-- Made for you: template gallery + local card editor -->
+        <activity
+            android:name=".ui.create.TemplatesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.create.TemplateEditorActivity" 
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode" 
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Profile > Saved: hosts the existing SavedFragment -->
+        <activity
+            android:name=".ui.saved.SavedActivity"
+            android:exported="false" />
+
+        <!-- Simulated Live: setup + live stream share one activity so the
+             camera session is owned by a single lifecycle owner. -->
+        <activity
+            android:name=".ui.live.LiveActivity"
+            android:exported="false"
+            android:theme="@style/Theme.InstaClone.Live"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- uCrop Activity for image cropping -->
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
         <!-- 1-on-1 Chat Activity -->
         <activity
             android:name=".ui.chat.ChatActivity"
-            android:exported="false"
+            android:exported="true"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- Chat Details Activity -->
+        <activity
+            android:name=".ui.chat.ChatDetailsActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+
+        <!-- Audio Call Activity -->
+        <activity
+            android:name=".ui.chat.AudioCallActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+
+        <!-- Video Call Activity -->
+        <activity
+            android:name=".ui.chat.VideoCallActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+
+        <!-- Incoming Call Activity -->
+        <activity
+            android:name=".calling.IncomingCallActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.InstaClone" />
+
+        <!-- Call History Hub Activity -->
+        <activity
+            android:name=".calling.CallHistoryActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.InstaClone" />
+
+        <!-- Firebase Cloud Messaging Service for Incoming Calls -->
+        <service
+            android:name=".calling.InstaFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Broadcast Receiver for Call Notification Actions (Accept/Decline) -->
+        <receiver
+            android:name=".calling.CallActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.insta.nova.ACTION_DECLINE_CALL" />
+                <action android:name="com.insta.nova.ACTION_ACCEPT_CALL" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Other user's profile (opened from the chat header / intro) -->
+        <activity
+            android:name=".ui.chat.HighlightViewerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+ />
+
+        <activity
+            android:name=".ui.chat.UserProfileActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <!-- Fullscreen Image Viewer Activity -->
         <activity
@@ -92,7 +237,7 @@
         <!-- Settings Activity -->
         <activity
             android:name=".ui.settings.SettingsActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <!-- FileProvider for camera captures -->
         <provider

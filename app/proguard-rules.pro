@@ -1,6 +1,6 @@
 # ProGuard rules for Instagram Clone
--keep class com.insta.clone.data.model.** { *; }
--keep class com.insta.clone.data.remote.dto.** { *; }
+-keep class com.insta.nova.data.model.** { *; }
+-keep class com.insta.nova.data.remote.dto.** { *; }
 
 # Glide
 -keep public class * implements com.bumptech.glide.module.GlideModule

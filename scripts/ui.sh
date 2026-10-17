@@ -12,7 +12,7 @@
 #   ./scripts/ui.sh top                   -> foreground activity
 export PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
 ROOT=/Users/mohammadhabib/Programming/InstaNova
-PKG=com.insta.clone
+PKG=com.insta.nova
 mkdir -p "$ROOT/shots/current"
 
 cmd="$1"; shift
@@ -37,7 +37,7 @@ for n in r.iter('node'):
     b = n.get('bounds','')
     cls = n.get('class','').split('.')[-1]
     if not (rid or txt or des): continue
-    out.append(f"{rid.replace('com.insta.clone:id/','#'):28} {cls:16} {b:24} txt={txt!r} desc={des!r}")
+    out.append(f"{rid.replace('com.insta.nova:id/','#'):28} {cls:16} {b:24} txt={txt!r} desc={des!r}")
 print("\n".join(out))
 PY
     ;;
