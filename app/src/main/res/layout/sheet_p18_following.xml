@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_p18_sheet"
+    android:orientation="vertical"
+    android:paddingBottom="16dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivSheetAvatar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="Profile photo"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+        <TextView
+            android:id="@+id/tvSheetUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/rowCloseFriends"
+        style="@style/P18SheetRow"
+        android:text="Add to Close Friends list" />
+
+    <TextView
+        android:id="@+id/rowFavorites"
+        style="@style/P18SheetRow"
+        android:text="Add to favorites" />
+
+    <TextView
+        android:id="@+id/rowMute"
+        style="@style/P18SheetRow"
+        android:text="Mute" />
+
+    <TextView
+        android:id="@+id/rowRestrict"
+        style="@style/P18SheetRow"
+        android:text="Restrict" />
+
+    <TextView
+        android:id="@+id/rowUnfollow"
+        style="@style/P18SheetRow"
+        android:text="Unfollow"
+        android:textColor="@color/profile_red" />
+</LinearLayout>

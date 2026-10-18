@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_p18_sheet"
+    android:orientation="vertical"
+    android:paddingBottom="16dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <TextView
+        android:id="@+id/rowShare"
+        style="@style/P18SheetRow"
+        android:text="Share this profile" />
+
+    <TextView
+        android:id="@+id/rowCopyUrl"
+        style="@style/P18SheetRow"
+        android:text="Copy profile URL" />
+
+    <TextView
+        android:id="@+id/rowAbout"
+        style="@style/P18SheetRow"
+        android:text="About this account" />
+
+    <TextView
+        android:id="@+id/rowReport"
+        style="@style/P18SheetRow"
+        android:text="Report..."
+        android:textColor="@color/profile_red" />
+
+    <TextView
+        android:id="@+id/rowBlock"
+        style="@style/P18SheetRow"
+        android:text="Block"
+        android:textColor="@color/profile_red" />
+</LinearLayout>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_background"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/identity_missing_title"
+        android:textColor="@color/color_text_primary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:text="@string/identity_missing_body"
+        android:textColor="@color/color_text_secondary"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/btn_missing_retry"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_button_primary"
+        android:text="@string/identity_missing_retry"
+        android:textAllCaps="false"
+        android:textColor="@color/color_text_primary" />
+
+    <Button
+        android:id="@+id/btn_missing_sign_out"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_button_outline"
+        android:text="@string/identity_missing_sign_out"
+        android:textAllCaps="false"
+        android:textColor="@color/color_text_primary" />
+
+</LinearLayout>

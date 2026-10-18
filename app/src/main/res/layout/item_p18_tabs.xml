@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/p18_tabs_height"
+    android:layout_marginTop="14dp"
+    android:orientation="horizontal">
+
+    <FrameLayout
+        android:id="@+id/tabGrid"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <ImageView
+            android:id="@+id/icGrid"
+            android:layout_width="@dimen/p18_tab_icon"
+            android:layout_height="@dimen/p18_tab_icon"
+            android:layout_gravity="center"
+            android:contentDescription="Grid"
+            android:src="@drawable/ic_grid"
+            app:tint="?attr/themeTextPrimary" />
+
+        <View
+            android:id="@+id/gridUnderline"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_gravity="bottom"
+            android:background="@color/color_text_primary" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/tabRepost"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <ImageView
+            android:id="@+id/icRepost"
+            android:layout_width="@dimen/p18_tab_icon"
+            android:layout_height="@dimen/p18_tab_icon"
+            android:layout_gravity="center"
+            android:contentDescription="Reposts"
+            android:src="@drawable/ic_repost"
+            app:tint="@color/color_text_secondary" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/tabTagged"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+        <ImageView
+            android:id="@+id/icTagged"
+            android:layout_width="@dimen/p18_tab_icon"
+            android:layout_height="@dimen/p18_tab_icon"
+            android:layout_gravity="center"
+            android:contentDescription="Tagged"
+            android:src="@drawable/ic_tagged"
+            app:tint="@color/color_text_secondary" />
+    </FrameLayout>
+</LinearLayout>
