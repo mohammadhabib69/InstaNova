@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="p18_topbar">56dp</dimen>
+    <dimen name="p18_avatar_outer">82dp</dimen>
+    <dimen name="p18_avatar_photo">69dp</dimen>
+    <dimen name="p18_ring_width">3.5dp</dimen>
+    <dimen name="p18_side">15dp</dimen>
+    <dimen name="p18_stat_number">17sp</dimen>
+    <dimen name="p18_stat_label">14sp</dimen>
+    <dimen name="p18_bio">14sp</dimen>
+    <dimen name="p18_button_height">30dp</dimen>
+    <dimen name="p18_button_radius">8dp</dimen>
+    <dimen name="p18_highlight_pitch">86dp</dimen>
+    <dimen name="p18_highlight_outer">69dp</dimen>
+    <dimen name="p18_highlight_photo">58dp</dimen>
+    <dimen name="p18_tabs_height">48dp</dimen>
+    <dimen name="p18_tab_icon">28dp</dimen>
+    <dimen name="p18_grid_icon">28dp</dimen>
+    <dimen name="p18_suggest_card_width">150dp</dimen>
+</resources>
