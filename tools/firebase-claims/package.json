@@ -1,0 +1,14 @@
+{
+  "name": "instanova-firebase-claims",
+  "private": true,
+  "type": "module",
+  "description": "One-off local tool: add the Supabase role=authenticated custom claim to existing Firebase users. Never shipped with the app.",
+  "scripts": {
+    "dry-run": "node set-supabase-role.mjs --adc",
+    "apply": "node set-supabase-role.mjs --adc --apply",
+    "dry-run:key": "node set-supabase-role.mjs --key \"$FIREBASE_SA_KEY\""
+  },
+  "dependencies": {
+    "firebase-admin": ">=12.0.0 <14.0.0"
+  }
+}
