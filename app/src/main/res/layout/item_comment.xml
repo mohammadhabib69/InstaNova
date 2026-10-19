@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One comment row: avatar, bold username + text, meta line, heart on the right. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingHorizontal="14dp"
-    android:paddingVertical="10dp">
+    android:background="?attr/selectableItemBackground"
+    android:paddingStart="@dimen/comments_row_padding_horizontal"
+    android:paddingTop="@dimen/comments_row_padding_vertical"
+    android:paddingEnd="@dimen/comments_row_padding_horizontal"
+    android:paddingBottom="@dimen/comments_row_padding_vertical">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/ivAvatar"
-        android:layout_width="@dimen/avatar_feed_header"
-        android:layout_height="@dimen/avatar_feed_header"
+        android:layout_width="@dimen/comments_row_avatar"
+        android:layout_height="@dimen/comments_row_avatar"
         android:src="@drawable/ic_person_placeholder"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -18,8 +22,7 @@
         android:id="@+id/layoutContent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
+        android:layout_marginStart="@dimen/comments_row_avatar_gap"
         android:orientation="vertical"
         app:layout_constraintEnd_toStartOf="@id/layoutLike"
         app:layout_constraintStart_toEndOf="@id/ivAvatar"
@@ -29,9 +32,9 @@
             android:id="@+id/tvCommentText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:lineSpacingMultiplier="1.2"
+            android:lineSpacingMultiplier="1.15"
             android:textColor="?attr/themeTextPrimary"
-            android:textSize="@dimen/text_body" />
+            android:textSize="@dimen/comments_text_size" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -45,55 +48,50 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/themeTextSecondary"
-                android:textSize="11sp" />
+                android:textSize="@dimen/comments_meta_size" />
 
             <TextView
                 android:id="@+id/tvLikes"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="@dimen/comments_meta_gap"
                 android:textColor="?attr/themeTextSecondary"
-                android:textSize="11sp"
+                android:textSize="@dimen/comments_meta_size"
                 android:visibility="gone" />
 
             <TextView
                 android:id="@+id/btnReply"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="@dimen/comments_meta_gap"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
                 android:text="@string/reply"
                 android:textColor="?attr/themeTextSecondary"
-                android:textSize="11sp"
+                android:textSize="@dimen/comments_meta_size"
                 android:textStyle="bold" />
         </LinearLayout>
-
     </LinearLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/layoutLike"
-        android:layout_width="32dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
+        android:layout_width="@dimen/comments_like_touch"
+        android:layout_height="@dimen/comments_like_touch"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/ivLike"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+            android:layout_width="@dimen/comments_like_icon"
+            android:layout_height="@dimen/comments_like_icon"
+            android:layout_gravity="center"
+            android:contentDescription="@string/comments_like"
             android:src="@drawable/ic_favorite_outline"
-            app:tint="?attr/themeTextSecondary"
-            android:contentDescription="Like comment" />
-
-        <TextView
-            android:id="@+id/tvLikeCountSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="?attr/themeTextSecondary"
-            android:textSize="10sp"
-            android:visibility="gone" />
-    </LinearLayout>
+            app:tint="?attr/themeTextSecondary" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

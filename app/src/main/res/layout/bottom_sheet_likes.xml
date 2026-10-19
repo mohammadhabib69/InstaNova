@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Likes: title with total, list of likers with Follow/Following. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_bottom_sheet"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="@dimen/create_sheet_handle_width"
+        android:layout_height="@dimen/create_sheet_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/create_sheet_handle_margin_top"
+        android:background="@drawable/bg_drag_handle" />
+
+    <TextView
+        android:id="@+id/tvLikesTitle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/comments_title_height"
+        android:gravity="center"
+        android:text="@string/likes"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/text_title"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_hairline"
+        android:background="?attr/themeDivider" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLikers"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="4dp"
+            android:paddingBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tvLikesEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/likes_empty"
+            android:textColor="?attr/themeTextSecondary"
+            android:textSize="@dimen/text_body"
+            android:visibility="gone" />
+    </FrameLayout>
+</LinearLayout>
