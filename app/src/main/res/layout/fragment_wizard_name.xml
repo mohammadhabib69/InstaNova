@@ -32,7 +32,7 @@
                 android:layout_marginTop="@dimen/auth_title_gap"
                 android:text="@string/auth_name_title" />
 
-            <com.insta.clone.ui.auth.AuthFieldView
+            <com.insta.nova.ui.auth.AuthFieldView
                 android:id="@+id/field_name"
                 style="@style/Widget.Insta.AuthField"
                 android:layout_marginTop="@dimen/auth_title_gap" />

@@ -40,10 +40,22 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/auth_subtitle_gap" />
 
-            <com.insta.clone.ui.auth.AuthFieldView
+            <com.insta.nova.ui.auth.AuthFieldView
                 android:id="@+id/field_birthday"
                 style="@style/Widget.Insta.AuthField.Birthday"
                 android:layout_marginTop="@dimen/auth_title_gap" />
+
+            <!-- Instruction for the "no date picked yet" state. Secondary colour, so it
+                 reads as guidance rather than as an error, and it is why Next is dim. -->
+            <TextView
+                android:id="@+id/tv_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/auth_birthday_required"
+                android:textColor="@color/auth_text_secondary"
+                android:textSize="@dimen/auth_code_error_size"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/tv_error"
