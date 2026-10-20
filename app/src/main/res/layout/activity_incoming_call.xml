@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Instagram Incoming Call Screen -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/incomingCallRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0A0A">
+
+    <!-- Top Label -->
+    <LinearLayout
+        android:id="@+id/layoutTopHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="56dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivCallTypeIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_phone_call"
+            app:tint="#8E8E8E" />
+
+        <TextView
+            android:id="@+id/tvCallTypeHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="InstaNova Audio Call"
+            android:textColor="#8E8E8E"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Caller Info Center Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="140dp"
+            android:layout_height="140dp">
+
+            <View
+                android:id="@+id/pulseRing"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:background="@drawable/bg_p18_avatar_ring" />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/ivCallerAvatar"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_person_placeholder" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvCallerUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="InstaNova User"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvIncomingSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Incoming audio call..."
+            android:textColor="#A8A8A8"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Bottom Action Buttons: Decline and Accept -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="60dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- Decline Button (Red) -->
+        <LinearLayout
+            android:id="@+id/btnDecline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="50dp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="68dp"
+                android:layout_height="68dp"
+                android:background="@drawable/bg_notification_dot">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Decline"
+                    android:src="@drawable/ic_call_end"
+                    app:tint="@color/white" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Decline"
+                android:textColor="#E0E0E0"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Accept Button (Green) -->
+        <LinearLayout
+            android:id="@+id/btnAccept"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="50dp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="68dp"
+                android:layout_height="68dp"
+                android:background="@drawable/bg_call_accept">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Accept"
+                    android:src="@drawable/ic_phone_call"
+                    app:tint="@color/white" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Accept"
+                android:textColor="#E0E0E0"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
