@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Instagram Video Call Screen -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/videoCallRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212">
+
+    <!-- Remote tile (Other user placeholder / avatar full screen area) -->
+    <RelativeLayout
+        android:id="@+id/layoutRemoteTile"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#1A1A1A">
+
+        <!-- Remote WebRTC Video Track Renderer -->
+        <org.webrtc.SurfaceViewRenderer
+            android:id="@+id/remoteVideoRenderer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/layoutRemotePlaceholder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/ivRemoteAvatar"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/ic_person_placeholder" />
+
+            <TextView
+                android:id="@+id/tvRemoteUsername"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvCallState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Contacting..."
+                android:textColor="#8E8E8E"
+                android:textSize="15sp" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Top Controls: Minimize + Flip camera -->
+    <LinearLayout
+        android:id="@+id/layoutTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentTop="true"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/btnMinimize"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Minimize"
+            android:src="@drawable/ic_chevron_down"
+            app:tint="@color/white" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Flip camera button -->
+        <FrameLayout
+            android:id="@+id/btnFlipCamera"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_live_glass_circle">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:contentDescription="Flip camera"
+                android:src="@drawable/ic_camera_flip"
+                app:tint="@color/white" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Floating Local Camera Preview View (real CameraX preview) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardLocalPreview"
+        android:layout_width="120dp"
+        android:layout_height="170dp"
+        android:layout_above="@id/layoutBottomControls"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardBackgroundColor="#262626"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="8dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <org.webrtc.SurfaceViewRenderer
+                android:id="@+id/localVideoRenderer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- Shown when camera is turned off -->
+            <LinearLayout
+                android:id="@+id/layoutCameraOffPlaceholder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_video_off"
+                    app:tint="#8E8E8E" />
+            </LinearLayout>
+        </FrameLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Bottom Controls Row -->
+    <LinearLayout
+        android:id="@+id/layoutBottomControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="40dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- Camera on/off button -->
+        <FrameLayout
+            android:id="@+id/btnToggleVideo"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_live_glass_circle">
+
+            <ImageView
+                android:id="@+id/ivVideoToggle"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_video"
+                app:tint="@color/white" />
+        </FrameLayout>
+
+        <!-- Mic Mute button -->
+        <FrameLayout
+            android:id="@+id/btnToggleMic"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:background="@drawable/bg_live_glass_circle">
+
+            <ImageView
+                android:id="@+id/ivMicToggle"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_mic"
+                app:tint="@color/white" />
+        </FrameLayout>
+
+        <!-- End Call Button (Red circle) -->
+        <FrameLayout
+            android:id="@+id/btnEndCall"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_notification_dot">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_call_end"
+                app:tint="@color/white" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

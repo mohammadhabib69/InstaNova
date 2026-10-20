@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Instagram Audio Call Screen -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/audioCallRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0A0A">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:id="@+id/layoutCallTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentTop="true"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/btnMinimizeCall"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Minimize"
+            android:src="@drawable/ic_chevron_down"
+            app:tint="@color/white" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_lock"
+                app:tint="#8E8E8E" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="End-to-end encrypted"
+                android:textColor="#8E8E8E"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <View
+            android:layout_width="24dp"
+            android:layout_height="24dp" />
+    </LinearLayout>
+
+    <!-- Caller Info Center Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="120dp"
+            android:layout_height="120dp">
+
+            <View
+                android:id="@+id/pulseRing"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:background="@drawable/bg_p18_avatar_ring" />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/ivCallAvatar"
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_person_placeholder" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvCallUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCallState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Contacting..."
+            android:textColor="#8E8E8E"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <!-- Bottom Call Controls Row -->
+    <LinearLayout
+        android:id="@+id/layoutControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="48dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <!-- Mute Button -->
+        <FrameLayout
+            android:id="@+id/btnMute"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/bg_live_glass_circle">
+
+            <ImageView
+                android:id="@+id/ivMute"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_mic"
+                app:tint="@color/white" />
+        </FrameLayout>
+
+        <!-- Speaker Button -->
+        <FrameLayout
+            android:id="@+id/btnSpeaker"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:background="@drawable/bg_live_glass_circle">
+
+            <ImageView
+                android:id="@+id/ivSpeaker"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_speaker"
+                app:tint="@color/white" />
+        </FrameLayout>
+
+        <!-- End Call Button (Red circle) -->
+        <FrameLayout
+            android:id="@+id/btnEndCall"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/bg_notification_dot">
+
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_call_end"
+                app:tint="@color/white" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
