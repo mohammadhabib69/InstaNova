@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 17 — long-press popup: Instagram reaction bar + options (Reply, Copy, Unsend). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layoutPopup"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_chat_popup"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <!-- Reaction pill bar -->
+    <LinearLayout
+        android:id="@+id/layoutEmojiRow"
+        android:layout_width="wrap_content"
+        android:layout_height="52dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
+
+        <TextView
+            android:id="@+id/emojiHeart"
+            style="@style/ChatPopupEmoji"
+            android:text="❤️" />
+
+        <TextView
+            android:id="@+id/emojiLaugh"
+            style="@style/ChatPopupEmoji"
+            android:text="😂" />
+
+        <TextView
+            android:id="@+id/emojiSurprised"
+            style="@style/ChatPopupEmoji"
+            android:text="😮" />
+
+        <TextView
+            android:id="@+id/emojiSad"
+            style="@style/ChatPopupEmoji"
+            android:text="😢" />
+
+        <TextView
+            android:id="@+id/emojiAngry"
+            style="@style/ChatPopupEmoji"
+            android:text="😡" />
+
+        <TextView
+            android:id="@+id/emojiThumbsUp"
+            style="@style/ChatPopupEmoji"
+            android:text="👍" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/popupDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"
+        android:background="@color/chat_popup_divider" />
+
+    <!-- Reply -->
+    <LinearLayout
+        android:id="@+id/rowReply"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/chat_popup_row_height"
+        android:background="@drawable/bg_chat_popup_row"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="24dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_reply"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:text="Reply"
+            android:textColor="@color/white"
+            android:textSize="@dimen/chat_popup_text_size" />
+    </LinearLayout>
+
+    <!-- Copy -->
+    <LinearLayout
+        android:id="@+id/rowCopy"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/chat_popup_row_height"
+        android:background="@drawable/bg_chat_popup_row"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="24dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_copy"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:text="Copy"
+            android:textColor="@color/white"
+            android:textSize="@dimen/chat_popup_text_size" />
+    </LinearLayout>
+
+    <!-- Unsend / Delete -->
+    <LinearLayout
+        android:id="@+id/rowUnsend"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/chat_popup_row_height"
+        android:background="@drawable/bg_chat_popup_row"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="24dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_trash"
+            app:tint="@color/color_destructive" />
+
+        <TextView
+            android:id="@+id/tvUnsendLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:text="Unsend"
+            android:textColor="@color/color_destructive"
+            android:textSize="@dimen/chat_popup_text_size" />
+    </LinearLayout>
+
+</LinearLayout>
