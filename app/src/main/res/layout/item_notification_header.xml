@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Activity feed section header: New / Today / This week. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvSectionTitle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/notif_row_padding_horizontal"
+    android:paddingTop="@dimen/notif_header_padding_top"
+    android:paddingEnd="@dimen/notif_row_padding_horizontal"
+    android:paddingBottom="@dimen/notif_header_padding_bottom"
+    android:textColor="?attr/themeTextPrimary"
+    android:textSize="@dimen/notif_header_text_size"
+    android:textStyle="bold" />
