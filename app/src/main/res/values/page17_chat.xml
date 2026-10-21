@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================================= -->
+    <!-- PAGE 17 — CHAT dimens                                         -->
+    <!-- 1080 px reference / 2.75 density: dp = px / 2.75             -->
+    <!-- ============================================================= -->
+
+    <!-- Header: 52dp Instagram standard app bar -->
+    <dimen name="chat_header_height">52dp</dimen>
+    <dimen name="chat_header_padding_horizontal">16dp</dimen>
+    <dimen name="chat_back_icon">24dp</dimen>
+    <dimen name="chat_header_avatar">28dp</dimen>
+    <dimen name="chat_header_avatar_gap">14dp</dimen>
+    <dimen name="chat_header_text_gap">10dp</dimen>
+    <dimen name="chat_header_name_size">17sp</dimen>
+    <dimen name="chat_header_status_size">15sp</dimen>
+    <dimen name="chat_header_action">28dp</dimen>
+    <dimen name="chat_header_action_gap">12dp</dimen>
+
+    <!-- Intro block -->
+    <dimen name="chat_intro_avatar">104dp</dimen>
+    <dimen name="chat_intro_avatar_gap">12dp</dimen>
+    <dimen name="chat_intro_name_size">20sp</dimen>
+    <dimen name="chat_intro_username_size">20sp</dimen>
+    <dimen name="chat_intro_line_size">17sp</dimen>
+    <dimen name="chat_intro_line_spacing">21dp</dimen>
+    <dimen name="chat_intro_lines_gap">4dp</dimen>
+    <dimen name="chat_intro_button_height">30dp</dimen>
+    <dimen name="chat_intro_button_min_width">102dp</dimen>
+    <dimen name="chat_intro_button_radius">14dp</dimen>
+    <dimen name="chat_intro_button_text">17sp</dimen>
+    <dimen name="chat_intro_button_gap">20dp</dimen>
+    <dimen name="chat_intro_top_padding">16dp</dimen>
+    <dimen name="chat_intro_bottom_padding">8dp</dimen>
+
+    <!-- Time separators -->
+    <dimen name="chat_separator_text_size">15sp</dimen>
+    <dimen name="chat_separator_vertical">24dp</dimen>
+
+    <!-- Bubbles -->
+    <dimen name="chat_bubble_text_size">17sp</dimen>
+    <dimen name="chat_bubble_padding_horizontal">16dp</dimen>
+    <dimen name="chat_bubble_padding_vertical">9dp</dimen>
+    <dimen name="chat_bubble_radius">22dp</dimen>
+    <dimen name="chat_bubble_max_width_percent">0.75</dimen>
+    <dimen name="chat_sent_margin_end">8dp</dimen>
+    <dimen name="chat_received_margin_start">17dp</dimen>
+    <dimen name="chat_received_avatar">25dp</dimen>
+    <dimen name="chat_received_avatar_gap">10dp</dimen>
+    <dimen name="chat_group_gap">16dp</dimen>
+    <dimen name="chat_group_gap_inner">4dp</dimen>
+    <dimen name="chat_image_max_width">240dp</dimen>
+    <dimen name="chat_image_radius">22dp</dimen>
+
+    <!-- Reaction chip: 28x23dp pill, 6dp from the bubble's left edge -->
+    <dimen name="chat_reaction_height">23dp</dimen>
+    <dimen name="chat_reaction_min_width">28dp</dimen>
+    <dimen name="chat_reaction_emoji_size">14sp</dimen>
+    <dimen name="chat_reaction_offset_start">6dp</dimen>
+    <dimen name="chat_reaction_overlap">11dp</dimen>
+
+    <!-- Seen -->
+    <dimen name="chat_seen_text_size">15sp</dimen>
+    <dimen name="chat_seen_margin_end">17dp</dimen>
+
+    <!-- Input bar -->
+    <dimen name="chat_input_margin">7dp</dimen>
+    <dimen name="chat_input_height">47dp</dimen>
+    <dimen name="chat_input_camera_circle">35dp</dimen>
+    <dimen name="chat_input_camera_icon">22dp</dimen>
+    <dimen name="chat_input_camera_margin_start">6dp</dimen>
+    <dimen name="chat_input_hint_size">18sp</dimen>
+    <dimen name="chat_input_icon">26dp</dimen>
+    <dimen name="chat_input_icon_gap">10dp</dimen>
+    <dimen name="chat_input_icon_end">12dp</dimen>
+    <dimen name="chat_input_send_size">17sp</dimen>
+
+    <!-- Long-press popup -->
+    <dimen name="chat_popup_radius">28dp</dimen>
+    <dimen name="chat_popup_emoji_size">30sp</dimen>
+    <dimen name="chat_popup_row_height">44dp</dimen>
+    <dimen name="chat_popup_text_size">16sp</dimen>
+
+    <!-- Supporting user profile screen opened from the intro / header -->
+    <dimen name="chat_profile_avatar">96dp</dimen>
+</resources>
