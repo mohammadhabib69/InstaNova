@@ -42,4 +42,11 @@
     <color name="vibe_badge_border">#1A1D21</color>
 
     <color name="vibe_modal_bg">#000000</color>
+
+    <!-- ========== PAGE 16 login / saved accounts ========== -->
+    <color name="auth_card_bg">#1B1E22</color>
+    <color name="auth_card_border">#3A4756</color>
+    <color name="auth_outline">#3D95F5</color>
+    <color name="auth_outline_bg">#1A1E24</color>
+    <color name="auth_logo_tile">#00000000</color>
 </resources>

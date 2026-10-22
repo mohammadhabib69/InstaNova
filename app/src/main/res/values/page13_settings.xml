@@ -107,7 +107,7 @@
     <string name="settings_archive_empty">No archived stories yet</string>
 
     <string name="settings_help_body">Settings and activity\n\nSaved — review the posts you saved.\nArchive — every story you have shared, including expired ones.\nAccount privacy — choose who can see your content.\nTheme — switch between Light, Dark and System default.\n\nFor anything else, use the Diagnostics screen from a debug build.</string>
-    <string name="settings_about_body">%1$s %2$s\n\nA Java + XML Instagram-style client backed by Supabase: feed, reels, stories, direct messages, search and profile management.</string>
+    <string name="settings_about_body">%1$s %2$s\n\nA Java + XML InstaNova client backed by Supabase: feed, reels, stories, direct messages, search and profile management.</string>
 
 
     <string name="story_vw_private_account">Private account</string>

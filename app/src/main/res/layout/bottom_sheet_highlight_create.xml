@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- New highlight: name + selectable past stories. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_bottom_sheet"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="@dimen/create_sheet_handle_width"
+        android:layout_height="@dimen/create_sheet_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/create_sheet_handle_margin_top"
+        android:background="@drawable/bg_drag_handle" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/comments_title_height"
+        android:gravity="center"
+        android:text="@string/highlight_new_title"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/text_title"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etHighlightName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_input_field"
+        android:hint="@string/highlight_name_hint"
+        android:importantForAutofill="no"
+        android:inputType="textCapWords"
+        android:maxLength="24"
+        android:maxLines="1"
+        android:padding="12dp"
+        android:text="@string/highlight_default_name"
+        android:textColor="?attr/themeTextPrimary"
+        android:textColorHint="?attr/themeTextSecondary"
+        android:textSize="@dimen/text_body" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/highlight_select_stories"
+        android:textColor="?attr/themeTextSecondary"
+        android:textSize="@dimen/text_body" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvHighlightStories"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp" />
+
+    <TextView
+        android:id="@+id/btnSaveHighlight"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/live_start_height"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_button_primary"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="@string/highlight_save"
+        android:textColor="@color/white"
+        android:textSize="@dimen/text_button"
+        android:textStyle="bold" />
+</LinearLayout>

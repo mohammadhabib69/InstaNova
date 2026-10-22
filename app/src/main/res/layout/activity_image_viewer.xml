@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <com.insta.clone.ui.widget.PinchZoomImageView
+    <com.insta.nova.ui.widget.PinchZoomImageView
         android:id="@+id/iv_full_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

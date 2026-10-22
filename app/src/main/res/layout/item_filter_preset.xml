@@ -14,7 +14,7 @@
         android:layout_width="@dimen/filter_thumb"
         android:layout_height="@dimen/filter_thumb">
 
-        <com.insta.clone.ui.widget.SquareImageView
+        <com.insta.nova.ui.widget.SquareImageView
             android:id="@+id/iv_filter_thumb"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

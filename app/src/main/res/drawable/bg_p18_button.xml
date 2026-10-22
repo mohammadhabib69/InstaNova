@@ -1,0 +1,4 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/profile_button_bg" />
+    <corners android:radius="@dimen/p18_button_radius" />
+</shape>

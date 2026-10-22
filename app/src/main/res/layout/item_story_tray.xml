@@ -11,7 +11,7 @@
         android:layout_width="@dimen/story_ring_outer_size"
         android:layout_height="@dimen/story_ring_outer_size">
 
-        <com.insta.clone.ui.widget.StoryRingView
+        <com.insta.nova.ui.widget.StoryRingView
             android:id="@+id/storyRingView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 17 — centred time separator. 24dp above and below. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvSeparator"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:paddingStart="24dp"
+    android:paddingTop="@dimen/chat_separator_vertical"
+    android:paddingEnd="24dp"
+    android:paddingBottom="@dimen/chat_separator_vertical"
+    android:textAllCaps="true"
+    android:textColor="@color/chat_text_secondary"
+    android:textSize="@dimen/chat_separator_text_size" />

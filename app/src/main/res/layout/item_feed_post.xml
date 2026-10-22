@@ -46,7 +46,7 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="@style/TextAppearance.Insta.Username" />
 
-                <com.insta.clone.ui.widget.VerifiedBadgeView
+                <com.insta.nova.ui.widget.VerifiedBadgeView
                     android:id="@+id/badgeVerified"
                     android:layout_width="@dimen/badge_verified_size"
                     android:layout_height="@dimen/badge_verified_size"
@@ -79,7 +79,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Post media — full width, 1:1, edge to edge -->
-    <com.insta.clone.ui.widget.DoubleTapHeartLayout
+    <com.insta.nova.ui.widget.DoubleTapHeartLayout
         android:id="@+id/doubleTapLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -172,10 +172,10 @@
             android:visibility="gone"
             android:contentDescription="Toggle sound" />
 
-    </com.insta.clone.ui.widget.DoubleTapHeartLayout>
+    </com.insta.nova.ui.widget.DoubleTapHeartLayout>
 
     <!-- Carousel dots -->
-    <com.insta.clone.ui.widget.DotsIndicatorView
+    <com.insta.nova.ui.widget.DotsIndicatorView
         android:id="@+id/dotsIndicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -280,7 +280,7 @@
         android:visibility="gone" />
 
     <!-- Caption — bold username + text, 2 lines + "more" -->
-    <com.insta.clone.ui.widget.ExpandableCaptionTextView
+    <com.insta.nova.ui.widget.ExpandableCaptionTextView
         android:id="@+id/tvCaption"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

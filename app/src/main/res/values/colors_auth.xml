@@ -21,7 +21,8 @@
     <color name="auth_link">#0064E0</color>
     <color name="auth_checkbox">#0A7CFF</color>
     <color name="auth_checkbox_border">#CED0D4</color>
-    <color name="auth_error_text">#FF5A5F</color>
+    <!-- #FF5A5F only reaches 3.05:1 on white; darkened to keep 4.5:1 for inline errors -->
+    <color name="auth_error_text">#D93025</color>
     <color name="auth_success">#1DA457</color>
     <color name="auth_code_box_bg">#00000000</color>
 
@@ -48,4 +49,11 @@
 
     <!-- Bio editor keeps Family B colours but is a full screen -->
     <color name="vibe_modal_bg">#FFFFFF</color>
+
+    <!-- ========== PAGE 16 login / saved accounts ========== -->
+    <color name="auth_card_bg">#FFFFFF</color>
+    <color name="auth_card_border">#CED0D4</color>
+    <color name="auth_outline">#0064E0</color>
+    <color name="auth_outline_bg">#FFFFFF</color>
+    <color name="auth_logo_tile">#00000000</color>
 </resources>

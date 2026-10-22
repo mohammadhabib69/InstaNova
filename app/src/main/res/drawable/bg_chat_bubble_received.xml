@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 17 — received bubble (#262626 dark / #EFEFEF light). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/chat_received_bubble" />
+    <corners android:radius="22dp" />
+</shape>

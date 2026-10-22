@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Live — one simulated viewer comment (username set bold in code). -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/commentText"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_live_comment"
+    android:maxWidth="@dimen/live_comment_max_width"
+    android:paddingStart="@dimen/live_badge_padding_horizontal"
+    android:paddingTop="@dimen/live_dot_gap"
+    android:paddingEnd="@dimen/live_badge_padding_horizontal"
+    android:paddingBottom="@dimen/live_dot_gap"
+    android:textColor="@color/white"
+    android:textSize="@dimen/live_comment_text_size" />

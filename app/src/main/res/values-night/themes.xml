@@ -43,8 +43,9 @@
     </style>
 
     <style name="Theme.InstaClone.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/color_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenBackground">#05060F</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/avd_logo_mark_splash</item>
+        <item name="windowSplashScreenAnimationDuration">500</item>
         <item name="postSplashScreenTheme">@style/Theme.InstaClone</item>
         <item name="themeBackground">@color/color_background</item>
         <item name="themeTextPrimary">@color/color_text_primary</item>
@@ -56,11 +57,12 @@
         <item name="themeSheet">@color/color_sheet</item>
     </style>
 
-    <style name="InstagramBottomSheetDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/InstagramBottomSheetStyle</item>
+    <style name="InstaNovaBottomSheetDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/InstaNovaBottomSheetStyle</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/color_sheet</item>
         <item name="elevationOverlayEnabled">false</item>
     </style>
+    <style name="InstagramBottomSheetDialog" parent="InstaNovaBottomSheetDialog" />
 </resources>

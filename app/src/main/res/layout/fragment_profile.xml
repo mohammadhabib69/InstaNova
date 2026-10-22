@@ -122,12 +122,12 @@
             android:layout_width="@dimen/profile_avatar_frame"
             android:layout_height="@dimen/profile_avatar_frame">
 
-            <com.insta.clone.ui.widget.StoryRingView
+            <com.insta.nova.ui.widget.StoryRingView
                 android:id="@+id/profileAvatarRing"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:gapWidth="@dimen/profile_ring_gap"
-                app:ringState="unseen"
+                app:ringState="none"
                 app:ringStrokeWidth="@dimen/profile_ring_stroke" />
 
             <de.hdodenhof.circleimageview.CircleImageView
@@ -379,6 +379,44 @@
                 android:textColor="?attr/themeTextPrimary"
                 android:textSize="@dimen/profile_highlight_title_size" />
         </LinearLayout>
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- Saved — entry into the existing SavedFragment grid             -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:id="@+id/rowSaved"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/profile_header_padding"
+        android:paddingEnd="@dimen/profile_header_padding">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_bookmark_outline"
+            app:tint="?attr/themeTextPrimary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:text="@string/saved_entry"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_chevron_right"
+            app:tint="?attr/themeTextSecondary" />
     </LinearLayout>
 
     <!-- ============================================================= -->

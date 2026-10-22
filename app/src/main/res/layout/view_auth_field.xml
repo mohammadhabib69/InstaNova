@@ -23,7 +23,10 @@
                 android:id="@+id/tv_field_label"
                 style="@style/TextAppearance.Insta.AuthFieldLabel"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:minHeight="0dp" />
 
             <!-- Typed value sits directly under the label. -->
             <EditText
@@ -32,12 +35,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@null"
+                android:gravity="center_vertical|start"
                 android:importantForAutofill="no"
+                android:includeFontPadding="false"
                 android:maxLines="1"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
                 android:paddingStart="0dp"
                 android:paddingTop="0dp"
                 android:paddingEnd="0dp"
-                android:paddingBottom="0dp" />
+                android:paddingBottom="0dp"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:textAlignment="viewStart" />
         </LinearLayout>
 
         <ImageView

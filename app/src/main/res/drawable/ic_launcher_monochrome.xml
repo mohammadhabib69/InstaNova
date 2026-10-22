@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Thin white orbit ellipse (rotated -25 degrees, 1.5dp stroke) + tiny dot on orbit -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-25">
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="1.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M 27,54 a 27,11 0 1,0 54,0 a 27,11 0 1,0 -54,0 Z" />
+
+        <!-- Tiny dot on orbit -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M 79,54 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0 Z" />
+    </group>
+
+    <!-- White 4-point star centered inside 66dp safe zone (pivot at 54, 54) -->
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:translateX="42"
+        android:translateY="42"
+        android:scaleX="1.8"
+        android:scaleY="1.8">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M12 2 C12.6 7.4 16.6 11.4 22 12 C16.6 12.6 12.6 16.6 12 22 C11.4 16.6 7.4 12.6 2 12 C7.4 11.4 11.4 7.4 12 2 Z" />
+    </group>
+
+</vector>

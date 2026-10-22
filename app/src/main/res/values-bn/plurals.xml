@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Likes -->
+    <plurals name="likes">
+        <item quantity="one">%dটি লাইক</item>
+        <item quantity="other">%dটি লাইক</item>
+    </plurals>
+
+    <!-- Liked by tail -->
+    <plurals name="liked_by_tail">
+        <item quantity="one">এবং অন্য %d জন</item>
+        <item quantity="other">এবং অন্য %d জন</item>
+    </plurals>
+
+    <!-- Comments -->
+    <plurals name="comments_view">
+        <item quantity="one">%dটি মন্তব্য দেখুন</item>
+        <item quantity="other">সব %dটি মন্তব্য দেখুন</item>
+    </plurals>
+
+    <!-- Followers -->
+    <plurals name="followers">
+        <item quantity="one">%d জন অনুসরণকারী</item>
+        <item quantity="other">%d জন অনুসরণকারী</item>
+    </plurals>
+
+    <!-- Posts -->
+    <plurals name="posts">
+        <item quantity="one">%dটি পোস্ট</item>
+        <item quantity="other">%dটি পোস্ট</item>
+    </plurals>
+
+    <!-- Answers -->
+    <plurals name="answers">
+        <item quantity="one">%dটি উত্তর</item>
+        <item quantity="other">%dটি উত্তর</item>
+    </plurals>
+
+    <!-- Requests -->
+    <plurals name="requests">
+        <item quantity="one">%dটি অনুরোধ</item>
+        <item quantity="other">%dটি অনুরোধ</item>
+    </plurals>
+
+    <!-- Time: minutes, hours, days -->
+    <plurals name="minutes">
+        <item quantity="one">%d মিনিট</item>
+        <item quantity="other">%d মিনিট</item>
+    </plurals>
+
+    <plurals name="hours">
+        <item quantity="one">%d ঘণ্টা</item>
+        <item quantity="other">%d ঘণ্টা</item>
+    </plurals>
+
+    <plurals name="days">
+        <item quantity="one">%d দিন</item>
+        <item quantity="other">%d দিন</item>
+    </plurals>
+
+    <!-- Members -->
+    <plurals name="members">
+        <item quantity="one">%d জন সদস্য</item>
+        <item quantity="other">%d জন সদস্য</item>
+    </plurals>
+
+    <!-- Donations -->
+    <plurals name="donations">
+        <item quantity="one">%dটি দান</item>
+        <item quantity="other">%dটি দান</item>
+    </plurals>
+
+    <plurals name="live_viewers">
+        <item quantity="one">%d জন দেখছেন</item>
+        <item quantity="other">%d জন দেখছেন</item>
+    </plurals>
+    <plurals name="comment_likes">
+        <item quantity="one">%dটি লাইক</item>
+        <item quantity="other">%dটি লাইক</item>
+    </plurals>
+</resources>

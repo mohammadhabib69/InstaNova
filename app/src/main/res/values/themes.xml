@@ -47,8 +47,9 @@
 
     <!-- Splash Screen Theme -->
     <style name="Theme.InstaClone.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/color_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenBackground">#05060F</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/avd_logo_mark_splash</item>
+        <item name="windowSplashScreenAnimationDuration">500</item>
         <item name="postSplashScreenTheme">@style/Theme.InstaClone</item>
         <item name="themeBackground">@color/color_background</item>
         <item name="themeTextPrimary">@color/color_text_primary</item>
@@ -60,22 +61,35 @@
         <item name="themeSheet">@color/color_sheet</item>
     </style>
 
+    <!-- Live (simulated) — dark stage for the camera feed in both themes.
+         Same resource name in values-night keeps this black either way. -->
+    <style name="Theme.InstaClone.Live" parent="Theme.InstaClone">
+        <item name="android:windowBackground">@color/black</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
     <!-- ============================================================= -->
     <!-- Bottom Sheet themes — flat sheet, 16dp top radius, no shadow   -->
     <!-- ============================================================= -->
-    <style name="InstagramBottomSheetDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/InstagramBottomSheetStyle</item>
+    <style name="InstaNovaBottomSheetDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/InstaNovaBottomSheetStyle</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/color_sheet</item>
         <item name="elevationOverlayEnabled">false</item>
     </style>
+    <style name="InstagramBottomSheetDialog" parent="InstaNovaBottomSheetDialog" />
 
-    <style name="InstagramBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+    <style name="InstaNovaBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="android:background">@drawable/bg_bottom_sheet</item>
         <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Insta.BottomSheet</item>
         <item name="android:elevation">0dp</item>
     </style>
+    <style name="InstagramBottomSheetStyle" parent="InstaNovaBottomSheetStyle" />
 
     <style name="ShapeAppearance.Insta.BottomSheet" parent="">
         <item name="cornerFamily">rounded</item>
@@ -311,5 +325,45 @@
 
     <style name="ShapeAppearance.Insta.ChatImage" parent="">
         <item name="cornerSize">18dp</item>
+    </style>
+
+    <!-- ============================================================= -->
+    <!-- PAGE 17 — CHAT                                                -->
+    <!-- ============================================================= -->
+    <style name="ShapeAppearance.Insta.ChatMedia" parent="">
+        <item name="cornerSize">@dimen/chat_image_radius</item>
+    </style>
+
+    <style name="ChatPopupEmoji">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/chat_popup_emoji_size</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Activity feed post thumbnail (4dp rounded) -->
+    <style name="ShapeAppearance.Insta.NotificationThumb" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/notif_thumb_radius</item>
+    </style>
+
+    <style name="ShapeAppearance.Insta.ProfileTile" parent="">
+        <item name="cornerSize">2dp</item>
+    </style>
+
+    <style name="P18SheetRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
     </style>
 </resources>
