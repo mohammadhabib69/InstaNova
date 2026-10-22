@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One editor text field; the hint is set from the template definition. -->
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/etTemplateField"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:background="@drawable/bg_template_field"
+    android:importantForAutofill="no"
+    android:inputType="textCapSentences|textMultiLine"
+    android:maxLength="120"
+    android:maxLines="3"
+    android:minHeight="52dp"
+    android:paddingStart="14dp"
+    android:paddingTop="14dp"
+    android:paddingEnd="14dp"
+    android:paddingBottom="14dp"
+    android:textColor="?attr/themeTextPrimary"
+    android:textColorHint="?attr/themeTextSecondary"
+    android:textSize="15sp" />

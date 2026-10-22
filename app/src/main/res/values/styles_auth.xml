@@ -30,12 +30,16 @@
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textSize">@dimen/auth_field_label_size</item>
         <item name="android:textColor">@color/auth_text_secondary</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:lineSpacingExtra">0dp</item>
     </style>
 
     <style name="TextAppearance.Insta.AuthFieldValue" parent="TextAppearance.AppCompat">
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textSize">@dimen/auth_field_value_size</item>
         <item name="android:textColor">@color/auth_text</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:lineSpacingExtra">0dp</item>
     </style>
 
     <style name="TextAppearance.Insta.AuthButton" parent="TextAppearance.AppCompat">
@@ -116,8 +120,9 @@
         <item name="android:background">@drawable/bg_auth_field</item>
         <item name="android:paddingStart">@dimen/auth_field_padding_horizontal</item>
         <item name="android:paddingEnd">@dimen/auth_field_padding_horizontal</item>
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingBottom">8dp</item>
+        <!-- 4dp + 4dp leaves the full two-line label/value stack inside 51–54dp. -->
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
     </style>
 
     <style name="Widget.Insta.AuthField.Birthday">

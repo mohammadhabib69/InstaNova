@@ -10,7 +10,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <com.insta.clone.ui.widget.SquareImageView
+    <com.insta.nova.ui.widget.SquareImageView
         android:id="@+id/iv_thumb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

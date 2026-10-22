@@ -32,3 +32,13 @@ local.properties
 
 # Test artifacts
 shots/
+screenshots/
+artifacts/
+supabase/.temp/
+
+# Firebase service-account keys for the local claims tool — never commit
+tools/firebase-claims/*.json
+!tools/firebase-claims/package.json
+
+# Local data snapshots (contain profile PII) — never commit
+backups/

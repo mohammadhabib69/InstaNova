@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 17 — sent bubble. 22dp corners: a single-line bubble (38-40dp tall)
+     clamps to a full pill, a multi-line bubble keeps the 22dp radius. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/chat_sent_bubble" />
+    <corners android:radius="22dp" />
+</shape>

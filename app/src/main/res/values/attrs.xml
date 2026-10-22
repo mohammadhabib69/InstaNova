@@ -22,4 +22,15 @@
         <attr name="ringStrokeWidth" format="dimension" />
         <attr name="gapWidth" format="dimension" />
     </declare-styleable>
+
+    <!-- WordmarkView attributes -->
+    <declare-styleable name="WordmarkView">
+        <attr name="android:textSize" />
+        <attr name="android:textColor" />
+        <attr name="wordmarkSize">
+            <enum name="top_bar" value="0" />
+            <enum name="login" value="1" />
+            <enum name="welcome" value="2" />
+        </attr>
+    </declare-styleable>
 </resources>

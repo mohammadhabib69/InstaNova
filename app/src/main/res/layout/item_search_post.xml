@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Search results: caption match. Square thumbnail, caption, author line. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/search_row_height"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/search_row_padding_horizontal"
+    android:paddingTop="8dp"
+    android:paddingEnd="@dimen/search_row_padding_horizontal"
+    android:paddingBottom="8dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivPostThumb"
+        android:layout_width="@dimen/search_row_avatar_size"
+        android:layout_height="@dimen/search_row_avatar_size"
+        android:background="?attr/themeSurfaceVariant"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Insta.NotificationThumb" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/search_row_gap"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvPostCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvPostAuthor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/themeTextSecondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+</LinearLayout>

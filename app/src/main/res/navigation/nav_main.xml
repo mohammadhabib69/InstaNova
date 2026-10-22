@@ -7,28 +7,28 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.insta.clone.ui.home.HomeFragment"
+        android:name="com.insta.nova.ui.home.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_search"
-        android:name="com.insta.clone.ui.search.SearchFragment"
+        android:name="com.insta.nova.ui.search.SearchFragment"
         android:label="Search" />
 
     <fragment
         android:id="@+id/navigation_shop"
-        android:name="com.insta.clone.ui.saved.SavedFragment"
+        android:name="com.insta.nova.ui.saved.SavedFragment"
         android:label="Saved" />
 
     <fragment
         android:id="@+id/navigation_reels"
-        android:name="com.insta.clone.ui.reels.ReelsFragment"
+        android:name="com.insta.nova.ui.reels.ReelsFragment"
         android:label="Reels" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.insta.clone.ui.profile.ProfileFragment"
+        android:name="com.insta.nova.ui.profile.ProfileFragment"
         android:label="Profile" />
 
 </navigation>

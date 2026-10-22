@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 17 — received bubble: avatar 25dp at 17dp, bubble starts at 52dp. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rowRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="start|bottom"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/chat_received_margin_start"
+    android:paddingEnd="64dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivAvatar"
+        android:layout_width="@dimen/chat_received_avatar"
+        android:layout_height="@dimen/chat_received_avatar"
+        android:layout_marginEnd="@dimen/chat_received_avatar_gap"
+        android:contentDescription="Profile photo"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_person_placeholder"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+    <FrameLayout
+        android:id="@+id/layoutBubbleWrap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:id="@+id/layoutBubble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chat_bubble_received"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/chat_bubble_padding_horizontal"
+            android:paddingTop="@dimen/chat_bubble_padding_vertical"
+            android:paddingEnd="@dimen/chat_bubble_padding_horizontal"
+            android:paddingBottom="@dimen/chat_bubble_padding_vertical">
+
+            <!-- Quoted Reply Header -->
+            <LinearLayout
+                android:id="@+id/layoutQuotedReply"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_chat_reply_box"
+                android:orientation="horizontal"
+                android:padding="6dp"
+                android:visibility="gone">
+
+                <View
+                    android:id="@+id/viewReplyIndicator"
+                    android:layout_width="2dp"
+                    android:layout_height="match_parent"
+                    android:background="?attr/themeTextPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvReplyUser"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvReplyText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/chat_text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Received Image -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivMessageImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:contentDescription="Photo"
+                android:scaleType="fitCenter"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Insta.ChatMedia" />
+
+            <!-- Received Voice Message -->
+            <LinearLayout
+                android:id="@+id/layoutVoiceMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center_vertical"
+                android:minWidth="170dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/btnVoicePlay"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Play voice message"
+                    android:src="@drawable/ic_play"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <ProgressBar
+                    android:id="@+id/progressVoice"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="85dp"
+                    android:layout_height="4dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressTint="?attr/themeTextPrimary" />
+
+                <TextView
+                    android:id="@+id/tvVoiceDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Call Entry (Audio / Video Call) -->
+            <LinearLayout
+                android:id="@+id/layoutCallMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/ivCallIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_phone_call"
+                    app:tint="?attr/themeTextPrimary" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvCallTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Audio call"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCallSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Call ended"
+                        android:textColor="@color/chat_text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Text Message -->
+            <TextView
+                android:id="@+id/tvMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="2dp"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/chat_bubble_text_size" />
+        </LinearLayout>
+
+        <!-- Reaction Pill -->
+        <LinearLayout
+            android:id="@+id/layoutReactionPill"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/chat_reaction_height"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="@dimen/chat_reaction_offset_start"
+            android:background="@drawable/bg_chat_reaction_pill"
+            android:gravity="center"
+            android:minWidth="@dimen/chat_reaction_min_width"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
+            android:visibility="gone"
+            android:translationY="@dimen/chat_reaction_overlap">
+
+            <TextView
+                android:id="@+id/tvReactions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/chat_reaction_emoji_size" />
+        </LinearLayout>
+    </FrameLayout>
+
+</LinearLayout>

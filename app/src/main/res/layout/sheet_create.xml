@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    PAGE 8A — Create sheet, opened by the '+' on Home and Profile.
-    Reel / Post / Story / Story highlight open the existing flows;
-    Live and Made for you are decorative (Constants.DECORATIVE_UI).
+     PAGE 8A — Create sheet, opened by the '+' on Home and Profile.
+     Reel / Post / Story / Story highlight open the existing flows;
+     Live opens the simulated live flow; Made for you is decorative
+     (Constants.DECORATIVE_UI).
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -138,7 +139,7 @@
             android:text="@string/create_story_highlight" />
     </LinearLayout>
 
-    <!-- Live (decorative) -->
+    <!-- Live (simulated) -->
     <LinearLayout
         android:id="@+id/row_create_live"
         android:layout_width="match_parent"

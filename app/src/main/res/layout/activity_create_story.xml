@@ -116,7 +116,7 @@
                 android:scaleType="centerCrop"
                 android:contentDescription="@string/your_story" />
 
-            <com.insta.clone.ui.widget.OverlayDrawView
+            <com.insta.nova.ui.widget.OverlayDrawView
                 android:id="@+id/overlay_draw"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />

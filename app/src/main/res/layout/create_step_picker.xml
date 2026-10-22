@@ -68,7 +68,7 @@
             android:layout_height="wrap_content">
 
             <!-- Kept visible so the 1:1 area is reserved before a pick -->
-            <com.insta.clone.ui.widget.SquareImageView
+            <com.insta.nova.ui.widget.SquareImageView
                 android:id="@+id/iv_preview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

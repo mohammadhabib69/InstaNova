@@ -6,7 +6,7 @@
     <!--   * 'Meta Account' -> 'account'                                -->
     <!--   * 'Instagram profile' -> 'profile'                           -->
     <!--   * ', including ads' removed from the Terms third paragraph   -->
-    <!-- %1$s is always Constants.APP_NAME ("Instagram").               -->
+    <!-- %1$s is always Constants.APP_NAME ("InstaNova").               -->
     <!-- ============================================================= -->
 
     <!-- ========== Shared ========== -->
@@ -42,9 +42,17 @@
     <!-- ========== 3. Confirmation code ========== -->
     <string name="auth_code_title">Enter the confirmation code</string>
     <string name="auth_code_subtitle">To confirm your profile, enter the 6-digit code we sent to %1$s.</string>
+    <!-- Firebase sends a confirmation link, not a 6-digit code (no SMS/mail OTP in Firebase Auth). -->
+    <string name="auth_verify_title">Confirm your email</string>
+    <string name="auth_verify_subtitle">We sent a confirmation link to %1$s. Open it on this device, then come back — this screen continues automatically.</string>
+    <string name="auth_verify_waiting">Waiting for you to confirm…</string>
+    <string name="auth_verify_primary">I\'ve confirmed my email</string>
+    <string name="auth_verify_didnt_get">Didn\'t get the email?</string>
+    <string name="auth_verify_resent">We sent a new confirmation link to %1$s</string>
+    <string name="auth_verify_not_yet">That link hasn\'t been confirmed yet. Open the email, tap the link, then try again.</string>
     <string name="auth_code_wrong">That code isn\'t right. Please try again.</string>
     <string name="auth_code_didnt_get">I didn\'t get the code</string>
-    <string name="auth_code_resend">Resend confirmation code</string>
+    <string name="auth_code_resend">Resend confirmation email</string>
     <string name="auth_code_resend_in">Resend in %1$s</string>
     <string name="auth_code_change_email">Change email address</string>
     <string name="auth_code_resent">We sent a new code to %1$s</string>
@@ -60,13 +68,27 @@
     <string name="auth_field_password">Password</string>
     <string name="auth_remember_login">Remember login info.</string>
     <string name="auth_password_too_short">Your password must be at least 6 characters.</string>
+    <!-- Shown only when Firebase asks for a recent login before a password change. -->
+    <string name="auth_reauth_title">Confirm your password</string>
+    <string name="auth_reauth_body">Firebase needs your current password before it will save a new one. If you don\'t know the current password — signup creates the account with a temporary one — send yourself a reset link, set a password from that email, then log in again.</string>
+    <string name="auth_reauth_field">Current password</string>
+    <string name="auth_reauth_continue">Continue</string>
+    <string name="auth_reauth_send_reset">Send reset link</string>
+    <string name="auth_reauth_cancel">Cancel</string>
+    <string name="auth_reauth_wrong">That password isn\'t right. Try again, or send yourself a reset link.</string>
+    <string name="auth_password_reauth_required">For your security, confirm your current password before changing it.</string>
 
     <!-- ========== 5. Birthday ========== -->
     <string name="auth_birthday_title">What\'s your birthday?</string>
     <string name="auth_birthday_subtitle">Use your own birthday, even if this account is for a business, a pet or something else. No one will see this unless you choose to share it. </string>
     <string name="auth_birthday_why">Why do I need to provide my birthday?</string>
     <string name="auth_field_birthday">Birthday (%1$d years old)</string>
+    <string name="auth_field_birthday_empty">Birthday</string>
+    <string name="auth_birthday_hint">Select your birthday</string>
+    <string name="auth_birthday_required">Select your birthday to continue.</string>
     <string name="auth_birthday_too_young">Sorry, you need to be at least 13 to use this app.</string>
+    <string name="auth_session_refresh_failed">Your email is confirmed, but we couldn\'t refresh your session. Check your connection and try again.</string>
+    <string name="auth_claim_missing">This account doesn\'t have its Supabase access claim yet, so the server blocked the request. The claim has to be provisioned for this user before the account can be finished.</string>
 
     <!-- ========== 6. Name ========== -->
     <string name="auth_name_title">What\'s your name?</string>
@@ -100,9 +122,9 @@
     <string name="auth_legal_terms_title">Terms</string>
     <string name="auth_legal_privacy_title">Privacy Policy</string>
     <string name="auth_legal_cookies_title">Cookies Policy</string>
-    <string name="auth_legal_terms_body">By using this app you agree to these terms.\n\nYou must be at least 13 years old to create an account. You are responsible for the content you post and for keeping your password secure.\n\nDo not post content that is unlawful, hateful, harassing or that infringes someone else\'s rights. We may remove content or suspend accounts that break these rules.\n\nYou can delete your account at any time from Settings.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to Instagram or Meta.</string>
-    <string name="auth_legal_privacy_body">This privacy policy describes the information we collect and how we use it.\n\nWe collect the details you give us when you create a profile: your email address, birthday, name and username. We also store the photos, videos, comments and messages you choose to share.\n\nWe use this information to provide, personalize and improve our products, to keep the community safe, and to recommend people and content you may find relevant.\n\nWe do not sell your personal information. You can review and change your profile details at any time from Settings, and you can delete your account at any time.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to Instagram or Meta.</string>
-    <string name="auth_legal_cookies_body">Cookies and similar technologies keep you signed in and help us understand how the app is used.\n\nWe use them to remember your session so you do not have to log in every time you open the app, and to measure which features are used so we can improve them.\n\nYou can clear these at any time by logging out, which removes the stored session from this device.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to Instagram or Meta.</string>
+    <string name="auth_legal_terms_body">By using this app you agree to these terms.\n\nYou must be at least 13 years old to create an account. You are responsible for the content you post and for keeping your password secure.\n\nDo not post content that is unlawful, hateful, harassing or that infringes someone else\'s rights. We may remove content or suspend accounts that break these rules.\n\nYou can delete your account at any time from Settings.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to InstaNova or Meta.</string>
+    <string name="auth_legal_privacy_body">This privacy policy describes the information we collect and how we use it.\n\nWe collect the details you give us when you create a profile: your email address, birthday, name and username. We also store the photos, videos, comments and messages you choose to share.\n\nWe use this information to provide, personalize and improve our products, to keep the community safe, and to recommend people and content you may find relevant.\n\nWe do not sell your personal information. You can review and change your profile details at any time from Settings, and you can delete your account at any time.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to InstaNova or Meta.</string>
+    <string name="auth_legal_cookies_body">Cookies and similar technologies keep you signed in and help us understand how the app is used.\n\nWe use them to remember your session so you do not have to log in every time you open the app, and to measure which features are used so we can improve them.\n\nYou can clear these at any time by logging out, which removes the stored session from this device.\n\nThis app is an independent project and is not affiliated with, endorsed by or connected to InstaNova or Meta.</string>
 
     <!-- ========== 9. Welcome ========== -->
     <string name="vibe_welcome_title">Let\'s get started, %1$s!</string>
@@ -141,4 +163,45 @@
     <string name="auth_info_contacts_body">This app does not read or upload your contacts. The row on the previous screen is part of the design only, and no contact data ever leaves your device. Nothing is synced to our servers.</string>
     <string name="auth_info_username_title">About usernames</string>
     <string name="auth_info_username_body">A username is how people find and mention you. It can contain lowercase letters, numbers, full stops and underscores, and must be between 3 and 30 characters. You can change it at any time from your profile.</string>
+
+    <!-- ========== PAGE 16 — login ========== -->
+    <string name="login_language">English (US)</string>
+    <string name="login_identifier_hint">Username, email or mobile number</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_action">Log in</string>
+    <string name="login_forgot">Forgot password?</string>
+    <string name="login_create_account">Create new account</string>
+    <string name="login_footer">Velkyn</string>
+    <string name="login_use_another">Use another profile</string>
+    <string name="login_manage_profiles">Manage profiles</string>
+    <string name="login_remove">Remove</string>
+    <string name="login_err_identifier">Enter your username or email.</string>
+    <string name="login_err_password">Enter your password.</string>
+    <string name="login_session_expired_title">Session expired</string>
+    <string name="login_session_expired_body">Please log in again.</string>
+    <string name="login_incorrect_title">Incorrect password</string>
+    <string name="login_incorrect_body">The password you entered is incorrect. Please try again.</string>
+    <string name="login_cant_find_title">Can\'t find account</string>
+    <string name="login_cant_find_body">We can\'t find an account with %1$s. Try another username or email, or sign up for a new account.</string>
+    <string name="login_mobile_title">Mobile number login isn\'t available</string>
+    <string name="login_mobile_body">Please log in with your username or email.</string>
+    <string name="login_try_again">Try again</string>
+    <string name="login_sign_up">Sign up</string>
+    <string name="login_forgot_link">Forgot password?</string>
+    <string name="login_remove_title">Remove %1$s?</string>
+    <string name="login_remove_body">We\'ll remove your login info from this device.</string>
+    <string name="login_cancel">Cancel</string>
+
+    <!-- Identity gate: authenticated but no Supabase profile row -->
+    <string name="identity_missing_title">No profile for this account yet</string>
+    <string name="identity_missing_body">You are signed in, but this account has no InstaNova profile. If you used InstaNova before the account system changed, your posts, followers and messages are still stored — they are not deleted. Linking an older profile to this sign-in has to be verified, so it cannot happen automatically. Retry if you have just created your profile, or sign out and sign in with the account you used to create one.</string>
+    <string name="identity_missing_retry">Retry</string>
+    <string name="identity_missing_sign_out">Sign out</string>
+
+    <string name="identity_claim_title">Account not activated</string>
+    <string name="identity_claim_message">This account signed in successfully, but it is not yet provisioned for InstaNova\'s database, so saving likes, follows and posts will be rejected. This is a server-side setting that the app cannot create. If you just registered, retry in a moment; otherwise contact support or sign out.</string>
+    <string name="identity_retry_title">Couldn\'t verify your profile</string>
+    <string name="identity_retry_message">InstaNova could not reach its server. Your session is still valid — check your connection and retry.</string>
+    <string name="identity_retry_action">Retry</string>
+    <string name="identity_sign_out_action">Sign out</string>
 </resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 17 — 'Seen', right aligned under the last sent message. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvSeen"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="end"
+    android:paddingTop="6dp"
+    android:paddingEnd="@dimen/chat_seen_margin_end"
+    android:text="Seen"
+    android:textColor="@color/chat_text_secondary"
+    android:textSize="@dimen/chat_seen_text_size" />

@@ -326,6 +326,10 @@
     <dimen name="inbox_unread_dot_size">8dp</dimen>
     <dimen name="inbox_unread_dot_gap">16dp</dimen>
     <dimen name="inbox_camera_size">26dp</dimen>
+    <dimen name="inbox_badge_height">18dp</dimen>
+    <dimen name="inbox_badge_min_width">18dp</dimen>
+    <dimen name="inbox_badge_padding">5dp</dimen>
+    <dimen name="inbox_badge_text">11sp</dimen>
 
     <!-- ============================================================= -->
     <!-- PAGE 8 — CREATE SHEET + PICKER                                 -->
@@ -447,4 +451,96 @@
     <dimen name="caption_field_size">16sp</dimen>
     <dimen name="caption_field_padding">16dp</dimen>
     <dimen name="caption_action_button">36dp</dimen>
+
+    <dimen name="avatar_preview_size">180dp</dimen>
+    <dimen name="avatar_preview_gap">8dp</dimen>
+
+    <!-- ============================================================= -->
+    <!-- LIVE (SIMULATED) — setup + stream overlays                     -->
+    <!-- ============================================================= -->
+    <dimen name="live_top_bar_padding">12dp</dimen>
+    <dimen name="live_circle_button">44dp</dimen>
+    <dimen name="live_circle_icon_padding">10dp</dimen>
+    <dimen name="live_setup_padding_horizontal">20dp</dimen>
+    <dimen name="live_setup_padding_bottom">20dp</dimen>
+    <dimen name="live_setup_heading_size">26sp</dimen>
+    <dimen name="live_setup_subtitle_gap">6dp</dimen>
+    <dimen name="live_field_height">52dp</dimen>
+    <dimen name="live_field_radius">12dp</dimen>
+    <dimen name="live_field_padding_horizontal">14dp</dimen>
+    <dimen name="live_field_text_size">15sp</dimen>
+    <dimen name="live_field_gap">16dp</dimen>
+    <dimen name="live_start_height">48dp</dimen>
+    <dimen name="live_start_gap">14dp</dimen>
+    <dimen name="live_start_text_size">16sp</dimen>
+    <dimen name="live_note_size">12sp</dimen>
+    <dimen name="live_note_gap">10dp</dimen>
+    <dimen name="live_badge_height">24dp</dimen>
+    <dimen name="live_badge_radius">6dp</dimen>
+    <dimen name="live_badge_padding_horizontal">8dp</dimen>
+    <dimen name="live_badge_text_size">11sp</dimen>
+    <dimen name="live_dot_size">6dp</dimen>
+    <dimen name="live_dot_gap">5dp</dimen>
+    <dimen name="live_timer_size">12sp</dimen>
+    <dimen name="live_timer_gap">8dp</dimen>
+    <dimen name="live_pill_padding_horizontal">12dp</dimen>
+    <dimen name="live_pill_padding_vertical">6dp</dimen>
+    <dimen name="live_end_padding_horizontal">18dp</dimen>
+    <dimen name="live_end_text_size">14sp</dimen>
+    <dimen name="live_viewers_gap">8dp</dimen>
+    <dimen name="live_viewers_text_size">12sp</dimen>
+    <dimen name="live_comments_padding_horizontal">16dp</dimen>
+    <dimen name="live_comments_padding_bottom">16dp</dimen>
+    <dimen name="live_comment_text_size">13sp</dimen>
+    <dimen name="live_comment_max_width">280dp</dimen>
+    <dimen name="live_scrim_top_height">160dp</dimen>
+    <dimen name="live_scrim_bottom_height">260dp</dimen>
+    <dimen name="live_title_size">15sp</dimen>
+    <dimen name="live_title_gap">8dp</dimen>
+    <dimen name="live_permission_padding">32dp</dimen>
+    <dimen name="live_permission_title_size">20sp</dimen>
+    <dimen name="live_error_gap">12dp</dimen>
+
+    <!-- ============================================================= -->
+    <!-- COMMENTS SHEET                                                 -->
+    <!-- ============================================================= -->
+    <dimen name="comments_title_height">48dp</dimen>
+    <dimen name="comments_list_padding_vertical">4dp</dimen>
+    <dimen name="comments_input_padding_horizontal">16dp</dimen>
+    <dimen name="comments_input_padding_vertical">8dp</dimen>
+    <dimen name="comments_my_avatar">32dp</dimen>
+    <dimen name="comments_input_gap">12dp</dimen>
+    <dimen name="comments_input_min_height">40dp</dimen>
+    <dimen name="comments_row_padding_horizontal">16dp</dimen>
+    <dimen name="comments_row_padding_vertical">10dp</dimen>
+    <dimen name="comments_row_avatar">36dp</dimen>
+    <dimen name="comments_row_avatar_gap">12dp</dimen>
+    <dimen name="comments_text_size">14sp</dimen>
+    <dimen name="comments_meta_size">12sp</dimen>
+    <dimen name="comments_meta_gap">12dp</dimen>
+    <dimen name="comments_like_touch">36dp</dimen>
+    <dimen name="comments_like_icon">14dp</dimen>
+
+    <!-- ============================================================= -->
+    <!-- NOTIFICATIONS / ACTIVITY FEED                                  -->
+    <!-- ============================================================= -->
+    <dimen name="notif_top_bar_height">56dp</dimen>
+    <dimen name="notif_top_bar_padding">16dp</dimen>
+    <dimen name="notif_row_padding_horizontal">16dp</dimen>
+    <dimen name="notif_row_padding_vertical">10dp</dimen>
+    <dimen name="notif_avatar">44dp</dimen>
+    <dimen name="notif_avatar_gap">12dp</dimen>
+    <dimen name="notif_thumb">44dp</dimen>
+    <dimen name="notif_thumb_radius">4dp</dimen>
+    <dimen name="notif_text_size">14sp</dimen>
+    <dimen name="notif_comment_size">13sp</dimen>
+    <dimen name="notif_header_text_size">16sp</dimen>
+    <dimen name="notif_header_padding_top">16dp</dimen>
+    <dimen name="notif_header_padding_bottom">8dp</dimen>
+    <dimen name="notif_follow_height">32dp</dimen>
+    <dimen name="notif_follow_padding_horizontal">16dp</dimen>
+    <dimen name="notif_follow_text_size">14sp</dimen>
+    <dimen name="notif_unread_dot">8dp</dimen>
+    <dimen name="home_badge_size">18dp</dimen>
+    <dimen name="home_badge_text_size">10sp</dimen>
 </resources>

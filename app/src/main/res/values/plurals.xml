@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Likes -->
+    <plurals name="likes">
+        <item quantity="one">%d like</item>
+        <item quantity="other">%d likes</item>
+    </plurals>
+
+    <!-- Liked by tail: "Liked by X and 1 other" / "Liked by X and N others" -->
+    <plurals name="liked_by_tail">
+        <item quantity="one">and %d other</item>
+        <item quantity="other">and %d others</item>
+    </plurals>
+
+    <!-- Comments: "View 1 comment" / "View all N comments" -->
+    <plurals name="comments_view">
+        <item quantity="one">View %d comment</item>
+        <item quantity="other">View all %d comments</item>
+    </plurals>
+
+    <!-- Followers -->
+    <plurals name="followers">
+        <item quantity="one">%d follower</item>
+        <item quantity="other">%d followers</item>
+    </plurals>
+
+    <!-- Posts -->
+    <plurals name="posts">
+        <item quantity="one">%d post</item>
+        <item quantity="other">%d posts</item>
+    </plurals>
+
+    <!-- Answers -->
+    <plurals name="answers">
+        <item quantity="one">%d answer</item>
+        <item quantity="other">%d answers</item>
+    </plurals>
+
+    <!-- Requests -->
+    <plurals name="requests">
+        <item quantity="one">%d request</item>
+        <item quantity="other">%d requests</item>
+    </plurals>
+
+    <!-- Time: minutes, hours, days -->
+    <plurals name="minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+
+    <plurals name="hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+
+    <plurals name="days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+
+    <!-- Members -->
+    <plurals name="members">
+        <item quantity="one">%d member</item>
+        <item quantity="other">%d members</item>
+    </plurals>
+
+    <!-- Donations -->
+    <plurals name="donations">
+        <item quantity="one">%d donation</item>
+        <item quantity="other">%d donations</item>
+    </plurals>
+
+    <!-- Live viewers & comment likes fallbacks -->
+    <plurals name="live_viewers">
+        <item quantity="one">%d watching</item>
+        <item quantity="other">%d watching</item>
+    </plurals>
+    <plurals name="comment_likes">
+        <item quantity="one">%d like</item>
+        <item quantity="other">%d likes</item>
+    </plurals>
+</resources>

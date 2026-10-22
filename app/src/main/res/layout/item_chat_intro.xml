@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PAGE 17 — conversation intro, scrolls with the messages at the very top. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layoutIntro"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="@dimen/chat_intro_top_padding"
+    android:paddingEnd="24dp"
+    android:paddingBottom="@dimen/chat_intro_bottom_padding">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivIntroAvatar"
+        android:layout_width="@dimen/chat_intro_avatar"
+        android:layout_height="@dimen/chat_intro_avatar"
+        android:contentDescription="Profile photo"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_person_placeholder"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+    <TextView
+        android:id="@+id/tvIntroName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/chat_intro_avatar_gap"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/chat_intro_name_size"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvIntroUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="center"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/chat_intro_username_size" />
+
+    <TextView
+        android:id="@+id/tvIntroStats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:textColor="@color/chat_text_secondary"
+        android:textSize="@dimen/chat_intro_line_size" />
+
+    <TextView
+        android:id="@+id/tvIntroFollow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:textColor="@color/chat_text_secondary"
+        android:textSize="@dimen/chat_intro_line_size"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvIntroMutual"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:textColor="@color/chat_text_secondary"
+        android:textSize="@dimen/chat_intro_line_size"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/btnViewProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/chat_intro_button_height"
+        android:layout_marginTop="@dimen/chat_intro_button_gap"
+        android:background="@drawable/bg_chat_view_profile"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:minWidth="@dimen/chat_intro_button_min_width"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="View profile"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/chat_intro_button_text" />
+
+</LinearLayout>

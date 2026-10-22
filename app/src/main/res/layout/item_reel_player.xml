@@ -225,7 +225,7 @@
                     android:textSize="@dimen/reel_meta_username_size"
                     android:textStyle="bold" />
 
-                <com.insta.clone.ui.widget.VerifiedBadgeView
+                <com.insta.nova.ui.widget.VerifiedBadgeView
                     android:id="@+id/badge_reel_verified"
                     android:layout_width="@dimen/reel_meta_badge_size"
                     android:layout_height="@dimen/reel_meta_badge_size"

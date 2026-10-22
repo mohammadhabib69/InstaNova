@@ -12,7 +12,8 @@
         android:background="?attr/themeBackground"
         app:elevation="0dp">
 
-        <!-- HOME top bar — 48dp, hides on scroll down, returns on scroll up -->
+        <!-- HOME top bar — fixed 48dp under the status-bar inset. The feed scrolls
+             beneath it; the bar itself must not collapse and expose the inset. -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -20,8 +21,7 @@
             android:background="?attr/themeBackground"
             android:clipChildren="false"
             app:contentInsetStart="@dimen/home_top_bar_padding_horizontal"
-            app:contentInsetEnd="@dimen/home_top_bar_padding_horizontal"
-            app:layout_scrollFlags="scroll|enterAlways|snap">
+            app:contentInsetEnd="@dimen/home_top_bar_padding_horizontal">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -41,13 +41,11 @@
                     android:contentDescription="Create post" />
 
                 <!-- Center: wordmark -->
-                <TextView
+                <com.insta.nova.ui.widget.WordmarkView
                     android:id="@+id/tvWordmark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/wordmark"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="@dimen/text_wordmark_home"
+                    android:textSize="26sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -72,12 +70,22 @@
                         app:tint="?attr/themeTextPrimary"
                         android:contentDescription="@string/notifications" />
 
-                    <View
-                        android:id="@+id/dotActivityBadge"
-                        android:layout_width="@dimen/home_badge_dot_size"
-                        android:layout_height="@dimen/home_badge_dot_size"
+                    <TextView
+                        android:id="@+id/tvActivityBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/home_badge_size"
                         android:layout_gravity="top|end"
-                        android:background="@drawable/bg_unread_dot"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:background="@drawable/bg_notification_badge"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:minWidth="@dimen/home_badge_size"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/home_badge_text_size"
+                        android:textStyle="bold"
                         android:visibility="gone" />
                 </FrameLayout>
 

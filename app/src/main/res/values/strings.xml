@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App & General -->
-    <string name="app_name">Instagram</string>
-    <string name="wordmark">Instagram</string>
+    <string name="app_name">InstaNova</string>
+    <string name="wordmark">InstaNova</string>
     <string name="welcome_to_instanova">Welcome to InstaNova</string>
     <string name="english_language">English (United States)</string>
     <string name="next">Next</string>
     <string name="more">more</string>
     <string name="post">Post</string>
+    <string name="share">Share</string>
     <string name="posts">Posts</string>
     <string name="comments">Comments</string>
     <string name="add_a_comment">Add a comment…</string>
@@ -15,7 +16,6 @@
     <string name="reply">Reply</string>
     <string name="delete">Delete</string>
     <string name="unfollow">Unfollow</string>
-    <string name="share">Share</string>
     <string name="copy_link">Copy link</string>
     <string name="your_story">Your story</string>
     <string name="direct_messages">Direct Messages</string>
@@ -57,7 +57,7 @@
     <string name="signup_subtitle_password">Create a password with at least 6 letters or numbers. It should be something others can\'t guess.</string>
 
     <string name="signup_title_birthday">What\'s your birthday?</string>
-    <string name="signup_error_age">You must be at least 13 years old to use Instagram.</string>
+    <string name="signup_error_age">You must be at least 13 years old to use InstaNova.</string>
 
     <string name="signup_title_name">What\'s your name?</string>
     <string name="hint_full_name">Full name</string>
@@ -78,6 +78,7 @@
     <string name="profile_highlight_new">New</string>
     <string name="profile_no_reposts">No reposts yet</string>
     <string name="profile_no_photos_of_you">No photos of you yet</string>
+    <string name="profile_identity_unavailable">Sign in again to load this profile</string>
 
     <!-- Explore / Search (PAGE 3 + PAGE 4) -->
     <string name="search_hint">Search</string>
@@ -173,4 +174,117 @@
     <string name="caption_title">Caption</string>
     <string name="caption_ok">OK</string>
     <string name="caption_hint">Write a caption...</string>
+    <string name="user_profile_no_posts">No posts yet</string>
+    <string name="user_profile_posts_error">Couldn\u2019t load posts</string>
+    <string name="profile_picture_preview">Profile picture preview</string>
+
+    <!-- ============================================================= -->
+    <!-- LIVE (SIMULATED) — setup, stream chrome, end confirmation      -->
+    <!-- ============================================================= -->
+    <string name="live_setup_title">New live</string>
+    <string name="live_setup_close">Close</string>
+    <string name="live_setup_heading">Go live</string>
+    <string name="live_setup_subtitle">Start a live video and connect with your followers.</string>
+    <string name="live_topic_hint">Add a topic (optional)</string>
+    <string name="live_start">Start Live</string>
+    <string name="live_setup_note">Your live will be visible to your followers</string>
+    <string name="live_badge">LIVE</string>
+    <string name="live_end">End</string>
+    <string name="live_end_confirm_title">End live?</string>
+    <string name="live_end_confirm_message">Your live will end for everyone watching.</string>
+    <string name="live_end_confirm_action">End</string>
+    <string name="live_cancel">Cancel</string>
+    <string name="live_ended">Live ended</string>
+    <string name="live_permission_title">Camera access needed</string>
+    <string name="live_permission_message">Allow camera access so your viewers can see you.</string>
+    <string name="live_permission_message_settings">Camera access is off. Turn it on in Settings to go live.</string>
+    <string name="live_permission_allow">Allow</string>
+    <string name="live_permission_settings">Open settings</string>
+    <string name="live_permission_not_now">Not now</string>
+    <string name="live_camera_error">Camera unavailable — tap to retry</string>
+    <string name="live_topic_content_description">Live topic</string>
+    <string name="live_viewers_content_description">Live viewer count</string>
+    <string name="live_timer_content_description">Live duration</string>
+    <string name="live_timer_zero">00:00</string>
+    <string name="live_viewers_initial">1 watching</string>
+
+    <!-- ============================================================= -->
+    <!-- COMMENTS SHEET                                                 -->
+    <!-- ============================================================= -->
+    <string name="comments_empty_title">No comments yet</string>
+    <string name="comments_empty_subtitle">Start the conversation.</string>
+    <string name="comments_like">Like comment</string>
+
+    <string name="comments_time_now">now</string>
+    <string name="comments_delete_title">Delete comment?</string>
+    <string name="comments_delete_message">This can\u2019t be undone.</string>
+    <string name="comments_delete_action">Delete</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- ============================================================= -->
+    <!-- NOTIFICATIONS / ACTIVITY FEED                                  -->
+    <!-- ============================================================= -->
+    <string name="back">Back</string>
+    <string name="notifications_empty_title">No notifications yet</string>
+    <string name="notifications_empty_subtitle">When someone likes or comments on your post, you\u2019ll see it here.</string>
+    <string name="notifications_section_new">New</string>
+    <string name="notifications_section_today">Today</string>
+    <string name="notifications_section_week">This week</string>
+    <string name="notification_liked_post">liked your post.</string>
+    <string name="notification_commented">commented:</string>
+    <string name="notification_followed">started following you.</string>
+    <string name="notification_follow">Follow</string>
+    <string name="notification_following">Following</string>
+    <!-- Create: new post -->
+    <string name="new_post_title">New Post</string>
+    <string name="new_post_caption_hint">Write a caption\u2026</string>
+    <string name="new_post_permission_needed">Allow photo access to pick an image</string>
+    <string name="new_post_pick_failed">Couldn\u2019t open that image</string>
+    <string name="post_shared">Post shared</string>
+    <!-- Create: story capture -->
+    <string name="story_pick_title">Add to your story</string>
+    <string name="story_permission_needed">Allow photo and video access to add a story</string>
+    <string name="story_pick_failed">Couldn\u2019t open that file</string>
+    <string name="story_viewer">Story</string>
+    <!-- Create: reel -->
+    <string name="new_reel_title">New Reel</string>
+    <string name="share_reel">Share Reel</string>
+    <string name="new_reel_caption_hint">Write a caption\u2026</string>
+    <string name="reel_permission_needed">Allow video access to pick a reel</string>
+    <string name="reel_pick_failed">Couldn\u2019t open that video</string>
+    <string name="reel_shared">Reel shared</string>
+    <string name="reel_play">Play</string>
+    <string name="reel_pause">Pause</string>
+    <!-- Create: highlights -->
+    <string name="highlight_new_title">New highlight</string>
+    <string name="highlight_name_hint">Highlight name</string>
+    <string name="highlight_default_name">Highlight</string>
+    <string name="highlight_select_stories">Select stories</string>
+    <string name="highlight_save">Save</string>
+    <string name="highlight_saved">Highlight saved</string>
+    <string name="highlight_pick_one">Select at least one story</string>
+    <string name="highlight_no_stories">Share a story first \u2014 highlights are made from past stories.</string>
+    <!-- Repost / likes -->
+    <string name="repost">Repost</string>
+    <string name="undo_repost">Undo repost</string>
+    <string name="reposted_by_you">You reposted</string>
+    <string name="likes">Likes</string>
+    <string name="likes_empty">No likes yet</string>
+
+    <!-- Saved (profile entry + grid host) -->
+    <string name="saved_title">Saved</string>
+    <string name="saved_empty">Your saved posts will appear here.</string>
+    <string name="saved_entry">Saved</string>
+    <string name="saved_to_collection">Saved to collection</string>
+
+    <!-- Made for you (templates) -->
+    <string name="templates_title">Made for you</string>
+    <string name="templates_subtitle">Pick a template, add a photo and share it as a post or story.</string>
+    <string name="templates_add_photo">Add a photo</string>
+    <string name="templates_preview">Preview</string>
+    <string name="templates_share_post">Share as Post</string>
+    <string name="templates_share_story">Share as Story</string>
+    <string name="templates_photo_failed">Couldn\'t open that photo</string>
+    <string name="templates_render_failed">Couldn\'t build the card</string>
 </resources>
+

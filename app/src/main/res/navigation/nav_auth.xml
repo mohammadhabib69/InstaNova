@@ -7,13 +7,27 @@
 
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.insta.clone.ui.auth.LoginFragment"
+        android:name="com.insta.nova.ui.auth.LoginFragment"
         android:label="LoginFragment"
         tools:layout="@layout/fragment_login">
         <!-- Registration wizard entry point (replaces the old one-page signup). -->
         <action
             android:id="@+id/action_login_to_signupEmail"
             app:destination="@id/wizardMobileFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_login_to_code"
+            app:destination="@id/wizardCodeFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_login_to_password"
+            app:destination="@id/wizardPasswordFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -31,7 +45,7 @@
 
     <fragment
         android:id="@+id/wizardMobileFragment"
-        android:name="com.insta.clone.ui.auth.WizardMobileFragment"
+        android:name="com.insta.nova.ui.auth.WizardMobileFragment"
         android:label="WizardMobileFragment"
         tools:layout="@layout/fragment_wizard_mobile">
         <action
@@ -52,7 +66,7 @@
 
     <fragment
         android:id="@+id/wizardEmailFragment"
-        android:name="com.insta.clone.ui.auth.WizardEmailFragment"
+        android:name="com.insta.nova.ui.auth.WizardEmailFragment"
         android:label="WizardEmailFragment"
         tools:layout="@layout/fragment_wizard_email">
         <action
@@ -66,7 +80,7 @@
 
     <fragment
         android:id="@+id/wizardCodeFragment"
-        android:name="com.insta.clone.ui.auth.WizardCodeFragment"
+        android:name="com.insta.nova.ui.auth.WizardCodeFragment"
         android:label="WizardCodeFragment"
         tools:layout="@layout/fragment_wizard_code">
         <action
@@ -80,7 +94,7 @@
 
     <fragment
         android:id="@+id/wizardPasswordFragment"
-        android:name="com.insta.clone.ui.auth.WizardPasswordFragment"
+        android:name="com.insta.nova.ui.auth.WizardPasswordFragment"
         android:label="WizardPasswordFragment"
         tools:layout="@layout/fragment_wizard_password">
         <action
@@ -94,7 +108,7 @@
 
     <fragment
         android:id="@+id/wizardBirthdayFragment"
-        android:name="com.insta.clone.ui.auth.WizardBirthdayFragment"
+        android:name="com.insta.nova.ui.auth.WizardBirthdayFragment"
         android:label="WizardBirthdayFragment"
         tools:layout="@layout/fragment_wizard_birthday">
         <action
@@ -108,7 +122,7 @@
 
     <fragment
         android:id="@+id/wizardNameFragment"
-        android:name="com.insta.clone.ui.auth.WizardNameFragment"
+        android:name="com.insta.nova.ui.auth.WizardNameFragment"
         android:label="WizardNameFragment"
         tools:layout="@layout/fragment_wizard_name">
         <action
@@ -122,7 +136,7 @@
 
     <fragment
         android:id="@+id/wizardUsernameFragment"
-        android:name="com.insta.clone.ui.auth.WizardUsernameFragment"
+        android:name="com.insta.nova.ui.auth.WizardUsernameFragment"
         android:label="WizardUsernameFragment"
         tools:layout="@layout/fragment_wizard_username">
         <action
@@ -136,7 +150,7 @@
 
     <fragment
         android:id="@+id/wizardTermsFragment"
-        android:name="com.insta.clone.ui.auth.WizardTermsFragment"
+        android:name="com.insta.nova.ui.auth.WizardTermsFragment"
         android:label="WizardTermsFragment"
         tools:layout="@layout/fragment_wizard_terms">
         <action
@@ -152,7 +166,7 @@
 
     <fragment
         android:id="@+id/wizardWelcomeFragment"
-        android:name="com.insta.clone.ui.auth.WizardWelcomeFragment"
+        android:name="com.insta.nova.ui.auth.WizardWelcomeFragment"
         android:label="WizardWelcomeFragment"
         tools:layout="@layout/fragment_wizard_welcome">
         <action
@@ -164,7 +178,7 @@
 
     <fragment
         android:id="@+id/wizardVibeFragment"
-        android:name="com.insta.clone.ui.auth.WizardVibeFragment"
+        android:name="com.insta.nova.ui.auth.WizardVibeFragment"
         android:label="WizardVibeFragment"
         tools:layout="@layout/fragment_wizard_vibe">
         <action
@@ -183,19 +197,19 @@
 
     <fragment
         android:id="@+id/bioEditFragment"
-        android:name="com.insta.clone.ui.auth.BioEditFragment"
+        android:name="com.insta.nova.ui.auth.BioEditFragment"
         android:label="BioEditFragment"
         tools:layout="@layout/fragment_bio_edit" />
 
     <fragment
         android:id="@+id/wizardAllowAccessFragment"
-        android:name="com.insta.clone.ui.auth.WizardAllowAccessFragment"
+        android:name="com.insta.nova.ui.auth.WizardAllowAccessFragment"
         android:label="WizardAllowAccessFragment"
         tools:layout="@layout/fragment_wizard_allow" />
 
     <fragment
         android:id="@+id/legalTextFragment"
-        android:name="com.insta.clone.ui.auth.LegalTextFragment"
+        android:name="com.insta.nova.ui.auth.LegalTextFragment"
         android:label="LegalTextFragment"
         tools:layout="@layout/fragment_legal_text">
         <argument
@@ -216,70 +230,8 @@
         app:popExitAnim="@anim/slide_out_right" />
 
     <fragment
-        android:id="@+id/signupEmailFragment"
-        android:name="com.insta.clone.ui.auth.SignupEmailFragment"
-        android:label="SignupEmailFragment"
-        tools:layout="@layout/fragment_signup_email">
-        <action
-            android:id="@+id/action_signupEmail_to_password"
-            app:destination="@id/signupPasswordFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/signupPasswordFragment"
-        android:name="com.insta.clone.ui.auth.SignupPasswordFragment"
-        android:label="SignupPasswordFragment"
-        tools:layout="@layout/fragment_signup_password">
-        <action
-            android:id="@+id/action_signupPassword_to_birthday"
-            app:destination="@id/signupBirthdayFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/signupBirthdayFragment"
-        android:name="com.insta.clone.ui.auth.SignupBirthdayFragment"
-        android:label="SignupBirthdayFragment"
-        tools:layout="@layout/fragment_signup_birthday">
-        <action
-            android:id="@+id/action_signupBirthday_to_name"
-            app:destination="@id/signupNameFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/signupNameFragment"
-        android:name="com.insta.clone.ui.auth.SignupNameFragment"
-        android:label="SignupNameFragment"
-        tools:layout="@layout/fragment_signup_name">
-        <action
-            android:id="@+id/action_signupName_to_username"
-            app:destination="@id/signupUsernameFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/signupUsernameFragment"
-        android:name="com.insta.clone.ui.auth.SignupUsernameFragment"
-        android:label="SignupUsernameFragment"
-        tools:layout="@layout/fragment_signup_username" />
-
-    <fragment
         android:id="@+id/forgotPasswordFragment"
-        android:name="com.insta.clone.ui.auth.ForgotPasswordFragment"
+        android:name="com.insta.nova.ui.auth.ForgotPasswordFragment"
         android:label="ForgotPasswordFragment"
         tools:layout="@layout/fragment_forgot_password" />
 
