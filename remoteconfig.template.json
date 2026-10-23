@@ -1,0 +1,13 @@
+{
+  "conditions": [],
+  "parameters": {
+    "beta_feed_enabled": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "description": "Enables the beta feed layout. Read by ConfigDefaults.KEY_BETA_FEED_ENABLED; default false means the app behaves exactly as it does today until someone deliberately flips it.",
+      "valueType": "BOOLEAN"
+    }
+  },
+  "parameterGroups": {}
+}

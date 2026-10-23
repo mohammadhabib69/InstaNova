@@ -1,0 +1,561 @@
+rules_version = '2';
+
+// InstaNova Firestore security rules — BASELINE (Phase 0).
+//
+// Posture: default deny. Only the identity documents that Phase 1 introduces are
+// opened, and only to their owner. Every other collection is added in Phase 2+
+// together with its migration, tests and index requirements.
+//
+// Design note (see ARCHITECTURE.md §3): private user data lives in `users/{uid}`
+// (owner-only, and therefore may hold fcmTokens, settings, privacy flags), while
+// the publicly-readable subset lives in `publicProfiles/{uid}`. This split is what
+// closes audit finding S4 (`fcm_token` / `firebase_uid` readable by any signed-in
+// user in the current Supabase schema) instead of reproducing it.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // ---- Phase 1: identity -------------------------------------------------
+    // Owner-only document: profile, settings, devices, private counters.
+    // Mirrors app/src/main/java/com/insta/nova/data/firebase/Validation.java (P2-10).
+    // Firestore has no CHECK constraints, so junk must be rejected here as well.
+    function validUserWrite() {
+      let d = request.resource.data;
+      return (!d.keys().hasAny(['uid']) || d.uid == request.auth.uid)
+          && (!d.keys().hasAny(['username'])
+              || (d.username is string && d.username.matches('^[a-z][a-z0-9._]{2,29}$')))
+          && (!d.keys().hasAny(['fullName'])
+              || (d.fullName is string && d.fullName.size() <= 60))
+          && (!d.keys().hasAny(['bio'])
+              || (d.bio is string && d.bio.size() <= 200));
+    }
+
+
+    // ---- Social graph helpers (P3-06/08/09) ------------------------------
+    function isPrivateProfile(uid) {
+      return exists(/databases/$(database)/documents/publicProfiles/$(uid))
+          && get(/databases/$(database)/documents/publicProfiles/$(uid)).data.isPrivate == true;
+    }
+
+    // Counter updates are client-driven until Cloud Functions are available
+    // (Blaze billing is a Phase 0 blocker). The rule therefore allows a NON-owner to
+    // touch exactly one field by exactly one step — nothing else. Read-modify-write
+    // races are tolerated here and reconciled in Phase 11; a transaction or Function
+    // replaces this later.
+    function onlyFollowersCountChanged() {
+      let after = request.resource.data;
+      let before = resource.data;
+      return after.diff(before).affectedKeys().hasOnly(['followersCount'])
+          && (after.followersCount == before.followersCount + 1
+              || after.followersCount == before.followersCount - 1);
+    }
+
+
+    // ---- Posts / likes / saves (Phase 4) ---------------------------------
+    // Visibility is DENORMALISED onto the document as `audience` ("public" | "followers").
+    // Reason: a rule that calls exists()/get() cannot be evaluated for a collection query,
+    // so a feed query would fail outright. Copying one field at write time keeps queries
+    // evaluable. Consequence, accepted until Cloud Functions exist: `followers` content is
+    // readable only by its author (see MIGRATION_LOG 2026-10-30, limitation L2).
+    function canViewPost(post) {
+      return signedIn()
+          && (post.authorUid == request.auth.uid || post.audience == 'public');
+    }
+
+    // Generalised counter guard: a non-owner may change exactly one counter field by
+    // exactly one step, and nothing else. Same trade-off as followersCount (P3-06).
+    function onlyCounterChanged(field) {
+      let after = request.resource.data;
+      let before = resource.data;
+      return after.diff(before).affectedKeys().hasOnly([field])
+          && (after[field] == before[field] + 1 || after[field] == before[field] - 1);
+    }
+
+
+    // Comment visibility follows the post's visibility (P4-05). Two document reads per
+    // check — acceptable for a comment list, not something to copy onto a feed query.
+    // A held comment is one whose author is restricted by the post owner. It stays
+    // readable to its own author and to the post owner only, which is the behaviour
+    // Settings > Restricted accounts promises. `c.get('held', false)` rather than
+    // `c.held`: documents written before this field existed must not error out the
+    // whole rule.
+    function canViewComment(c) {
+      return signedIn()
+          && (c.authorUid == request.auth.uid
+              || (!c.get('held', false) && c.audience == 'public')
+              || (c.get('held', false) && isPostOwner(c.postId)));
+    }
+
+    /** The author of the post a comment hangs off. One document read. */
+    function isPostOwner(postId) {
+      return signedIn()
+          && exists(/databases/$(database)/documents/posts/$(postId))
+          && get(/databases/$(database)/documents/posts/$(postId)).data.authorUid
+                 == request.auth.uid;
+    }
+
+    /** A restricted author asking to release their own comment is not allowed. */
+    function isHeldFlagWrite() {
+      return !request.resource.data.keys().hasAny(['held'])
+          || request.resource.data.held is bool;
+    }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid);
+      allow create: if isSelf(uid) && validUserWrite();
+      allow update: if isSelf(uid) && validUserWrite();
+      allow delete: if false;   // account deletion goes through a Cloud Function
+    }
+
+    // Signed-in-readable projection: id, username, fullName, avatarUrl,
+    // isVerified, isPrivate, bio, website, counters. No tokens, no email,
+    // no birthday, no firebase_uid.
+    match /publicProfiles/{uid} {
+      allow read: if signedIn();
+      allow create, delete: if isSelf(uid);
+      allow update: if isSelf(uid) || (signedIn() && onlyFollowersCountChanged());
+    }
+
+    // ---- Follows ---------------------------------------------------------
+    // Doc id is "{followerUid}_{followingUid}" so an edge is unique by construction.
+    match /follows/{edgeId} {
+      allow read: if signedIn()
+          && (isSelf(resource.data.followerUid)
+              || isSelf(resource.data.followingUid)
+              || !isPrivateProfile(resource.data.followingUid));
+      allow create: if signedIn()
+          && request.resource.data.followerUid == request.auth.uid
+          && request.resource.data.edgeId == edgeId
+          && !isPrivateProfile(request.resource.data.followingUid);
+      // Either side may break the edge: unfollow, or remove a follower.
+      allow update: if false;
+      allow delete: if signedIn()
+          && (isSelf(resource.data.followerUid) || isSelf(resource.data.followingUid));
+    }
+
+    // ---- Follow requests (private accounts) ------------------------------
+    match /followRequests/{requestId} {
+      allow read: if signedIn()
+          && (isSelf(resource.data.requesterUid) || isSelf(resource.data.targetUid));
+      // The target must exist, must actually be private, and must not have blocked the
+      // requester. Without this, any account can file a request against anyone — which was
+      // harmless while the document just sat there, and is a notification-spam vector now
+      // that a Cloud Function turns every request into a push.
+      allow create: if signedIn()
+          && request.resource.data.requesterUid == request.auth.uid
+          && request.resource.data.status == 'pending'
+          && exists(/databases/$(database)/documents/publicProfiles/$(request.resource.data.targetUid))
+          && get(/databases/$(database)/documents/publicProfiles/$(request.resource.data.targetUid))
+                 .data.get('isPrivate', false) == true
+          && !exists(/databases/$(database)/documents/blocks/$(request.resource.data.targetUid + '_' + request.auth.uid));
+      // Only the target may accept or reject.
+      allow update: if signedIn() && isSelf(resource.data.targetUid);
+      allow delete: if signedIn()
+          && (isSelf(resource.data.requesterUid) || isSelf(resource.data.targetUid));
+    }
+
+    // ---- Blocks ----------------------------------------------------------
+    // NOTE: delete/read evaluate the EXISTING document (`resource`); only create/update
+    // may read `request.resource` — using the wrong one silently denies every delete.
+    match /blocks/{edgeId} {
+      allow read: if signedIn()
+          && (isSelf(resource.data.blockerUid) || isSelf(resource.data.blockedUid));
+      allow create: if signedIn() && request.resource.data.blockerUid == request.auth.uid;
+      allow delete: if signedIn() && isSelf(resource.data.blockerUid);
+      allow update: if false;
+    }
+
+    // ---- Mutes / close friends / restricted ------------------------------
+    match /mutes/{edgeId} {
+      allow read: if signedIn() && isSelf(resource.data.muterUid);
+      allow create: if signedIn() && request.resource.data.muterUid == request.auth.uid;
+      allow update: if signedIn() && isSelf(resource.data.muterUid);
+      allow delete: if signedIn() && isSelf(resource.data.muterUid);
+    }
+
+    // ---- Posts -----------------------------------------------------------
+    match /posts/{postId} {
+      allow read: if canViewPost(resource.data);
+      allow create: if signedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.postId == postId
+          && (request.resource.data.audience == 'public'
+              || request.resource.data.audience == 'followers')
+          && request.resource.data.likesCount == 0
+          && request.resource.data.commentsCount == 0;
+      // Owner edits, or any signed-in user moving a counter by one step.
+      allow update: if signedIn()
+          && ((isSelf(resource.data.authorUid)
+               && request.resource.data.diff(resource.data)
+                      .affectedKeys().hasOnly(['caption', 'location', 'updatedAt']))
+              || onlyCounterChanged('likesCount')
+              || onlyCounterChanged('commentsCount'));
+      allow delete: if signedIn() && isSelf(resource.data.authorUid);
+    }
+
+    // ---- Likes -----------------------------------------------------------
+    // Doc id is "{postId}_{uid}": one like per user per post, by construction.
+    match /likes/{likeId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      // Owners remove their own like; the POST author may remove any like on their post
+      // so deleting a post can cascade (P4-10). get() is safe here: delete is a single
+      // document operation, not a query.
+      allow delete: if signedIn()
+          && (isSelf(resource.data.uid)
+              || isSelf(get(/databases/$(database)/documents/posts/$(resource.data.postId)).data.authorUid));
+      allow update: if false;
+    }
+
+    // ---- Saved posts (private to the saver) ------------------------------
+    match /savedPosts/{saveId} {
+      allow read: if signedIn() && isSelf(resource.data.uid);
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && isSelf(resource.data.uid);
+      allow update: if false;
+    }
+
+    // ---- Comments --------------------------------------------------------
+    match /comments/{commentId} {
+      allow read: if canViewComment(resource.data);
+      allow create: if signedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.commentId == commentId
+          && (request.resource.data.audience == 'public'
+              || request.resource.data.audience == 'followers')
+          && request.resource.data.likesCount == 0
+          && isHeldFlagWrite()
+          && canViewComment(request.resource.data);
+      allow update: if signedIn()
+          && ((isSelf(resource.data.authorUid)
+               && request.resource.data.diff(resource.data)
+                      .affectedKeys().hasOnly(['text']))
+              || onlyCounterChanged('likesCount')
+              // Releasing a held comment is the post owner's decision, not the
+              // author's, and the only field it may touch is `held`.
+              || (isPostOwner(resource.data.postId)
+                  && request.resource.data.diff(resource.data)
+                         .affectedKeys().hasOnly(['held'])
+                  && request.resource.data.held == false));
+      allow delete: if signedIn()
+          && (isSelf(resource.data.authorUid)
+              || isSelf(get(/databases/$(database)/documents/posts/$(resource.data.postId)).data.authorUid));
+    }
+
+    // ---- Comment likes ---------------------------------------------------
+    match /commentLikes/{likeId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && isSelf(resource.data.uid);
+      allow update: if false;
+    }
+
+    // ---- Stories (Phase 5) -----------------------------------------------
+    // Query-safe: the rule reads only the candidate document, and expiry is a document
+    // field, so where(audience==public) + expiresAt>now is evaluable as a query.
+    // Actual deletion of expired stories needs a scheduled Function (P5-04).
+    match /stories/{storyId} {
+      allow read: if signedIn()
+          && (resource.data.authorUid == request.auth.uid || resource.data.audience == 'public');
+      allow create: if signedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.storyId == storyId
+          && (request.resource.data.audience == 'public'
+              || request.resource.data.audience == 'followers'
+              || request.resource.data.audience == 'close_friends')
+          && request.resource.data.expiresAt > request.time.toMillis();
+      // Deleting your own story, OR sweeping one that has already expired. The second
+      // branch replaces the scheduled Cloud Function (P5-04, Blaze-blocked): expired
+      // stories are already invisible to every reader, so letting any signed-in client
+      // delete them grants no information and no destructive power over live content.
+      allow update: if signedIn() && isSelf(resource.data.authorUid);
+      allow delete: if signedIn()
+          && (isSelf(resource.data.authorUid)
+              || resource.data.expiresAt < request.time.toMillis());
+    }
+
+    // One view document per viewer per story. Author reads them; nobody else can.
+    match /storyViews/{viewId} {
+      allow read: if signedIn()
+          && (isSelf(resource.data.viewerUid)
+              || isSelf(get(/databases/$(database)/documents/stories/$(resource.data.storyId)).data.authorUid));
+      allow create: if signedIn()
+          && request.resource.data.viewerUid == request.auth.uid
+          && request.resource.data.viewId == viewId;
+      allow delete: if signedIn() && isSelf(resource.data.viewerUid);
+      allow update: if false;
+    }
+
+    // ---- Highlights -------------------------------------------------------
+    // Items live in a bounded array (max 50): a highlight is always read whole, so a
+    // subcollection would cost N reads to render one card.
+    match /highlights/{highlightId} {
+      allow read: if signedIn()
+          && (resource.data.ownerUid == request.auth.uid || resource.data.audience == 'public');
+      allow create: if signedIn()
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.highlightId == highlightId
+          && request.resource.data.items.size() <= 50;
+      allow update, delete: if signedIn() && isSelf(resource.data.ownerUid);
+    }
+
+    // ---- Notifications (Phase 7) ------------------------------------------
+    // A notification is addressed to exactly one recipient and is readable/updatable only
+    // by them. Writing is Function-only: the client must never be able to mint a
+    // notification, or anyone could send "you have a new follower" to a stranger.
+    match /notifications/{notificationId} {
+      allow read: if signedIn() && isSelf(resource.data.recipientUid);
+      // Creation was Function-only, which made it depend on Blaze billing. It is now
+      // client-driven but DERIVED: the rule re-reads the event document the client claims
+      // caused this notification and requires that (a) the event exists, (b) the event's
+      // actor is the caller, and (c) the recipient is the document the actor touched. A
+      // client cannot invent a recipient, only report an action it genuinely performed.
+      // The document id is the claim key, so replaying an event overwrites rather than
+      // accumulating — idempotent by construction.
+      allow create: if signedIn()
+          && request.resource.data.actorUid == request.auth.uid
+          && request.resource.data.recipientUid is string
+          && request.resource.data.recipientUid != request.auth.uid
+          && request.resource.data.read == false
+          && request.resource.data.createdAt == request.time
+          && (
+               // like: id like_<likeId>, recipient must own the liked post
+               (request.resource.data.type == 'like'
+                   && notificationId == 'like_' + request.resource.data.eventId
+                   && exists(/databases/$(database)/documents/likes/$(request.resource.data.eventId))
+                   && get(/databases/$(database)/documents/likes/$(request.resource.data.eventId)).data.uid == request.auth.uid
+                   && get(/databases/$(database)/documents/posts/$(request.resource.data.targetId)).data.authorUid == request.resource.data.recipientUid)
+               ||
+               // comment: id comment_<commentId>, recipient must own the commented post
+               (request.resource.data.type == 'comment'
+                   && notificationId == 'comment_' + request.resource.data.eventId
+                   && exists(/databases/$(database)/documents/comments/$(request.resource.data.eventId))
+                   && get(/databases/$(database)/documents/comments/$(request.resource.data.eventId)).data.authorUid == request.auth.uid
+                   && get(/databases/$(database)/documents/posts/$(request.resource.data.targetId)).data.authorUid == request.resource.data.recipientUid)
+               ||
+               // follow: id follow_<edgeId>, recipient must be the followed account
+               (request.resource.data.type == 'follow'
+                   && notificationId == 'follow_' + request.resource.data.eventId
+                   && exists(/databases/$(database)/documents/follows/$(request.resource.data.eventId))
+                   && get(/databases/$(database)/documents/follows/$(request.resource.data.eventId)).data.followerUid == request.auth.uid
+                   && get(/databases/$(database)/documents/follows/$(request.resource.data.eventId)).data.followingUid == request.resource.data.recipientUid)
+               ||
+               // follow_request: id follow_request_<requestId>, recipient is the target
+               (request.resource.data.type == 'follow_request'
+                   && notificationId == 'follow_request_' + request.resource.data.eventId
+                   && exists(/databases/$(database)/documents/followRequests/$(request.resource.data.eventId))
+                   && get(/databases/$(database)/documents/followRequests/$(request.resource.data.eventId)).data.requesterUid == request.auth.uid
+                   && get(/databases/$(database)/documents/followRequests/$(request.resource.data.eventId)).data.targetUid == request.resource.data.recipientUid)
+             );
+      allow update: if signedIn()
+          && isSelf(resource.data.recipientUid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      allow delete: if signedIn() && isSelf(resource.data.recipientUid);
+    }
+
+    // ---- Devices (multi-device FCM tokens) --------------------------------
+    // Doc id is "{uid}_{deviceId}" so one physical install registers once and re-registering
+    // refreshes lastSeenAt instead of appending a duplicate token.
+    match /devices/{deviceId} {
+      allow read: if signedIn() && isSelf(resource.data.uid);
+      allow create, update: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && isSelf(resource.data.uid);
+    }
+
+    // ---- NOVA Hub (Phase 9) ----------------------------------------------
+    // Reference data is read-only to clients: it is seeded by the migration and must not
+    // be editable from a phone.
+    match /novaUniversities/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /novaDistricts/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // Q&A. Question/answer visibility is a field check so feeds and search stay queryable.
+    match /novaQuestions/{questionId} {
+      allow read: if signedIn()
+          && (resource.data.audience == 'public' || resource.data.authorUid == request.auth.uid);
+      allow create: if signedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.questionId == questionId
+          && request.resource.data.votes == 0
+          && request.resource.data.answersCount == 0;
+      allow update: if signedIn()
+          && ((isSelf(resource.data.authorUid)
+               && request.resource.data.diff(resource.data)
+                      .affectedKeys().hasOnly(['title', 'body', 'subject', 'solved', 'updatedAt']))
+              || onlyCounterChanged('votes')
+              || onlyCounterChanged('answersCount'));
+      allow delete: if signedIn() && isSelf(resource.data.authorUid);
+    }
+
+    match /novaAnswers/{answerId} {
+      allow read: if signedIn()
+          && (resource.data.audience == 'public' || resource.data.authorUid == request.auth.uid);
+      allow create: if signedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.answerId == answerId
+          && request.resource.data.votes == 0;
+      allow update: if signedIn()
+          && ((isSelf(resource.data.authorUid)
+               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['body', 'updatedAt']))
+              || onlyCounterChanged('votes')
+              // Only the QUESTION author may mark an answer accepted.
+              || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['accepted'])
+                  && isSelf(get(/databases/$(database)/documents/novaQuestions/$(resource.data.questionId)).data.authorUid)));
+      allow delete: if signedIn() && isSelf(resource.data.authorUid);
+    }
+
+    // One vote per user per target: the id is "{type}_{targetId}_{uid}".
+    match /novaVotes/{voteId} {
+      allow read: if signedIn() && isSelf(resource.data.uid);
+      allow create: if signedIn()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.voteId == voteId;
+      allow delete: if signedIn() && isSelf(resource.data.uid);
+      allow update: if false;
+    }
+
+    // Confessions: anonymous by construction. The document must NOT carry any author
+    // identifier — the rule rejects one at write time, so anonymity is enforced by the
+    // server rather than promised by the client.
+    match /novaConfessions/{confessionId} {
+      allow read: if signedIn() && resource.data.hidden != true;
+      allow create: if signedIn()
+          && request.resource.data.confessionId == confessionId
+          && !request.resource.data.keys().hasAny(['authorUid', 'authorId', 'uid', 'senderUid'])
+          && request.resource.data.likesCount == 0;
+      allow update: if signedIn() && onlyCounterChanged('likesCount');
+      // Deleting your own confession needs authorship, which is deliberately not stored
+      // on the document. Moderation/author deletion therefore requires a Function (P9-05).
+      allow delete: if false;
+    }
+
+    match /novaConfessionLikes/{likeId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && isSelf(resource.data.uid);
+      allow update: if false;
+    }
+
+    // ---- NOVA: blood / SOS (Phase 9) -------------------------------------
+    // Contact data is the sensitive part. A donor's phone number is NOT on the searchable
+    // document: `novaDonors/{uid}` is owner-only, while `novaDonorPublic/{uid}` carries only
+    // blood group + district + availability, which is what matching actually needs.
+    match /novaDonors/{uid} {
+      allow read, write: if signedIn() && isSelf(uid);
+    }
+
+    match /novaDonorPublic/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && isSelf(uid)
+          && !request.resource.data.keys().hasAny(['phone', 'contactPhone', 'email']);
+      allow delete: if signedIn() && isSelf(uid);
+    }
+
+    // A blood request is public to signed-in users by design — that is how donors find it.
+    // It may contain the requester's contact number, which is the point of posting it.
+    match /novaBloodRequests/{requestId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+          && request.resource.data.requesterUid == request.auth.uid
+          && request.resource.data.requestId == requestId;
+      allow update: if signedIn()
+          && (isSelf(resource.data.requesterUid)
+              || onlyCounterChanged('pledgesCount'));
+      allow delete: if signedIn() && isSelf(resource.data.requesterUid);
+    }
+
+    // SOS alerts are the most sensitive documents in the app: location + phone. Readable
+    // only by the author and by people who have responded, so an alert is not a broadcast
+    // of someone's position to the whole campus.
+    match /novaSosAlerts/{alertId} {
+      allow read: if signedIn()
+          && (resource.data.authorUid == request.auth.uid
+              || exists(/databases/$(database)/documents/novaAlertResponses/$(alertId + '_' + request.auth.uid)));
+      allow create: if signedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.alertId == alertId;
+      allow update, delete: if signedIn() && isSelf(resource.data.authorUid);
+    }
+
+    match /novaAlertResponses/{responseId} {
+      allow read: if signedIn()
+          && (isSelf(resource.data.responderUid)
+              || isSelf(get(/databases/$(database)/documents/novaAlerts/$(resource.data.alertId)).data.authorUid));
+      allow create: if signedIn()
+          && request.resource.data.responderUid == request.auth.uid
+          && request.resource.data.responseId == responseId;
+      allow delete: if signedIn() && isSelf(resource.data.responderUid);
+      allow update: if false;
+    }
+
+    // ---- NOVA: community (lost & found, events, study) --------------------
+    // Campus announcements (`nova_alerts` in Postgres) — curated, read-only to clients.
+    match /novaAlerts/{alertId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // Campus membership. Verification requires the university email check, which is a
+    // trusted server action — clients can read the directory but never write to it, or
+    // anyone could declare themselves verified.
+    match /novaCampusMembers/{uid} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // Weekly insight aggregates — produced server-side, read by students.
+    match /novaInsights/{insightId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /novaLostFound/{itemId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.itemId == itemId;
+      allow update, delete: if signedIn() && isSelf(resource.data.authorUid);
+    }
+
+    match /novaEvents/{eventId} {
+      allow read: if signedIn();
+      // Events are curated: client writes are closed, seeding goes through the migration.
+      allow write: if false;
+    }
+
+    match /novaEventRsvps/{rsvpId} {
+      allow read: if signedIn() && isSelf(resource.data.uid);
+      allow create, delete: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
+    // `resource` is null on create, so read/delete and create must be split — a combined
+    // "read, write" rule here silently blocks the first write of every session.
+    match /novaStudySessions/{sessionId} {
+      allow read, delete: if signedIn() && isSelf(resource.data.uid);
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn()
+          && isSelf(resource.data.uid)
+          && request.resource.data.uid == resource.data.uid;
+    }
+
+    // ---- Not yet migrated ------------------------------------------------
+    // posts, comments, likes, follows, stories, notifications, nova* …
+    // Each is opened in its own phase with rules + emulator tests.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

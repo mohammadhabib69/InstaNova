@@ -1,0 +1,67 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "chats": {
+      "$cid": {
+        ".read": "auth != null && data.child('members').child(auth.uid).exists()",
+        ".write": false,
+        "meta": {
+          ".write": "auth != null && (data.parent().child('members').child(auth.uid).exists() || newData.parent().child('members').child(auth.uid).exists())",
+          ".validate": "newData.hasChildren(['createdAt'])"
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || data.parent().parent().child('members').child(auth.uid).exists())",
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "messages": {
+          "$mid": {
+            ".read": "auth != null && root.child('chats').child($cid).child('members').child(auth.uid).exists()",
+            ".write": "auth != null && root.child('chats').child($cid).child('members').child(auth.uid).exists() && newData.child('senderUid').val() === auth.uid",
+            ".validate": "newData.hasChildren(['senderUid', 'createdAt', 'type']) && newData.child('type').isString()",
+            "text": {
+              ".validate": "newData.isString() && newData.val().length <= 4000"
+            },
+            "senderUid": {
+              ".validate": "newData.val() === auth.uid"
+            }
+          }
+        },
+        "reads": {
+          "$uid": {
+            ".read": "auth != null && root.child('chats').child($cid).child('members').child(auth.uid).exists()",
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.hasChildren(['lastReadAt']) && newData.child('lastReadAt').isNumber()"
+          }
+        },
+        "reactions": {
+          "$mid": {
+            ".read": "auth != null && root.child('chats').child($cid).child('members').child(auth.uid).exists()",
+            "$uid": {
+              ".write": "auth != null && auth.uid === $uid && root.child('chats').child($cid).child('members').child($uid).exists()",
+              ".validate": "newData.isString() && newData.val().length <= 8"
+            }
+          }
+        }
+      }
+    },
+    "presence": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['state', 'lastChanged'])"
+      }
+    },
+    "typing": {
+      "$cid": {
+        "$uid": {
+          ".read": "auth != null && root.child('chats').child($cid).child('members').child(auth.uid).exists()",
+          ".write": "auth != null && auth.uid === $uid && root.child('chats').child($cid).child('members').child($uid).exists()",
+          ".validate": "newData.isBoolean()"
+        }
+      }
+    }
+  }
+}
