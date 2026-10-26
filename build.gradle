@@ -2,6 +2,10 @@
 plugins {
     id 'com.android.application' version '8.2.2' apply false
     id 'com.google.gms.google-services' version '4.4.2' apply false
+    // Phase 0 (P0-08): Crashlytics needs its own Gradle plugin for symbol upload.
+    id 'com.google.firebase.crashlytics' version '2.9.9' apply false
+    // Phase 0 (P0-12): Performance Monitoring instruments @AddTrace and HTTP calls at build time.
+    id 'com.google.firebase.firebase-perf' version '1.4.2' apply false
 }
 
 tasks.register('clean', Delete) {
