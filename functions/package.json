@@ -1,0 +1,16 @@
+{
+  "name": "instanova-functions",
+  "private": true,
+  "description": "InstaNova Cloud Functions (migration P5-04, P7-06, P7-07). Deploy needs Blaze; the emulator does not.",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "test": "node test/notify.test.mjs && node test/cleanup.test.mjs && node test/account.test.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^5.1.1"
+  }
+}

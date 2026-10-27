@@ -1,0 +1,14 @@
+{
+  "name": "instanova-rules-tests",
+  "private": true,
+  "type": "module",
+  "description": "Firestore/RTDB security rule tests (migration P2-08). Not shipped in the APK.",
+  "scripts": {
+    "test": "node rules.test.mjs && node profiles.test.mjs && node social.test.mjs && node posts.test.mjs && node comments.test.mjs && node stories.test.mjs && node notifications.test.mjs && node nova.test.mjs && node nova_safety.test.mjs && node chat.test.mjs",
+    "test:rtdb": "node chat.test.mjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "firebase": "^10.14.1"
+  }
+}
