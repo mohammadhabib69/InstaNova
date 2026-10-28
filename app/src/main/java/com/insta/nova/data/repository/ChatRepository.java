@@ -182,7 +182,50 @@ public class ChatRepository {
         return result;
     }
 
+    /**
+     * Resolves a profile uuid to its Firebase uid.
+     *
+     * <p>Realtime Database authorises on {@code auth.uid} while every screen speaks profile uuids;
+     * {@code profiles.firebase_uid} (readable under {@code profiles_select}) is that bridge, so
+     * presence and typing need no rules deploy.
+     */
+    public void fetchFirebaseUid(String profileId,
+                                 java.util.function.Consumer<String> callback) {
+        if (profileId == null || profileId.isEmpty()) {
+            callback.accept(null);
+            return;
+        }
+        Map<String, String> q = new HashMap<>();
+        q.put("select", "firebase_uid");
+        q.put("id", "eq." + profileId);
+        q.put("limit", "1");
+        restApi.getProfilesRaw(q).enqueue(new Callback<List<Map<String, Object>>>() {
+            @Override public void onResponse(Call<List<Map<String, Object>>> c,
+                                             Response<List<Map<String, Object>>> r) {
+                String uid = null;
+                if (r.isSuccessful() && r.body() != null && !r.body().isEmpty()) {
+                    Object v = r.body().get(0).get("firebase_uid");
+                    if (v instanceof String) uid = (String) v;
+                }
+                callback.accept(uid);
+            }
+
+            @Override public void onFailure(Call<List<Map<String, Object>>> c, Throwable t) {
+                callback.accept(null);
+            }
+        });
+    }
+
     public LiveData<Resource<Message>> sendMessage(String conversationId, String text, String mediaUrl) {
+        return sendMessage(conversationId, text, mediaUrl, null, null);
+    }
+
+    /**
+     * @param shareKind story | post | reel when the media is a share, so the recipient's tap can
+     *                  open the original instead of a bare image viewer.
+     */
+    public LiveData<Resource<Message>> sendMessage(String conversationId, String text, String mediaUrl,
+                                                   String shareKind, String shareId) {
         MutableLiveData<Resource<Message>> result = new MutableLiveData<>();
         result.setValue(Resource.loading(null));
 
@@ -195,9 +238,17 @@ public class ChatRepository {
         Map<String, Object> body = new HashMap<>();
         body.put("conversation_id", conversationId);
         body.put("sender_id", myId);
-        body.put("body", text != null && !text.isEmpty() ? text : "Sent a photo");
+        // Media-only messages carry no caption: an empty body keeps the thread clean (the
+        // inbox list still shows "Sent a photo" as a fallback preview).
+        body.put("body", text != null ? text : "");
         if (mediaUrl != null && !mediaUrl.isEmpty()) {
             body.put("media_url", mediaUrl);
+        }
+        if (shareKind != null && !shareKind.isEmpty()) {
+            body.put("share_kind", shareKind);
+        }
+        if (shareId != null && !shareId.isEmpty()) {
+            body.put("share_id", shareId);
         }
 
         restApi.sendMessage(body).enqueue(new Callback<List<MessageDto>>() {
@@ -521,6 +572,49 @@ public class ChatRepository {
         return result;
     }
 
+    /**
+     * #55 — accepts a pending message request, moving the thread into the inbox.
+     *
+     * <p>The server writes the flag on this user's own membership row, which is why the
+     * call takes only the conversation id; the device never decides whether a thread is
+     * a request.
+     */
+    public LiveData<Resource<Boolean>> acceptMessageRequest(String conversationId) {
+        return decideMessageRequest(conversationId, true);
+    }
+
+    /** #55 — hides a request thread without creating a follow or an accepted thread. */
+    public LiveData<Resource<Boolean>> declineMessageRequest(String conversationId) {
+        return decideMessageRequest(conversationId, false);
+    }
+
+    private LiveData<Resource<Boolean>> decideMessageRequest(String conversationId, boolean accept) {
+        MutableLiveData<Resource<Boolean>> result = new MutableLiveData<>();
+        if (conversationId == null || sessionManager.getUserId() == null) {
+            result.setValue(Resource.error("Not authenticated", null));
+            return result;
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put("p_conversation_id", conversationId);
+        Call<Void> call = accept
+                ? restApi.acceptMessageRequest(body)
+                : restApi.declineMessageRequest(body);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                result.postValue(response.isSuccessful()
+                        ? Resource.success(true)
+                        : Resource.error("Request not updated", null));
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                result.postValue(Resource.error("Network error", null));
+            }
+        });
+        return result;
+    }
+
     public LiveData<Resource<Boolean>> deleteMessage(String messageId) {
         MutableLiveData<Resource<Boolean>> result = new MutableLiveData<>();
         restApi.deleteMessage("eq." + messageId).enqueue(new Callback<Void>() {
@@ -547,7 +641,7 @@ public class ChatRepository {
             return result;
         }
         Map<String, String> query = new HashMap<>();
-        query.put("select", "id,last_active_at");
+        query.put("select", "id,last_active_at,show_activity");
         query.put("id", "eq." + userId);
         query.put("limit", "1");
         restApi.getProfilesRaw(query).enqueue(new Callback<List<Map<String, Object>>>() {
@@ -555,6 +649,11 @@ public class ChatRepository {
             public void onResponse(Call<List<Map<String, Object>>> call,
                                    Response<List<Map<String, Object>>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    Object visibleFlag = response.body().get(0).get("show_activity");
+                    if (Boolean.FALSE.equals(visibleFlag)) {
+                        result.postValue(Resource.success(0L));
+                        return;
+                    }
                     Object raw = response.body().get(0).get("last_active_at");
                     long ts = com.insta.nova.util.TimeUtils.parseTimestamp(
                             raw == null ? null : String.valueOf(raw));
@@ -719,6 +818,8 @@ public class ChatRepository {
     /** POST rpc/touch_active. No-op once the database reports the function missing. */
     public void touchActive() {
         if (presenceState == 2) return;
+        if (!new com.insta.nova.data.local.AppSettingsStore(
+                com.insta.nova.InstaApp.getInstance()).showActivity()) return;
         restApi.touchActive(new HashMap<>()).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {

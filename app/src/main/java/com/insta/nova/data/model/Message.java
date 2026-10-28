@@ -33,6 +33,9 @@ public class Message implements Serializable {
     private String localImageUri;
 
     private String messageType = "text";
+    /** story | post | reel — what {@link #shareId} points at when a media message is a share. */
+    private String shareKind;
+    private String shareId;
     private String voicePath;
     private long voiceDurationMs;
     private String replyToId;
@@ -45,6 +48,12 @@ public class Message implements Serializable {
      * written before Prompt J, which render as the legacy "call ended".
      */
     private String callOutcome;
+
+    public String getShareKind() { return shareKind; }
+    public void setShareKind(String shareKind) { this.shareKind = shareKind; }
+
+    public String getShareId() { return shareId; }
+    public void setShareId(String shareId) { this.shareId = shareId; }
 
     public String getMessageType() { return messageType != null ? messageType : "text"; }
     public void setMessageType(String messageType) { this.messageType = messageType; }

@@ -109,14 +109,31 @@ public class UserProfileRepository {
                     result.postValue(Resource.error("HTTP " + r.code()));
                     return;
                 }
-                boolean[] state = new boolean[2];
+                boolean[] state = new boolean[3];
                 for (Map<String, Object> row : r.body()) {
                     Object f = row.get("follower_id");
                     Object t = row.get("following_id");
                     if (me.equals(f) && userId.equals(t)) state[0] = true;
                     if (userId.equals(f) && me.equals(t)) state[1] = true;
                 }
-                result.postValue(Resource.success(state));
+                if (!state[0]) {
+                    Map<String, String> reqQuery = new HashMap<>();
+                    reqQuery.put("requester_id", "eq." + me);
+                    reqQuery.put("target_id", "eq." + userId);
+                    api.getFollowRequests(reqQuery).enqueue(new Callback<List<Map<String, Object>>>() {
+                        @Override public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
+                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                state[2] = true;
+                            }
+                            result.postValue(Resource.success(state));
+                        }
+                        @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
+                            result.postValue(Resource.success(state));
+                        }
+                    });
+                } else {
+                    result.postValue(Resource.success(state));
+                }
             }
             @Override public void onFailure(Call<List<Map<String, Object>>> c, Throwable t) {
                 result.postValue(Resource.error("Network error"));
@@ -125,31 +142,38 @@ public class UserProfileRepository {
         return result;
     }
 
-    public LiveData<Resource<Boolean>> follow(String userId) {
-        MutableLiveData<Resource<Boolean>> result = new MutableLiveData<>();
+    public LiveData<Resource<String>> follow(String userId) {
+        MutableLiveData<Resource<String>> result = new MutableLiveData<>();
         String me = me();
         if (me == null) { result.setValue(Resource.error("Not authenticated")); return result; }
+        // follow_user() creates a follow for public accounts and a follow REQUEST
+        // for private ones, so direct inserts can never bypass privacy.
         Map<String, Object> body = new HashMap<>();
-        body.put("follower_id", me);
-        body.put("following_id", userId);
-        api.followUser(com.insta.nova.data.remote.InteractionConflict.FOLLOW, body).enqueue(new Callback<Void>() {
-            @Override public void onResponse(Call<Void> c, Response<Void> r) {
-                result.postValue(r.isSuccessful() ? Resource.success(true) : Resource.error("follow failed"));
+        body.put("p_target", userId);
+        api.followUserRpc(body).enqueue(new Callback<com.google.gson.JsonElement>() {
+            @Override public void onResponse(Call<com.google.gson.JsonElement> c,
+                                             Response<com.google.gson.JsonElement> r) {
+                if (!r.isSuccessful() || r.body() == null) {
+                    result.postValue(Resource.error("follow failed"));
+                    return;
+                }
+                String state = r.body().isJsonPrimitive() ? r.body().getAsString() : "following";
+                result.postValue(Resource.success(state));
             }
-            @Override public void onFailure(Call<Void> c, Throwable t) {
+            @Override public void onFailure(Call<com.google.gson.JsonElement> c, Throwable t) {
                 result.postValue(Resource.error("Network error"));
             }
         });
         return result;
     }
 
-    public LiveData<Resource<Boolean>> unfollow(String userId) {
-        MutableLiveData<Resource<Boolean>> result = new MutableLiveData<>();
+    public LiveData<Resource<String>> unfollow(String userId) {
+        MutableLiveData<Resource<String>> result = new MutableLiveData<>();
         String me = me();
         if (me == null) { result.setValue(Resource.error("Not authenticated")); return result; }
         api.unfollowUser("eq." + me, "eq." + userId).enqueue(new Callback<Void>() {
             @Override public void onResponse(Call<Void> c, Response<Void> r) {
-                result.postValue(r.isSuccessful() ? Resource.success(true) : Resource.error("unfollow failed"));
+                result.postValue(r.isSuccessful() ? Resource.success("none") : Resource.error("unfollow failed"));
             }
             @Override public void onFailure(Call<Void> c, Throwable t) {
                 result.postValue(Resource.error("Network error"));

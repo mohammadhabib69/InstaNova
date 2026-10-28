@@ -38,6 +38,19 @@ public class StoryDto implements Serializable {
     @SerializedName("expires_at")
     private String expiresAt;
 
+    @SerializedName("audience")
+    private String audience;
+
+    /** Editor JSON: trim/mute for video, text elements, fit/fill, filter. Null on old rows. */
+    /**
+     * Sent by PostgREST as a jsonb object, so it cannot be typed as String: Gson throws on
+     * an object-to-string mapping and the whole story list then fails to parse (which the
+     * viewer reads as "no stories"). JsonElement accepts both the object form and the
+     * string form that older rows were written with.
+     */
+    @SerializedName("editor_meta")
+    private com.google.gson.JsonElement editorMeta;
+
     public StoryDto() {}
 
     public Story toStory() {
@@ -54,6 +67,9 @@ public class StoryDto implements Serializable {
         s.setAvatarUrl(avatarUrl);
         s.setCreatedAt(createdAt);
         s.setExpiresAt(expiresAt);
+        s.setAudience(audience);
+        s.setEditorMeta(editorMeta == null || editorMeta.isJsonNull() ? null
+                : (editorMeta.isJsonPrimitive() ? editorMeta.getAsString() : editorMeta.toString()));
         return s;
     }
 

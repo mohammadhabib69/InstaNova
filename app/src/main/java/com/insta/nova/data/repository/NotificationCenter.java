@@ -4,55 +4,60 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import com.insta.nova.data.local.NotificationStore;
+import com.insta.nova.data.local.RelationshipStore;
 import com.insta.nova.data.local.SessionManager;
 import com.insta.nova.data.model.Notification;
 import com.insta.nova.data.model.Post;
+import com.insta.nova.data.remote.RetrofitClient;
+import com.insta.nova.data.remote.api.RestApi;
+import com.insta.nova.data.remote.dto.NotificationDto;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Turns in-app activity into simulated incoming notifications.
+ * The read side of {@code public.notifications}.
  *
- * <p>The project has no second live user, so every actor is a demo account taken
- * from the feed where possible (real username and avatar, real post thumbnail).
- * The centre seeds a short history once per account and then reacts to the user's
- * own actions — liking, commenting and following — with a delayed "incoming"
- * event, which is what makes the badge and the New section move.
+ * <p>Every row on the notifications screen comes from the backend. This class used to
+ * seed a fake history and then invent an "incoming" event whenever the user liked,
+ * commented or followed, which is why the list looked random and showed activity about
+ * the user's own actions. Now:
+ *
+ * <ul>
+ *   <li>nothing is generated locally — an empty table means an empty screen;</li>
+ *   <li>a server sync replaces the cached list, so rows produced by the old generator
+ *       disappear on the first open after installing this build;</li>
+ *   <li>rows whose actor is the signed-in user are dropped (a like on my own post can
+ *       never notify me), and so are rows from accounts I have restricted.</li>
+ * </ul>
  */
 public final class NotificationCenter {
 
-    private static final long MIN_GAP_MS = 8_000L;
-    private static final long EVENT_DELAY_MS = 1_400L;
-
-    private static final String[] FALLBACK_ACTORS = {
-            "qaverify", "anna.makes", "theo.frames"
-    };
-
-    private static final String[] REPLY_TEXTS = {
-            "so good 🔥", "this deserves more likes", "wait, where is this?",
-            "the colours here are unreal", "okay this is my new favourite"
-    };
+    private static final int PAGE_SIZE = 60;
 
     private static NotificationCenter instance;
 
     private final Context appContext;
     private final NotificationStore store;
+    private final RelationshipStore relationships;
     private final String myUserId;
+    private final String myUsername;
+    private final RestApi restApi;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private final List<Post> feed = new ArrayList<>();
-    private long lastGeneratedAt;
-    private int actorCursor;
-    private int replyCursor;
 
     private NotificationCenter(Context context) {
         this.appContext = context.getApplicationContext();
         this.store = new NotificationStore(appContext);
-        this.myUserId = SessionManager.getInstance(appContext).getUserId();
+        this.relationships = new RelationshipStore(appContext);
+        SessionManager session = SessionManager.getInstance(appContext);
+        this.myUserId = session.getUserId();
+        this.myUsername = session.getUsername();
+        this.restApi = RetrofitClient.getInstance(appContext).getRestApi();
     }
 
     public static synchronized NotificationCenter get(Context context) {
@@ -62,18 +67,168 @@ public final class NotificationCenter {
         return instance;
     }
 
-    /** Keeps a copy of the visible feed: source of actors and post thumbnails. */
+    /**
+     * Pulls the rows the backend wrote for this account and makes them the whole list.
+     *
+     * <p>Replacing rather than merging is deliberate: merging could never remove a row,
+     * so the invented rows from an older build would survive forever. A failed request
+     * leaves the previous (real) list untouched instead of blanking the screen.
+     */
+    public void syncFromServer(final Runnable onDone) {
+        if (myUserId == null || myUserId.isEmpty()) {
+            if (onDone != null) onDone.run();
+            return;
+        }
+        Map<String, String> query = new HashMap<>();
+        query.put("user_id", "eq." + myUserId);
+        query.put("order", "created_at.desc");
+        query.put("limit", String.valueOf(PAGE_SIZE));
+        restApi.getNotifications(query).enqueue(new retrofit2.Callback<List<NotificationDto>>() {
+            @Override
+            public void onResponse(retrofit2.Call<List<NotificationDto>> call,
+                                   retrofit2.Response<List<NotificationDto>> response) {
+                List<NotificationDto> rows = response.body();
+                if (!response.isSuccessful() || rows == null) {
+                    finish(onDone);
+                    return;
+                }
+                resolveActorsAndMerge(rows, onDone);
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<List<NotificationDto>> call, Throwable t) {
+                finish(onDone);
+            }
+        });
+    }
+
+    /** The base table stores actor_id only, so names and avatars come from profiles. */
+    private void resolveActorsAndMerge(List<NotificationDto> rows, final Runnable onDone) {
+        final Set<String> actorIds = new HashSet<>();
+        for (NotificationDto row : rows) {
+            if (row != null && row.getActorId() != null && !row.getActorId().isEmpty()) {
+                actorIds.add(row.getActorId());
+            }
+        }
+        if (actorIds.isEmpty()) {
+            merge(rows, new HashMap<String, Map<String, Object>>());
+            finish(onDone);
+            return;
+        }
+        StringBuilder in = new StringBuilder();
+        for (String id : actorIds) {
+            if (in.length() > 0) in.append(',');
+            in.append(id);
+        }
+        Map<String, String> query = new HashMap<>();
+        query.put("id", "in.(" + in + ")");
+        query.put("select", "id,username,avatar_url");
+        restApi.getProfilesRaw(query).enqueue(
+                new retrofit2.Callback<List<Map<String, Object>>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<List<Map<String, Object>>> call,
+                                           retrofit2.Response<List<Map<String, Object>>> response) {
+                        Map<String, Map<String, Object>> byId = new HashMap<>();
+                        List<Map<String, Object>> profiles = response.body();
+                        if (response.isSuccessful() && profiles != null) {
+                            for (Map<String, Object> profile : profiles) {
+                                Object id = profile.get("id");
+                                if (id != null) byId.put(String.valueOf(id), profile);
+                            }
+                        }
+                        merge(rows, byId);
+                        finish(onDone);
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<List<Map<String, Object>>> call, Throwable t) {
+                        merge(rows, new HashMap<String, Map<String, Object>>());
+                        finish(onDone);
+                    }
+                });
+    }
+
+    private void merge(List<NotificationDto> rows, Map<String, Map<String, Object>> profilesById) {
+        final Set<String> restricted = relationships.restricted();
+        List<Notification> mapped = new ArrayList<>();
+        for (NotificationDto row : rows) {
+            if (row == null || row.getId() == null) continue;
+
+            Notification n = new Notification();
+            n.setId(row.getId());
+            n.setUserId(row.getUserId());
+            n.setType(row.getType());
+            n.setPostId(row.getPostId());
+            n.setRead(row.isRead());
+            n.setCreatedAt(row.getCreatedAt());
+            // getText() already prefers `body`, which is where a reaction emoji lands.
+            n.setCommentText(row.getText());
+            n.setActorId(row.getActorId());
+            n.setActorUsername(row.getActorUsername());
+            n.setActorAvatarUrl(row.getActorAvatarUrl());
+
+            Map<String, Object> profile = row.getActorId() == null
+                    ? null : profilesById.get(row.getActorId());
+            if (profile != null) {
+                Object name = profile.get("username");
+                Object avatar = profile.get("avatar_url");
+                if (n.getActorUsername() == null && name != null) {
+                    n.setActorUsername(String.valueOf(name));
+                }
+                if (n.getActorAvatarUrl() == null && avatar != null) {
+                    n.setActorAvatarUrl(String.valueOf(avatar));
+                }
+            }
+
+            if (isMyOwnAction(n, restricted)) continue;
+            mapped.add(n);
+        }
+        store.replaceAll(mapped);
+    }
+
+    /**
+     * True for rows that must never reach this screen: my own actions, and activity from
+     * an account I have restricted (a restricted person's like or comment is not shown).
+     */
+    private boolean isMyOwnAction(Notification n, Set<String> restricted) {
+        String actorId = n.getActorId();
+        if (myUserId != null && actorId != null && myUserId.equals(actorId)) return true;
+        if (actorId == null && myUsername != null && n.getActorUsername() != null
+                && myUsername.equalsIgnoreCase(n.getActorUsername())) {
+            return true;
+        }
+        return actorId != null && restricted.contains(actorId);
+    }
+
+    /**
+     * Marks this account's unread rows as read on the server, so the badge stays cleared
+     * after the screen is closed. Fire-and-forget: a failure only costs a badge.
+     */
+    public void markAllReadOnServer() {
+        if (myUserId == null || myUserId.isEmpty()) return;
+        Map<String, Object> body = new HashMap<>();
+        body.put("read", true);
+        restApi.markNotificationsRead("eq." + myUserId, "eq.false", body)
+                .enqueue(new retrofit2.Callback<Void>() {
+                    @Override public void onResponse(retrofit2.Call<Void> call,
+                                                     retrofit2.Response<Void> response) { }
+
+                    @Override public void onFailure(retrofit2.Call<Void> call, Throwable t) { }
+                });
+    }
+
+    private void finish(final Runnable onDone) {
+        if (onDone == null) return;
+        handler.post(onDone);
+    }
+
+    /** Keeps a copy of the visible feed so a tapped row can open its post directly. */
     public void onFeedLoaded(List<Post> posts) {
         feed.clear();
         if (posts != null) {
             for (Post post : posts) {
                 if (post != null) feed.add(post);
             }
-        }
-        // Home publishes an empty list before the first network response; seeding
-        // then would produce rows without avatars or thumbnails.
-        if (!feed.isEmpty()) {
-            seedIfNeeded();
         }
     }
 
@@ -83,142 +238,5 @@ public final class NotificationCenter {
             if (postId.equals(post.getId())) return post;
         }
         return null;
-    }
-
-    /** First run only: two or three events so the grouped feed is never empty. */
-    public void seedIfNeeded() {
-        if (store.isSeeded() || myUserId == null) return;
-        store.markSeeded();
-
-        long now = System.currentTimeMillis();
-        Post first = feed.size() > 0 ? feed.get(0) : null;
-        Post second = feed.size() > 1 ? feed.get(1) : first;
-
-        Actor a = nextActor();
-        Actor b = nextActor();
-        Actor c = nextActor();
-
-        Notification liked = build("like", a, first, null,
-                now - TimeUnit.HOURS.toMillis(2), false);
-        Notification followed = build("follow", b, null, null,
-                now - TimeUnit.HOURS.toMillis(5), true);
-        Notification commented = build("comment", c, second, REPLY_TEXTS[0],
-                now - TimeUnit.DAYS.toMillis(3), true);
-
-        store.add(liked);
-        store.add(followed);
-        store.add(commented);
-    }
-
-    /** The user liked a post: a demo account reacts to it shortly afterwards. */
-    public void onPostLiked(Post post) {
-        if (!canGenerate()) return;
-        Post subject = post;
-        if (subject == null && !feed.isEmpty()) subject = feed.get(0);
-        Notification notification = build("like", nextActor(), subject, null,
-                System.currentTimeMillis(), false);
-        schedule(notification);
-    }
-
-    /** The user commented: a demo account answers on the same thread. */
-    public void onCommentPosted(String postId, String commentText) {
-        if (!canGenerate()) return;
-        String reply = REPLY_TEXTS[replyCursor % REPLY_TEXTS.length];
-        replyCursor++;
-        Notification notification = build("comment", nextActor(), findPost(postId), reply,
-                System.currentTimeMillis(), false);
-        if (notification.getPostId() == null) notification.setPostId(postId);
-        schedule(notification);
-    }
-
-    /** The user followed someone: that account follows back. */
-    public void onFollowed(String userId, String username, String avatarUrl) {
-        if (!canGenerate()) return;
-        if (username == null || username.trim().isEmpty()) return;
-        Actor actor = new Actor(userId, username, avatarUrl);
-        Notification notification = build("follow", actor, null, null,
-                System.currentTimeMillis(), false);
-        schedule(notification);
-    }
-
-    private boolean canGenerate() {
-        if (myUserId == null) return false;
-        long now = System.currentTimeMillis();
-        if (now - lastGeneratedAt < MIN_GAP_MS) return false;
-        lastGeneratedAt = now;
-        return true;
-    }
-
-    private void schedule(final Notification notification) {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                store.add(notification);
-            }
-        }, EVENT_DELAY_MS);
-    }
-
-    private Notification build(String type, Actor actor, Post post, String commentText,
-                               long createdAt, boolean read) {
-        Notification n = new Notification();
-        n.setId(UUID.randomUUID().toString());
-        n.setUserId(myUserId);
-        n.setType(type);
-        n.setActorId(actor.id);
-        n.setActorUsername(actor.username);
-        n.setActorAvatarUrl(actor.avatarUrl);
-        n.setCommentText(commentText);
-        n.setRead(read);
-        n.setCreatedAt(String.valueOf(createdAt));
-        if (post != null) {
-            n.setPostId(post.getId());
-            n.setPostThumbnailUrl(thumbnail(post));
-        }
-        return n;
-    }
-
-    private String thumbnail(Post post) {
-        if (post == null) return null;
-        String thumb = post.getThumbnailUrl();
-        if (thumb != null && !thumb.trim().isEmpty()) return thumb;
-        List<String> media = post.getMediaUrls();
-        if (media != null && !media.isEmpty()) return media.get(0);
-        return post.getFirstMediaUrl();
-    }
-
-    /**
-     * Feed authors first (real avatars), then the fixed demo roster so three
-     * distinct names are always available. The list is de-duplicated by username.
-     */
-    private Actor nextActor() {
-        List<Actor> candidates = new ArrayList<>();
-        Set<String> names = new HashSet<>();
-        for (Post post : feed) {
-            String id = post.getUserId();
-            String username = post.getUsername();
-            if (id == null || id.equals(myUserId)) continue;
-            if (username == null || username.trim().isEmpty()) continue;
-            if (names.add(username)) {
-                candidates.add(new Actor(id, username, post.getAvatarUrl()));
-            }
-        }
-        for (String name : FALLBACK_ACTORS) {
-            if (names.add(name)) {
-                candidates.add(new Actor(null, name, null));
-            }
-        }
-        return candidates.get(Math.abs(actorCursor++) % candidates.size());
-    }
-
-    private static final class Actor {
-        final String id;
-        final String username;
-        final String avatarUrl;
-
-        Actor(String id, String username, String avatarUrl) {
-            this.id = id;
-            this.username = username;
-            this.avatarUrl = avatarUrl;
-        }
     }
 }

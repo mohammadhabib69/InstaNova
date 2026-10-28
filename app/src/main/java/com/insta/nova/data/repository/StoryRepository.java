@@ -13,6 +13,7 @@ import com.insta.nova.data.model.Story;
 import com.insta.nova.data.model.StoryGroup;
 import com.insta.nova.data.remote.RetrofitClient;
 import com.insta.nova.data.remote.api.RestApi;
+import com.insta.nova.data.remote.dto.StoryDto;
 import com.insta.nova.data.remote.dto.StoryGroupDto;
 import com.insta.nova.util.Resource;
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ public class StoryRepository {
             @Override public void onResponse(Call<List<StoryGroupDto>> call, Response<List<StoryGroupDto>> response) {
                 if (!response.isSuccessful() || response.body() == null) { groups.postValue(Resource.error(AuthRepository.errorBody(response))); return; }
                 List<StoryGroup> result = new ArrayList<>(); String uid = viewerIdSupplier.get();
+                boolean hasOwnerGroup = false;
                 int skipped = 0;
                 for (StoryGroupDto dto : response.body()) {
                     if (dto == null) {
@@ -63,6 +65,7 @@ public class StoryRepository {
                     try {
                         StoryGroup group = dto.toStoryGroup();
                         group.setOwner(uid != null && uid.equals(dto.getUserId()));
+                        if (group.isOwner()) hasOwnerGroup = true;
                         group.setHasActiveStory(true);
                         result.add(group);
                     } catch (RuntimeException e) {
@@ -71,11 +74,103 @@ public class StoryRepository {
                     }
                 }
                 if (skipped > 0) Log.w(TAG, "Skipped " + skipped + " malformed story group(s)");
-                rawGroups.postValue(result); groups.postValue(Resource.success(result));
+                // The owner must see their own story whatever its audience is.
+                // v_story_groups hides non-public rows for everyone, owner included, so a
+                // story posted as close_friends produced no ring in the tray at all. Read
+                // the owner's own active stories directly and prepend them.
+                // The view can also return an owner row with an empty story list; that
+                // still yields no ring, so treat "owner row without stories" the same as
+                // "no owner row" and replace it with the authoritative one.
+                if (uid != null) {
+                    StoryGroup emptyOwner = null;
+                    for (StoryGroup g : result) {
+                        if (g.isOwner()) {
+                            if (g.getStories() == null || g.getStories().isEmpty()) emptyOwner = g;
+                            break;
+                        }
+                    }
+                    if (emptyOwner != null) { result.remove(emptyOwner); hasOwnerGroup = false; }
+                }
+                if (uid != null && !hasOwnerGroup) {
+                    fetchOwnStories(uid, result);
+                } else if (uid != null && result.isEmpty()) {
+                    fetchOwnStories(uid, result);
+                } else {
+                    rawGroups.postValue(result); groups.postValue(Resource.success(result));
+                }
             }
             @Override public void onFailure(Call<List<StoryGroupDto>> call, Throwable t) { groups.postValue(Resource.error(t.getMessage())); }
         });
         return groups;
+    }
+
+    /**
+     * Loads the signed-in user's own active stories and puts them at the head of the tray.
+     *
+     * <p>Only reached when {@code v_story_groups} returned no owner group, which is what
+     * happens for any story whose audience is not public. A published story that the
+     * author cannot see in their own tray reads as a lost upload, so the owner row is
+     * rebuilt from the authoritative {@code v_stories} rows instead of from the view.
+     */
+    private void fetchOwnStories(@NonNull String uid, @NonNull List<StoryGroup> result) {
+        java.util.Map<String, String> query = new java.util.HashMap<>();
+        query.put("user_id", "eq." + uid);
+        query.put("order", "created_at.desc");
+
+        restApi.getStories(query).enqueue(new Callback<List<StoryDto>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<StoryDto>> call, @NonNull Response<List<StoryDto>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    StoryDto first = response.body().get(0);
+                    StoryGroup group = new StoryGroup();
+                    group.setUserId(uid);
+                    group.setUsername(first.getUsername());
+                    group.setAvatarUrl(first.getAvatarUrl());
+                    group.setOwner(true);
+                    group.setHasActiveStory(true);
+                    group.setLatestStoryId(first.getId());
+                    List<Story> stories = new ArrayList<>();
+                    for (StoryDto dto : response.body()) {
+                        try {
+                            stories.add(dto.toStory());
+                        } catch (RuntimeException e) {
+                            Log.w(TAG, "Skipping malformed own story " + dto.getId(), e);
+                        }
+                    }
+                    // The ring is drawn from hasUnseen, not from the story list. Rebuilding the
+                    // owner group with the default (false) made a fresh own story render as a
+                    // 1.5dp grey "seen" ring, which on a dark tray is indistinguishable from no
+                    // ring at all — the tray read as "my story never published".
+                    boolean unseen = false;
+                    for (Story own : stories) {
+                        if (own != null && !own.isSeen()) { unseen = true; break; }
+                    }
+                    group.setHasUnseen(unseen);
+                    if (!stories.isEmpty()) {
+                        group.setStories(stories);
+                        result.add(0, group);
+                    }
+                    Log.i(TAG, "own-story fallback: rows=" + response.body().size()
+                            + " mapped=" + stories.size()
+                            + " tray=" + result.size()
+                            + " ownerActive=" + (!stories.isEmpty()));
+                } else {
+                    Log.i(TAG, "own-story fallback returned nothing: code=" + response.code()
+                            + " bodyEmpty=" + (response.body() == null || response.body().isEmpty()));
+                }
+                rawGroups.postValue(result);
+                groups.postValue(Resource.success(result));
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<StoryDto>> call, @NonNull Throwable t) {
+                // The tray must still render for everyone else; the owner row is the only
+                // thing missing at this point.
+                Log.w(TAG, "Own-story fallback failed", t);
+                rawGroups.postValue(result);
+                groups.postValue(Resource.success(result));
+            }
+        });
     }
 
     public LiveData<List<StoryGroup>> getRawStoryGroups() { return rawGroups; }

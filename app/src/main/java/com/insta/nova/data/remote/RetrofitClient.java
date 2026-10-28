@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import com.insta.nova.BuildConfig;
+import com.insta.nova.data.NovaApi;
+import com.insta.nova.data.NovaNetMeter;
 import com.insta.nova.data.remote.api.RestApi;
 import com.insta.nova.data.remote.api.StorageApi;
 import java.io.IOException;
@@ -29,6 +31,7 @@ public class RetrofitClient {
     private static RetrofitClient instance;
 
     private final RestApi restApi;
+    private final NovaApi novaApi;
     private final StorageApi storageApi;
     private final OkHttpClient okHttpClient;
 
@@ -53,6 +56,9 @@ public class RetrofitClient {
 
         // Read the current session for every request. This is intentionally not cached.
         Interceptor authInterceptor = new AuthInterceptor();
+
+        // Nova byte meter: counts real transferred bytes for REST and images.
+        NovaNetMeter.install(context);
 
         // Calling fallback interceptor: routes call_sessions & call_signals to local signaling relay if Supabase 404s
         Interceptor callingFallbackInterceptor = chain -> {
@@ -129,9 +135,13 @@ public class RetrofitClient {
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
+                // Must run before authInterceptor: it rewrites a private bucket's public
+                // URL to the authenticated endpoint, which then needs the token headers.
+                .addInterceptor(new StoragePrivacyInterceptor())
                 .addInterceptor(authInterceptor)
                 .addInterceptor(callingFallbackInterceptor)
                 .addInterceptor(errorInterceptor)
+                .addInterceptor(NovaNetMeter.interceptor())
                 .authenticator(new TokenAuthenticator());
 
         if (BuildConfig.DEBUG) {
@@ -157,10 +167,12 @@ public class RetrofitClient {
                 .build();
 
         this.restApi = retrofit.create(RestApi.class);
+        this.novaApi = retrofit.create(NovaApi.class);
         this.storageApi = retrofit.create(StorageApi.class);
     }
 
     public RestApi getRestApi() { return restApi; }
+    public NovaApi getNovaApi() { return novaApi; }
     public StorageApi getStorageApi() { return storageApi; }
     public OkHttpClient getOkHttpClient() { return okHttpClient; }
 }

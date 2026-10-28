@@ -17,6 +17,15 @@ public class Conversation implements Serializable {
     private boolean isUnread;
     private int unreadCount;
 
+    /**
+     * Photos in the trailing burst when the newest message is media. 0 for a text tail;
+     * 1 for a single photo. Lets the inbox say "4 photos" instead of "Sent a photo".
+     */
+    private int photoCount;
+
+    /** True when the other person is not an approved follower and this is unaccepted. */
+    private boolean isRequest;
+
     public Conversation() {}
 
     public Conversation(String id, String otherUserId, String otherUsername,
@@ -30,6 +39,9 @@ public class Conversation implements Serializable {
         this.lastMessageTimestamp = lastMessageTimestamp;
         this.isUnread = isUnread;
     }
+
+    public boolean isRequest() { return isRequest; }
+    public void setRequest(boolean request) { this.isRequest = request; }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -57,6 +69,9 @@ public class Conversation implements Serializable {
 
     public boolean isUnread() { return isUnread; }
     public void setUnread(boolean unread) { isUnread = unread; }
+
+    public int getPhotoCount() { return photoCount; }
+    public void setPhotoCount(int photoCount) { this.photoCount = photoCount; }
 
     public int getUnreadCount() { return unreadCount; }
     public void setUnreadCount(int unreadCount) { this.unreadCount = unreadCount; }

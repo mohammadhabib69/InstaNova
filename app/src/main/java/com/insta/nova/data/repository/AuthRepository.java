@@ -144,7 +144,18 @@ public class AuthRepository {
                                 "Please confirm your email address. We've sent you a new confirmation link — open it, then log in again."));
                         return;
                     }
-                    refreshTokenThenContinue(user, result);
+                    com.insta.nova.data.firebase.AppAnalytics.logSignIn("password");
+                    // An account can carry no role claim — created through the Admin API, or by an
+                    // older build that predates provisioning. Without the gate the whole session
+                    // runs as `anon`, every Supabase read answers 42501, and the feed looks empty
+                    // for a perfectly valid user. Provoke the claim before the first read; a
+                    // refusal is logged and login continues, because browsing must not depend on it.
+                    ensureSupabaseRole(
+                            () -> refreshTokenThenContinue(user, result),
+                            blocked -> {
+                                Log.w(TAG, "claim gate blocked sign-in: " + blocked);
+                                refreshTokenThenContinue(user, result);
+                            });
                 });
     }
 
@@ -546,6 +557,18 @@ public class AuthRepository {
      * afterwards is reported to the caller instead of being sent: the write would fail
      * anyway, and a request known to be rejected is noise, not progress.
      */
+    /**
+     * Public one-shot wrapper over the claim gate, for the splash gate.
+     *
+     * <p>Splash used to force a single token refresh and, when the claim was still absent, jump
+     * straight to "Account not activated" — without ever asking the provisioner. A session restored
+     * on an account that never went through the signup wizard therefore stayed `anon` forever, and
+     * every Supabase read answered 42501.
+     */
+    public void ensureRoleClaim(Consumer<Boolean> callback) {
+        ensureSupabaseRole(() -> callback.accept(true), blocked -> callback.accept(false));
+    }
+
     private void ensureSupabaseRole(Runnable onReady, Consumer<String> onBlocked) {
         FirebaseUser user = firebaseAuth.getCurrentUser();
         if (user == null) {
@@ -561,8 +584,14 @@ public class AuthRepository {
                                   Runnable onReady, Consumer<String> onBlocked) {
         boolean hasRole = task.isSuccessful() && task.getResult() != null
                 && TokenClaims.hasAuthenticatedRole(task.getResult().getClaims());
-        boolean provisionConfigured = BuildConfig.CLAIM_PROVISION_URL != null
-                && !BuildConfig.CLAIM_PROVISION_URL.trim().isEmpty();
+        // Either provisioner counts: the deployed `provision-role` function (whenever a Supabase
+        // URL is compiled in) or the older Apps Script endpoint. Checking only the latter made the
+        // policy answer BLOCKED on builds that had already moved to the function.
+        boolean functionConfigured = BuildConfig.SUPABASE_URL != null
+                && !BuildConfig.SUPABASE_URL.trim().isEmpty();
+        boolean provisionConfigured = functionConfigured
+                || (BuildConfig.CLAIM_PROVISION_URL != null
+                    && !BuildConfig.CLAIM_PROVISION_URL.trim().isEmpty());
 
         switch (RoleClaimPolicy.decide(hasRole, refreshed, provisionConfigured, provisionTried)) {
             case PROCEED:
@@ -612,6 +641,32 @@ public class AuthRepository {
      * the caller and performs the privileged write itself.
      */
     private void requestRoleProvisioning(String token, Consumer<Boolean> cb) {
+        if (token == null || token.isEmpty()) {
+            cb.accept(false);
+            return;
+        }
+
+        // Preferred path: the Supabase edge function `provision-role`, deployed with its own
+        // service account. It verifies this Firebase ID token itself and reads the uid from the
+        // verified token, so the request body carries no identity and no credential.
+        String base = BuildConfig.SUPABASE_URL == null ? "" : BuildConfig.SUPABASE_URL.trim();
+        while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+        if (!base.isEmpty()) {
+            callProvisioner(base + "/functions/v1/provision-role", token, false, granted -> {
+                if (granted) {
+                    cb.accept(true);
+                } else {
+                    // Older deployments still rely on the Apps Script; keeping the fallback means
+                    // a function outage cannot lock every existing user out of their writes.
+                    provisionViaLegacyEndpoint(token, cb);
+                }
+            });
+            return;
+        }
+        provisionViaLegacyEndpoint(token, cb);
+    }
+
+    private void provisionViaLegacyEndpoint(String token, Consumer<Boolean> cb) {
         String url = BuildConfig.CLAIM_PROVISION_URL == null
                 ? "" : BuildConfig.CLAIM_PROVISION_URL.trim();
         if (url.isEmpty() || token == null || token.isEmpty()) {
@@ -663,6 +718,60 @@ public class AuthRepository {
                 });
     }
 
+    /**
+     * Calls the deployed `provision-role` function.
+     *
+     * <p>The function authenticates the caller from the `Authorization` header and answers
+     * {@code {"uid":"…","changed":true|false}}, so the body stays empty and no identity travels in
+     * it. Only the token, which the caller already holds, is sent.
+     */
+    private void callProvisioner(String url, String token, boolean tokenInBody, Consumer<Boolean> cb) {
+        com.google.gson.JsonObject payload = new com.google.gson.JsonObject();
+        if (tokenInBody) {
+            payload.addProperty("idToken", token);
+        }
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url(url)
+                .post(okhttp3.RequestBody.create(
+                        okhttp3.MediaType.parse("application/json; charset=utf-8"),
+                        payload.toString()))
+                .header("Authorization", "Bearer " + token)
+                .header("apikey", BuildConfig.SUPABASE_ANON_KEY == null
+                        ? "" : BuildConfig.SUPABASE_ANON_KEY)
+                .build();
+        RetrofitClient.getInstance(appContext).getOkHttpClient().newCall(request)
+                .enqueue(new okhttp3.Callback() {
+                    @Override public void onFailure(@NonNull okhttp3.Call call,
+                                                    @NonNull java.io.IOException e) {
+                        Log.w(TAG, "provision-role call failed: " + e.getClass().getSimpleName());
+                        cb.accept(false);
+                    }
+
+                    @Override public void onResponse(@NonNull okhttp3.Call call,
+                                                     @NonNull okhttp3.Response response) {
+                        String body = "";
+                        boolean granted;
+                        try {
+                            okhttp3.ResponseBody rb = response.body();
+                            body = rb == null ? "" : rb.string();
+                            // The function answers {"uid":…}; the Apps Script answers {"ok":true}.
+                            granted = response.isSuccessful()
+                                    && (body.contains("\"uid\"") || body.contains("\"ok\":true"));
+                        } catch (Exception e) {
+                            granted = false;
+                        } finally {
+                            response.close();
+                        }
+                        if (!granted) {
+                            Log.w(TAG, "provision-role refused (HTTP " + response.code() + "): "
+                                    + (body.isEmpty() ? "no body"
+                                    : body.substring(0, Math.min(160, body.length()))));
+                        }
+                        cb.accept(granted);
+                    }
+                });
+    }
+
     /** POST /rest/v1/profiles — first write for a brand-new Firebase account. */
     private void createProfile(String firebaseUid, String username, String fullName,
                                String birthdayIso, MutableLiveData<Resource<String>> result) {
@@ -684,6 +793,8 @@ public class AuthRepository {
                         result.postValue(Resource.error(ProfileWriteCheck.ZERO_ROWS_MESSAGE, null));
                         return;
                     }
+                    com.insta.nova.data.firebase.AppAnalytics.logSignUp("password");
+                    com.insta.nova.data.firebase.AppAnalytics.logProfileCompleted();
                     result.postValue(Resource.success(created.get(0).getId()));
                     return;
                 }
@@ -891,6 +1002,12 @@ public class AuthRepository {
         }
         String avatar = user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : null;
         sessionManager.saveIdentity(user.getUid(), profileId, username, avatar);
+        com.insta.nova.data.firebase.AppAnalytics.setUser(user.getUid());
+        com.insta.nova.data.firebase.CrashReporter.setUser(user.getUid());
+        // Phase 1 (P1-08): shadow-write the identity into Firestore. No-op unless
+        // BuildConfig.FIREBASE_MIRROR is on; never blocks or fails the session.
+        com.insta.nova.data.firebase.ProfileMirror.onSessionEstablished(
+                user.getUid(), profileId, username, user.getDisplayName(), avatar, null);
     }
 
     /**

@@ -45,6 +45,12 @@ public class MessageDto implements Serializable {
     @SerializedName("read")
     private Boolean readAlt;
 
+    @SerializedName("share_kind")
+    private String shareKind;
+
+    @SerializedName("share_id")
+    private String shareId;
+
     @SerializedName("created_at")
     private String createdAt;
 
@@ -79,6 +85,8 @@ public class MessageDto implements Serializable {
         m.setImageUrl(media);
         m.setMediaUrl(media);
         m.setPostId(postId);
+        m.setShareKind(shareKind);
+        m.setShareId(shareId);
         m.setRead(readAlt != null ? readAlt : read);
         m.setCreatedAt(createdAt);
 

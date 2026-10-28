@@ -102,6 +102,21 @@ public class LocalChatStore {
     public void appendMessage(ChatMessage message) {
         if (message == null || message.conversationId == null) return;
         List<ChatMessage> all = all();
+        // Call entries use the call id as the message id precisely so a re-run is
+        // idempotent, but the list was appended to blindly: a second write of the
+        // same call (process restart, a re-delivered row, the missed snapshot) left
+        // two identical bubbles in the thread.
+        if (message.id != null) {
+            for (int i = 0; i < all.size(); i++) {
+                ChatMessage existing = all.get(i);
+                if (existing != null && message.id.equals(existing.id)) {
+                    all.set(i, message);
+                    write(all);
+                    bump();
+                    return;
+                }
+            }
+        }
         all.add(message);
         if (all.size() > MAX_MESSAGES) {
             all = new ArrayList<>(all.subList(all.size() - MAX_MESSAGES, all.size()));

@@ -187,6 +187,59 @@ public class LocalSocialStore {
         bump();
     }
 
+    /**
+     * Drops one highlight from the local mirror so the profile tile disappears at once.
+     *
+     * <p>Nothing could remove a highlight before this: the server rows were re-merged on every
+     * profile visit, so a mistaken or empty highlight stayed on the row forever.
+     */
+    public void removeHighlight(String id) {
+        if (id == null || id.trim().isEmpty()) return;
+        List<Highlight> highlights = getHighlights();
+        boolean changed = false;
+        for (int i = highlights.size() - 1; i >= 0; i--) {
+            Highlight h = highlights.get(i);
+            if (h != null && id.equals(h.getId())) { highlights.remove(i); changed = true; }
+        }
+        if (!changed) return;
+        write(k("highlights"), highlights);
+        bump();
+    }
+
+    /** Renames one highlight in the local mirror so the tile label updates without a reload. */
+    public void renameHighlight(String id, String title) {
+        if (id == null || title == null) return;
+        List<Highlight> highlights = getHighlights();
+        boolean changed = false;
+        for (Highlight h : highlights) {
+            if (h != null && id.equals(h.getId())) {
+                h.setTitle(title);
+                changed = true;
+            }
+        }
+        if (!changed) return;
+        write(k("highlights"), highlights);
+        bump();
+    }
+
+    /** Replaces the slides of one highlight so the local mirror matches the server after an edit. */
+    public void setHighlightItems(String id, List<HighlightItem> items) {
+        if (id == null || items == null) return;
+        List<Highlight> highlights = getHighlights();
+        boolean changed = false;
+        for (Highlight h : highlights) {
+            if (h != null && id.equals(h.getId())) {
+                h.setItems(items);
+                if (items.isEmpty()) h.setCoverUrl(null);
+                else h.setCoverUrl(items.get(0).getMediaUrl());
+                changed = true;
+            }
+        }
+        if (!changed) return;
+        write(k("highlights"), highlights);
+        bump();
+    }
+
     public Highlight findHighlight(String id) {
         for (Highlight h : getHighlights()) {
             if (h != null && h.getId() != null && h.getId().equals(id)) return h;

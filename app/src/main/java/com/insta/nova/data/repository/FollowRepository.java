@@ -7,6 +7,7 @@ import com.insta.nova.data.local.SessionManager;
 import com.insta.nova.data.remote.InteractionConflict;
 import com.insta.nova.data.remote.RetrofitClient;
 import com.insta.nova.data.remote.api.RestApi;
+import com.google.gson.JsonElement;
 import com.insta.nova.util.Resource;
 import java.util.HashMap;
 import java.util.List;
@@ -79,6 +80,66 @@ public class FollowRepository {
             });
         }
 
+        return liveData;
+    }
+
+    /**
+     * Private-aware follow. Returns "following", "requested" (private target) or "none".
+     *
+     * <p>Restored after an accidental overwrite: the signature and return contract were
+     * recovered from the last compiled class plus `RestApi.followUserRpc`'s documented
+     * behaviour ("following" / "requested" / "self"), and from the call site in
+     * {@code PeopleListActivity}. The failure states mirror the compiled bytecode:
+     * a failed unfollow reports the previous state "following", a failed follow "none".
+     */
+    public LiveData<Resource<String>> followWithState(String targetUserId, boolean follow) {
+        MutableLiveData<Resource<String>> liveData = new MutableLiveData<>();
+        liveData.setValue(Resource.loading(null));
+
+        String myId = sessionManager.getUserId();
+        if (myId == null || myId.trim().isEmpty()) {
+            liveData.setValue(Resource.error("Not authenticated", "none"));
+            return liveData;
+        }
+
+        if (!follow) {
+            restApi.unfollowUser("eq." + myId, "eq." + targetUserId).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        liveData.postValue(Resource.success("none"));
+                    } else {
+                        liveData.postValue(Resource.error("Failed to unfollow user", "following"));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    liveData.postValue(Resource.error("Failed to unfollow user", "following"));
+                }
+            });
+            return liveData;
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("p_target", targetUserId);
+        restApi.followUserRpc(body).enqueue(new Callback<JsonElement>() {
+            @Override
+            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    liveData.postValue(Resource.error("Failed to follow user", "none"));
+                    return;
+                }
+                JsonElement element = response.body();
+                String state = element.isJsonNull() ? "none" : element.getAsString();
+                liveData.postValue(Resource.success(state));
+            }
+
+            @Override
+            public void onFailure(Call<JsonElement> call, Throwable t) {
+                liveData.postValue(Resource.error("Failed to follow user", "none"));
+            }
+        });
         return liveData;
     }
 

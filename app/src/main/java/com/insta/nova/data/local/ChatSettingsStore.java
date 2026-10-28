@@ -23,6 +23,7 @@ public class ChatSettingsStore {
     private static ChatSettingsStore instance;
 
     private final SharedPreferences prefs;
+    private final android.content.Context appContext;
     private final Gson gson = new Gson();
 
     public static synchronized ChatSettingsStore getInstance(Context context) {
@@ -33,7 +34,8 @@ public class ChatSettingsStore {
     }
 
     private ChatSettingsStore(Context context) {
-        this.prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        this.appContext = context.getApplicationContext();
+        this.prefs = appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
     /* ------------------------------------------------------------------ */
@@ -65,16 +67,43 @@ public class ChatSettingsStore {
     }
 
     /* ------------------------------------------------------------------ */
+    /* Inbox hide (per-account "delete conversation")                      */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * A deleted thread is hidden from this device's inbox only; the other participant keeps
+     * the conversation and the server row is untouched. A hidden thread stays hidden until
+     * the other side writes again, which the inbox treats as a fresh conversation.
+     */
+    public boolean isHidden(String conversationId) {
+        if (conversationId == null) return false;
+        return prefs.getBoolean("hidden_" + conversationId, false);
+    }
+
+    public void setHidden(String conversationId, boolean hidden) {
+        if (conversationId == null) return;
+        prefs.edit().putBoolean("hidden_" + conversationId, hidden).apply();
+    }
+
+    /* ------------------------------------------------------------------ */
     /* Block State                                                         */
     /* ------------------------------------------------------------------ */
 
     public boolean isBlocked(String userId) {
+        return new RelationshipStore(appContext).isBlocked(userId);
+    }
+
+    private boolean isBlockedLegacy(String userId) {
         if (userId == null) return false;
         Set<String> set = prefs.getStringSet("blocked_users", new HashSet<>());
         return set.contains(userId);
     }
 
     public void setBlocked(String userId, boolean blocked) {
+        new RelationshipStore(appContext).setBlocked(userId, blocked);
+    }
+
+    private void setBlockedLegacy(String userId, boolean blocked) {
         if (userId == null) return;
         Set<String> set = new HashSet<>(prefs.getStringSet("blocked_users", new HashSet<>()));
         if (blocked) {

@@ -56,4 +56,47 @@ public class Notification implements Serializable {
 
     public boolean isActorFollowing() { return isActorFollowing; }
     public void setActorFollowing(boolean actorFollowing) { isActorFollowing = actorFollowing; }
+
+    /**
+     * Creation time in epoch millis.
+     *
+     * <p>Rows simulated locally carry millis as a string; rows written by the backend
+     * carry an ISO-8601 timestamp. Parsing only the first form silently dated every
+     * server row to 0, which pushed real notifications to the bottom of the list —
+     * a story reaction looked missing when it had in fact been stored.
+     */
+    public long createdAtMillis() {
+        if (createdAt == null || createdAt.isEmpty()) return 0L;
+        try {
+            return Long.parseLong(createdAt);
+        } catch (NumberFormatException ignored) {
+            // Fall through to ISO-8601.
+        }
+        String iso = createdAt.trim().replace(' ', 'T');
+        // Trim sub-second precision and a trailing Z so one pattern covers both.
+        int dot = iso.indexOf('.');
+        if (dot > 0) {
+            int end = dot + 1;
+            while (end < iso.length() && Character.isDigit(iso.charAt(end))) end++;
+            iso = iso.substring(0, dot) + iso.substring(end);
+        }
+        String[] patterns = {
+                "yyyy-MM-dd'T'HH:mm:ssXXX",
+                "yyyy-MM-dd'T'HH:mm:ssZ",
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd"
+        };
+        for (String pattern : patterns) {
+            try {
+                java.text.SimpleDateFormat format =
+                        new java.text.SimpleDateFormat(pattern, java.util.Locale.US);
+                format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                java.util.Date parsed = format.parse(iso);
+                if (parsed != null) return parsed.getTime();
+            } catch (java.text.ParseException ignored) {
+                // Try the next shape.
+            }
+        }
+        return 0L;
+    }
 }

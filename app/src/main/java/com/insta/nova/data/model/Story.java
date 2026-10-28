@@ -15,6 +15,8 @@ public class Story implements Serializable {
     private boolean isSeen;
     private long createdAt;
     private String expiresAt;
+    private String audience;
+    private String editorMeta;
 
     public Story() {}
 
@@ -67,4 +69,12 @@ public class Story implements Serializable {
 
     public String getExpiresAt() { return expiresAt; }
     public void setExpiresAt(String expiresAt) { this.expiresAt = expiresAt; }
+
+    public String getEditorMeta() { return editorMeta; }
+
+    public void setEditorMeta(String value) { editorMeta = value; }
+
+    public String getAudience() { return audience; }
+    public void setAudience(String audience) { this.audience = audience; }
+    public boolean isCloseFriends() { return "close_friends".equalsIgnoreCase(audience); }
 }

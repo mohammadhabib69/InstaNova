@@ -37,6 +37,8 @@ public class ReelRepository {
 
         Map<String, String> query = new HashMap<>();
         query.put("is_reel", "eq.true");
+        // The Reels tab is an Instagram surface: Nova rows never show on it.
+        query.put("space", "eq.insta");
         query.put("order", "created_at.desc");
         query.put("limit", String.valueOf(limit));
         query.put("offset", String.valueOf(offset));
@@ -71,6 +73,7 @@ public class ReelRepository {
         Map<String, String> query = new HashMap<>();
         query.put("user_id", "eq." + userId);
         query.put("is_reel", "eq.true");
+        query.put("space", "eq.insta");
         query.put("order", "created_at.desc");
 
         restApi.getPosts(query).enqueue(new Callback<List<PostDto>>() {

@@ -151,6 +151,8 @@ public class SearchRepository {
         String myId = sessionManager.getUserId();
         Map<String, String> params = new HashMap<>();
         params.put("is_reel", "eq.false");
+        // Explore is an Insta surface: Nova posts belong to the Nova tab only.
+        params.put("space", "eq.insta");
         if (myId != null) {
             params.put("user_id", "neq." + myId);
         }

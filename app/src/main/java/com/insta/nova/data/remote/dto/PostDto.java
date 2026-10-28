@@ -52,8 +52,23 @@ public class PostDto implements Serializable {
     @SerializedName("thumbnail_url")
     private String thumbnailUrl;
 
+    @SerializedName("space")
+    private String space;
+
     @SerializedName("likes_count")
     private int likesCount;
+
+    @SerializedName("hide_like_count")
+    private Boolean hideLikeCount;
+
+    @SerializedName("comments_disabled")
+    private Boolean commentsDisabled;
+
+    @SerializedName("music_url")
+    private String musicUrl;
+
+    @SerializedName("music_title")
+    private String musicTitle;
 
     @SerializedName("comments_count")
     private int commentsCount;
@@ -76,7 +91,7 @@ public class PostDto implements Serializable {
                 username != null ? username : "",
                 avatarUrl != null ? avatarUrl : "",
                 isVerified,
-                caption != null ? caption : "",
+                com.insta.nova.util.ReelMetaCodec.strip(caption),
                 location != null ? location : "",
                 mediaUrls != null ? mediaUrls : (legacyMediaUrls != null ? legacyMediaUrls : new ArrayList<>()),
                 mediaType != null ? mediaType : "image",
@@ -92,6 +107,27 @@ public class PostDto implements Serializable {
         post.setVideoUrl(videoUrl);
         post.setThumbnailUrl(thumbnailUrl);
         post.setCreatedAt(createdAt);
+        post.setSpace(space == null || space.trim().isEmpty() ? Post.SPACE_INSTA : space);
+        post.setHideLikeCount(Boolean.TRUE.equals(hideLikeCount));
+        post.setCommentsDisabled(Boolean.TRUE.equals(commentsDisabled));
+        post.setMusicUrl(musicUrl);
+        post.setMusicTitle(musicTitle);
+        // v_posts already carries the three newest likers; without this the detail screen
+        // could only count hearts, not name who left them.
+        if (topLikers != null) {
+            java.util.List<String> names = new java.util.ArrayList<>();
+            for (TopLikerDto liker : topLikers) {
+                if (liker != null && liker.getUsername() != null
+                        && !liker.getUsername().trim().isEmpty()) {
+                    names.add(liker.getUsername());
+                }
+            }
+            post.setLikerNames(names);
+        }
+        // The reel editor block travels at the end of the caption; toPost() is the one place
+        // every surface goes through, so it is split off here.
+        java.util.Map<String, Object> meta = com.insta.nova.util.ReelMetaCodec.parse(caption);
+        if (!meta.isEmpty()) post.setReelMeta(meta);
         return post;
     }
 

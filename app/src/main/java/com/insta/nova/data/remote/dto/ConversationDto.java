@@ -35,6 +35,18 @@ public class ConversationDto implements Serializable {
     @SerializedName("unread_count")
     private int unread;
 
+    @SerializedName("photo_count")
+    private int photoCount;
+
+    /**
+     * True when this thread is a request for the viewer: the last sender does not
+     * follow them and they have not accepted it yet. Decided server-side from the
+     * viewer's own membership row, so it is already per-viewer and must not be
+     * re-derived on the device.
+     */
+    @SerializedName("is_request")
+    private Boolean isRequest;
+
     public ConversationDto() {}
 
     public Conversation toConversation() {
@@ -51,6 +63,8 @@ public class ConversationDto implements Serializable {
         c.setOtherFullName(fullName != null ? fullName : "");
         c.setLastMessageAt(lastMessageAt);
         c.setUnreadCount(unread);
+        c.setPhotoCount(photoCount);
+        c.setRequest(Boolean.TRUE.equals(isRequest));
         return c;
     }
 

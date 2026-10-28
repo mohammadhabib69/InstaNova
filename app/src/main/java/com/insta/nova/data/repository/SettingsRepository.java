@@ -49,7 +49,9 @@ public class SettingsRepository {
         query.put("user_id", "eq." + sessionManager.getUserId());
         query.put("order", "created_at.desc");
         query.put("limit", "200");
-        restApi.getStories(query).enqueue(new Callback<List<StoryDto>>() {
+        // v_stories only carries live rows, so the archive reads its own view: my
+        // stories that are flagged archived or whose 24h window has already closed.
+        restApi.getArchivedStories(query).enqueue(new Callback<List<StoryDto>>() {
             @Override
             public void onResponse(Call<List<StoryDto>> call, Response<List<StoryDto>> response) {
                 if (!response.isSuccessful() || response.body() == null) {

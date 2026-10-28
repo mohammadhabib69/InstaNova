@@ -121,8 +121,17 @@ public class CommentStore {
 
     /** Appends the signed-in user's comment and returns the stored row. */
     public Comment add(String postId, String text) {
+        return add(postId, text, UUID.randomUUID().toString());
+    }
+
+    /**
+     * Same as {@link #add(String, String)} but keeps a caller-supplied id, so the optimistic
+     * row and the Firestore document share one identifier and a reload cannot show the same
+     * comment twice.
+     */
+    public Comment add(String postId, String text, String id) {
         Comment comment = new Comment(
-                UUID.randomUUID().toString(),
+                id == null || id.trim().isEmpty() ? UUID.randomUUID().toString() : id,
                 postId,
                 accountKey,
                 myUsername == null || myUsername.trim().isEmpty() ? "you" : myUsername,
