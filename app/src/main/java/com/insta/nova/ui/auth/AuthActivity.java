@@ -27,6 +27,9 @@ public class AuthActivity extends AppCompatActivity {
     /** Opens the wizard at the welcome step. */
     public static final String EXTRA_RESUME_AT_WELCOME = "com.insta.nova.extra.RESUME_AT_WELCOME";
 
+    /** Username to prefill on the Login screen when switching to a saved account. */
+    public static final String EXTRA_PREFILL_USERNAME = "com.insta.nova.extra.PREFILL_USERNAME";
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

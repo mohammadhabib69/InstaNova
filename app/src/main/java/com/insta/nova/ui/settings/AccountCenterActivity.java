@@ -1,210 +1,127 @@
 package com.insta.nova.ui.settings;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.InputType;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
+import android.widget.TextView;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
 import com.insta.nova.R;
+import com.insta.nova.data.local.SessionManager;
 import com.insta.nova.data.repository.SettingsRepository;
-import com.insta.nova.databinding.ActivityAccountCenterBinding;
-import com.insta.nova.databinding.ItemSettingsHeaderBinding;
-import com.insta.nova.databinding.ItemSettingsRowBinding;
+import com.insta.nova.util.GlideUtils;
 import com.insta.nova.util.Resource;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Accounts Center — the same list style as PAGE 13, containing the two rows the
- * reference shows: password/security (real password change) and personal details
- * (read-only email, username and joined date straight from profiles).
+ * Prompt N — Accounts Centre ("Velkyn Account").
+ *
+ * <p>Header card with the real avatar/name/username, then the account rows. Every
+ * row opens a real page; privacy shows its live value.
  */
 public class AccountCenterActivity extends AppCompatActivity {
 
-    private static final class Row {
-        final boolean header;
-        final int labelRes;
-        final int iconRes;
-        String value;
-        Row(int labelRes, int iconRes) {
-            this.header = false;
-            this.labelRes = labelRes;
-            this.iconRes = iconRes;
-        }
-        Row(int labelRes) {
-            this.header = true;
-            this.labelRes = labelRes;
-            this.iconRes = 0;
-        }
-    }
-
-    private ActivityAccountCenterBinding binding;
     private SettingsRepository repository;
-    private final List<Row> rows = new ArrayList<>();
-    private Adapter adapter;
-
-    private final Row passwordRow = new Row(R.string.settings_password_security, R.drawable.ic_lock);
-    private final Row emailRow = new Row(R.string.settings_email, 0);
-    private final Row usernameRow = new Row(R.string.settings_username, 0);
-    private final Row joinedRow = new Row(R.string.settings_joined, 0);
+    private LinearLayout content;
+    private TextView tvPrivacyValue;
+    private boolean isPrivate;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityAccountCenterBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.activity_accounts_centre);
 
         repository = new SettingsRepository(this);
-        binding.btnBack.setOnClickListener(v -> finish());
+        content = findViewById(R.id.content);
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        rows.add(new Row(R.string.settings_section_account));
-        rows.add(passwordRow);
-        rows.add(emailRow);
-        rows.add(usernameRow);
-        rows.add(joinedRow);
+        bindHeader();
+        buildRows();
+        loadPrivacy();
+    }
 
-        binding.rvAccountCenter.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new Adapter();
-        binding.rvAccountCenter.setAdapter(adapter);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bindHeader();
+        loadPrivacy();
+    }
+
+    private void bindHeader() {
+        ImageView avatar = findViewById(R.id.ivAvatar);
+        TextView name = findViewById(R.id.tvName);
+        TextView username = findViewById(R.id.tvUsername);
+
+        SessionManager session = SessionManager.getInstance(this);
+        username.setText("@" + session.getUsername());
+        GlideUtils.loadAvatar(avatar, session.getAvatarUrl());
+        name.setText(session.getUsername());
 
         repository.getMyProfileRow().observe(this, resource -> {
             if (resource == null || resource.status != Resource.Status.SUCCESS || resource.data == null) return;
-            Object email = resource.data.get("email");
-            Object username = resource.data.get("username");
-            Object created = resource.data.get("created_at");
-            emailRow.value = email == null ? "—" : String.valueOf(email);
-            usernameRow.value = username == null ? "—" : String.valueOf(username);
-            joinedRow.value = created == null ? "—" : shorten(String.valueOf(created));
-            adapter.notifyDataSetChanged();
+            Object fullName = resource.data.get("full_name");
+            Object user = resource.data.get("username");
+            Object avatarUrl = resource.data.get("avatar_url");
+            if (fullName != null && !String.valueOf(fullName).trim().isEmpty()) {
+                name.setText(String.valueOf(fullName));
+            }
+            if (user != null) username.setText("@" + user);
+            if (avatarUrl != null) GlideUtils.loadAvatar(avatar, String.valueOf(avatarUrl));
         });
     }
 
-    private static String shorten(String iso) {
-        return iso.length() >= 10 ? iso.substring(0, 10) : iso;
+    private void buildRows() {
+        content.removeAllViews();
+        addSection(R.string.st_sec_account);
+        addRow(R.string.st_edit_profile, R.drawable.ic_edit,
+                v -> startActivity(new Intent(this, EditProfileActivity.class)));
+        addRow(R.string.st_account_information, R.drawable.ic_person_circle,
+                v -> startActivity(new Intent(this, AccountInfoActivity.class)));
+        addRow(R.string.st_change_password, R.drawable.ic_lock,
+                v -> startActivity(new Intent(this, ChangePasswordActivity.class)));
+        addRow(R.string.st_login_activity, R.drawable.ic_activity,
+                v -> startActivity(new Intent(this, SessionsActivity.class)));
+        View privacy = addRow(R.string.st_account_privacy, R.drawable.ic_lock,
+                v -> startActivity(new Intent(this, AccountPrivacyActivity.class)));
+        tvPrivacyValue = privacy.findViewById(R.id.tv_value);
+        tvPrivacyValue.setVisibility(View.VISIBLE);
+        tvPrivacyValue.setText(R.string.st_private);
+        addRow(R.string.st_deactivate_delete, R.drawable.ic_error,
+                v -> startActivity(new Intent(this, DeactivateDeleteActivity.class)));
     }
 
-    private void showChangePasswordDialog() {
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        int pad = (int) (16 * getResources().getDisplayMetrics().density);
-        container.setPadding(pad, pad / 2, pad, 0);
-
-        final EditText newPassword = new EditText(this);
-        newPassword.setHint(R.string.settings_new_password);
-        newPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        newPassword.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        container.addView(newPassword);
-
-        final EditText confirmPassword = new EditText(this);
-        confirmPassword.setHint(R.string.settings_confirm_password);
-        confirmPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        confirmPassword.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        container.addView(confirmPassword);
-
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.settings_change_password)
-                .setView(container)
-                .setPositiveButton(R.string.settings_ed_done_ok, (dialog, which) -> {
-                    String first = newPassword.getText().toString();
-                    String second = confirmPassword.getText().toString();
-                    if (first.length() < 6) {
-                        Toast.makeText(this, R.string.settings_password_too_short, Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if (!first.equals(second)) {
-                        Toast.makeText(this, R.string.settings_password_mismatch, Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    repository.updatePassword(first).observe(this, resource -> {
-                        if (resource == null) return;
-                        if (resource.status == Resource.Status.SUCCESS) {
-                            Toast.makeText(this, R.string.settings_password_saved, Toast.LENGTH_SHORT).show();
-                        } else if (resource.status == Resource.Status.ERROR) {
-                            Toast.makeText(this, resource.message == null
-                                    ? getString(R.string.settings_password_mismatch) : resource.message,
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    });
-                })
-                .setNegativeButton(R.string.settings_cancel, null)
-                .show();
+    private void loadPrivacy() {
+        repository.isPrivate().observe(this, resource -> {
+            if (resource == null || resource.status != Resource.Status.SUCCESS || resource.data == null) return;
+            isPrivate = resource.data;
+            if (tvPrivacyValue != null) {
+                tvPrivacyValue.setText(isPrivate ? R.string.st_private : R.string.st_public);
+            }
+        });
     }
 
-    private final class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-        @Override
-        public int getItemViewType(int position) {
-            return rows.get(position).header ? 0 : 1;
-        }
-
-        @NonNull
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-            if (viewType == 0) {
-                return new HeaderHolder(ItemSettingsHeaderBinding.inflate(inflater, parent, false));
-            }
-            return new RowHolder(ItemSettingsRowBinding.inflate(inflater, parent, false));
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            Row row = rows.get(position);
-            if (holder instanceof HeaderHolder) {
-                ((HeaderHolder) holder).binding.tvSection.setText(row.labelRes);
-                return;
-            }
-            RowHolder rowHolder = (RowHolder) holder;
-            ItemSettingsRowBinding b = rowHolder.binding;
-            b.tvLabel.setText(row.labelRes);
-            b.tvDescription.setVisibility(View.GONE);
-            if (row.iconRes != 0) {
-                b.ivIcon.setImageResource(row.iconRes);
-                b.ivIcon.setVisibility(View.VISIBLE);
-            } else {
-                b.ivIcon.setVisibility(View.GONE);
-            }
-            // Personal detail rows are read-only values, not navigable rows.
-            if (row.value != null) {
-                b.tvValue.setText(row.value);
-                b.tvValue.setVisibility(View.VISIBLE);
-                b.ivChevron.setVisibility(View.GONE);
-                b.layoutSettingsRow.setClickable(false);
-            } else {
-                b.tvValue.setVisibility(View.GONE);
-                b.ivChevron.setVisibility(View.VISIBLE);
-                b.layoutSettingsRow.setClickable(true);
-                b.layoutSettingsRow.setOnClickListener(v -> showChangePasswordDialog());
-            }
-        }
-
-        @Override
-        public int getItemCount() {
-            return rows.size();
-        }
+    private void addSection(@StringRes int titleRes) {
+        TextView header = (TextView) LayoutInflater.from(this)
+                .inflate(R.layout.item_settings_header, content, false);
+        header.setText(titleRes);
+        content.addView(header);
     }
 
-    private static final class HeaderHolder extends RecyclerView.ViewHolder {
-        final ItemSettingsHeaderBinding binding;
-        HeaderHolder(ItemSettingsHeaderBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-        }
-    }
-
-    private static final class RowHolder extends RecyclerView.ViewHolder {
-        final ItemSettingsRowBinding binding;
-        RowHolder(ItemSettingsRowBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-        }
+    private View addRow(@StringRes int labelRes, @DrawableRes int iconRes, View.OnClickListener click) {
+        View row = LayoutInflater.from(this).inflate(R.layout.item_settings_row, content, false);
+        ((TextView) row.findViewById(R.id.tv_label)).setText(labelRes);
+        ImageView icon = row.findViewById(R.id.iv_icon);
+        icon.setImageResource(iconRes);
+        icon.setVisibility(View.VISIBLE);
+        row.findViewById(R.id.iv_chevron).setVisibility(View.VISIBLE);
+        row.setOnClickListener(click);
+        content.addView(row);
+        return row;
     }
 }

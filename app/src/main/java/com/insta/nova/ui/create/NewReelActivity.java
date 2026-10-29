@@ -191,9 +191,92 @@ public class NewReelActivity extends AppCompatActivity {
                 System.currentTimeMillis());
 
         store.addReel(reel);
-        ToastUtil.showPill(this, getString(R.string.reel_shared));
+        publishReel(Uri.parse(videoUri), reel.getCaption());
         setResult(RESULT_OK);
-        finish();
+    }
+
+    /**
+     * Makes the reel real.
+     *
+     * <p>The composer used to stop at {@code store.addReel()} — a device-local record plus a
+     * "reel shared" toast — so no other account could ever see it and a reinstall lost it. The
+     * clip is now uploaded to Storage and a {@code posts} row with {@code is_reel} is created,
+     * the same shape a photo post uses.
+     */
+    private void publishReel(@NonNull Uri uri, @Nullable String caption) {
+        String userId = SessionManager.getInstance(this).getUserId();
+        if (userId == null || userId.isEmpty()) {
+            ToastUtil.showPill(this, getString(R.string.reel_publish_failed));
+            finish();
+            return;
+        }
+        final byte[] data;
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
+            if (in == null) throw new IllegalStateException("no stream");
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+            data = out.toByteArray();
+        } catch (Exception e) {
+            ToastUtil.showPill(this, getString(R.string.reel_publish_failed));
+            finish();
+            return;
+        }
+        if (data.length == 0) {
+            ToastUtil.showPill(this, getString(R.string.reel_publish_failed));
+            finish();
+            return;
+        }
+
+        final String path = userId + "/" + UUID.randomUUID() + ".mp4";
+        okhttp3.RequestBody body = okhttp3.RequestBody.create(
+                okhttp3.MediaType.parse("video/mp4"), data);
+        com.insta.nova.data.remote.RetrofitClient client =
+                com.insta.nova.data.remote.RetrofitClient.getInstance(this);
+        client.getStorageApi().uploadFile("posts", path, body).enqueue(new retrofit2.Callback<Void>() {
+            @Override public void onResponse(retrofit2.Call<Void> c, retrofit2.Response<Void> r) {
+                if (!r.isSuccessful()) {
+                    ToastUtil.showPill(NewReelActivity.this, getString(R.string.reel_publish_failed));
+                    finish();
+                    return;
+                }
+                String base = com.insta.nova.BuildConfig.SUPABASE_URL == null
+                        ? "" : com.insta.nova.BuildConfig.SUPABASE_URL.trim();
+                while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+                final String url = base + "/storage/v1/object/public/posts/" + path;
+
+                java.util.Map<String, Object> row = new java.util.HashMap<>();
+                row.put("user_id", userId);
+                row.put("caption", caption == null ? "" : caption);
+                row.put("is_reel", true);
+                row.put("video_url", url);
+                // The grid needs something to paint before the first frame decodes.
+                row.put("thumbnail_url", url);
+                client.getRestApi().createPost(row).enqueue(
+                        new retrofit2.Callback<java.util.List<com.insta.nova.data.remote.dto.PostDto>>() {
+                    @Override public void onResponse(
+                            retrofit2.Call<java.util.List<com.insta.nova.data.remote.dto.PostDto>> c,
+                            retrofit2.Response<java.util.List<com.insta.nova.data.remote.dto.PostDto>> r) {
+                        ToastUtil.showPill(NewReelActivity.this, getString(
+                                r.isSuccessful() ? R.string.reel_shared : R.string.reel_publish_failed));
+                        finish();
+                    }
+
+                    @Override public void onFailure(
+                            retrofit2.Call<java.util.List<com.insta.nova.data.remote.dto.PostDto>> c,
+                            Throwable t) {
+                        ToastUtil.showPill(NewReelActivity.this, getString(R.string.reel_publish_failed));
+                        finish();
+                    }
+                });
+            }
+
+            @Override public void onFailure(retrofit2.Call<Void> c, Throwable t) {
+                ToastUtil.showPill(NewReelActivity.this, getString(R.string.reel_publish_failed));
+                finish();
+            }
+        });
     }
 
     @Override

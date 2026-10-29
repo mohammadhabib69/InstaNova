@@ -29,6 +29,7 @@ import com.insta.nova.data.model.Story;
 import com.insta.nova.databinding.ActivityLocalStoryViewerBinding;
 import com.insta.nova.util.GlideUtils;
 import com.insta.nova.util.TimeUtils;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -204,14 +205,57 @@ public class LocalStoryViewerActivity extends AppCompatActivity {
         boolean video = "video".equalsIgnoreCase(story.getMediaType());
         binding.ivMedia.setVisibility(video ? View.GONE : View.VISIBLE);
         binding.videoView.setVisibility(video ? View.VISIBLE : View.GONE);
+        binding.tvUnavailable.setVisibility(View.GONE);
 
         if (video) {
             playVideo(story);
         } else {
-            Glide.with(this).load(story.getMediaUrl()).into(binding.ivMedia);
+            File local = localFile(story.getMediaUrl());
+            if (local != null && !local.exists()) {
+                // The cached copy was cleaned up (story expired, files cleared). Say so instead of
+                // playing a 5 s black rectangle with no explanation.
+                showUnavailable();
+            } else {
+                Glide.with(this).load(story.getMediaUrl())
+                        .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                            @Override public boolean onLoadFailed(@Nullable com.bumptech.glide.load.engine.GlideException e,
+                                                                  Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                                                                  boolean isFirstResource) {
+                                showUnavailable();
+                                return false;
+                            }
+
+                            @Override public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model,
+                                                                     com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                                                                     com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                                return false;
+                            }
+                        })
+                        .into(binding.ivMedia);
+            }
             storyDuration = IMAGE_DURATION_MS;
             startTicker();
         }
+    }
+
+    /** {@code file://} URLs in the local store point at this app's private cache. */
+    @Nullable
+    private File localFile(@Nullable String url) {
+        if (url == null || !url.startsWith("file://")) return null;
+        try {
+            return new File(Uri.parse(url).getPath());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Media that cannot be decoded used to leave the viewer black for the whole slot, which reads
+     * as a broken screen rather than a missing file.
+     */
+    private void showUnavailable() {
+        binding.tvUnavailable.setVisibility(View.VISIBLE);
+        binding.ivMedia.setVisibility(View.INVISIBLE);
     }
 
     private void playVideo(Story story) {

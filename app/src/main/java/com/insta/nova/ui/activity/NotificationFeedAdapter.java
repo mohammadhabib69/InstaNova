@@ -147,6 +147,12 @@ public class NotificationFeedAdapter extends RecyclerView.Adapter<RecyclerView.V
                 if (n.getCommentText() != null && !n.getCommentText().isEmpty()) {
                     text.append(" ").append(n.getCommentText());
                 }
+            } else if ("story_reaction".equals(type)) {
+                text.append(context.getString(R.string.notification_reacted_story));
+                String reaction = n.getCommentText();
+                if (reaction != null && !reaction.isEmpty()) {
+                    text.append(" ").append(reaction);
+                }
             } else {
                 text.append(context.getString(R.string.notification_liked_post));
             }

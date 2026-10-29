@@ -109,7 +109,7 @@ public class ChatDetailsActivity extends AppCompatActivity {
 
     private void openUserProfile() {
         if (otherUserId == null || otherUserId.isEmpty()) {
-            ToastUtil.showNotAvailable(this);
+            android.widget.Toast.makeText(this, "Profile not found", android.widget.Toast.LENGTH_SHORT).show();
             return;
         }
         Intent intent = new Intent(this, UserProfileActivity.class);
@@ -142,36 +142,17 @@ public class ChatDetailsActivity extends AppCompatActivity {
 
     private void confirmBlock() {
         String name = otherUsername != null ? otherUsername : "this user";
-        new AlertDialog.Builder(this)
-                .setTitle("Block " + name + "?")
-                .setMessage("They won't be able to message you or find your profile, posts, or story on " + com.insta.nova.util.Constants.APP_NAME + ". They won't know you blocked them.")
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Block", (d, w) -> {
-                    settingsStore.setBlocked(otherUserId, true);
-                    ToastUtil.showPill(this, "Blocked " + name);
-                    Intent result = new Intent();
-                    result.putExtra(RESULT_USER_BLOCKED, true);
-                    setResult(RESULT_OK, result);
-                    finish();
-                })
-                .show();
+        com.insta.nova.safe.SafeActions.confirmBlock(this, otherUserId, name, () -> {
+            // Keep the local chat list in sync with the server-side block.
+            settingsStore.setBlocked(otherUserId, true);
+            Intent result = new Intent();
+            result.putExtra(RESULT_USER_BLOCKED, true);
+            setResult(RESULT_OK, result);
+            finish();
+        });
     }
 
     private void showReportDialog() {
-        String[] reasons = {
-                "It's spam",
-                "I just don't like it",
-                "Hate speech or symbols",
-                "Harassment or bullying",
-                "False information",
-                "Scam or fraud"
-        };
-        new AlertDialog.Builder(this)
-                .setTitle("Why are you reporting this account?")
-                .setItems(reasons, (d, which) -> {
-                    ToastUtil.showPill(this, "Thanks for reporting. We use these reports to keep " + com.insta.nova.util.Constants.APP_NAME + " safe.");
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        com.insta.nova.safe.SafeActions.report(this, "user", otherUserId);
     }
 }

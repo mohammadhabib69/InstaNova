@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.insta.nova.R;
 import com.insta.nova.calling.CallManager;
 import com.insta.nova.calling.CallRecord;
+import com.insta.nova.calling.CallRingtone;
 import com.insta.nova.calling.CallSession;
 import com.insta.nova.calling.CallSignalingClient;
 import com.insta.nova.calling.CallTones;
@@ -46,6 +47,7 @@ import java.util.UUID;
  * camera flip, camera enable/disable, mic mute, speaker audio routing, and signaling.
  */
 public class VideoCallActivity extends AppCompatActivity {
+    private static final int ACTIVE_TINT = 0xFF3DDC84;
 
     private static final String TAG = "VideoCallActivity";
 
@@ -80,6 +82,8 @@ public class VideoCallActivity extends AppCompatActivity {
     private boolean hasSetRemoteDescription = false;
     private VideoTrack remoteVideoTrack;
     private boolean remoteVideoAttached = false;
+    private final java.util.concurrent.atomic.AtomicBoolean firstRemoteFrame =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
 
     /**
      * Prompt J — authoritative call state over Supabase Realtime.
@@ -199,11 +203,8 @@ public class VideoCallActivity extends AppCompatActivity {
         }
 
         binding.tvRemoteUsername.setText(otherUsername != null && !otherUsername.isEmpty() ? otherUsername : (com.insta.nova.util.Constants.APP_NAME + " User"));
-        if (otherAvatar != null && !otherAvatar.isEmpty()) {
-            GlideUtils.loadAvatar(binding.ivRemoteAvatar, otherAvatar);
-        } else {
-            binding.ivRemoteAvatar.setImageResource(R.drawable.ic_person_placeholder);
-        }
+        applyPeerAvatar();
+        resolvePeerProfileIfNeeded();
 
         binding.btnMinimize.setOnClickListener(v -> finish());
         binding.btnEndCall.setOnClickListener(v -> endCall());
@@ -217,6 +218,54 @@ public class VideoCallActivity extends AppCompatActivity {
         binding.btnFlipCamera.setOnClickListener(v -> flipCamera());
 
         checkPermissionsAndStart();
+    }
+
+    /** Draws the peer's picture, or the placeholder while it is unknown. */
+    private void applyPeerAvatar() {
+        if (otherAvatar != null && !otherAvatar.isEmpty() && !"none".equalsIgnoreCase(otherAvatar)) {
+            GlideUtils.loadAvatar(binding.ivRemoteAvatar, otherAvatar);
+        } else {
+            binding.ivRemoteAvatar.setImageResource(R.drawable.ic_person_placeholder);
+        }
+    }
+
+    /** Fills in the peer's name and avatar when the caller only had the id. */
+    private void resolvePeerProfileIfNeeded() {
+        if (otherUserId == null || otherUserId.isEmpty()) return;
+        boolean needName = otherUsername == null || otherUsername.trim().isEmpty();
+        boolean needAvatar = otherAvatar == null || otherAvatar.trim().isEmpty()
+                || "none".equalsIgnoreCase(otherAvatar);
+        if (!needName && !needAvatar) return;
+
+        java.util.Map<String, String> q = new java.util.HashMap<>();
+        q.put("id", "eq." + otherUserId);
+        q.put("select", "username,avatar_url");
+        q.put("limit", "1");
+        com.insta.nova.data.remote.RetrofitClient.getInstance(this).getRestApi()
+                .getProfiles(q)
+                .enqueue(new retrofit2.Callback<List<com.insta.nova.data.remote.dto.ProfileDto>>() {
+                    @Override
+                    public void onResponse(@NonNull retrofit2.Call<List<com.insta.nova.data.remote.dto.ProfileDto>> c,
+                                           @NonNull retrofit2.Response<List<com.insta.nova.data.remote.dto.ProfileDto>> r) {
+                        if (isFinishing() || !r.isSuccessful() || r.body() == null || r.body().isEmpty()) return;
+                        com.insta.nova.data.remote.dto.ProfileDto p = r.body().get(0);
+                        if (p == null) return;
+                        if (needName && p.getUsername() != null && !p.getUsername().isEmpty()) {
+                            otherUsername = p.getUsername();
+                            binding.tvRemoteUsername.setText(otherUsername);
+                        }
+                        if (needAvatar && p.getAvatarUrl() != null && !p.getAvatarUrl().isEmpty()) {
+                            otherAvatar = p.getAvatarUrl();
+                            applyPeerAvatar();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull retrofit2.Call<List<com.insta.nova.data.remote.dto.ProfileDto>> c,
+                                          @NonNull Throwable t) {
+                        Log.w(TAG, "peer profile lookup failed: " + t.getMessage());
+                    }
+                });
     }
 
     private void checkPermissionsAndStart() {
@@ -264,14 +313,22 @@ public class VideoCallActivity extends AppCompatActivity {
         });
 
         webRtcManager.init();
+        webRtcManager.startStatsTrace();
 
         // Initialize SurfaceViewRenderers
         initVideoRenderers();
 
-        // Start Local Video Camera Capturer
+        // Start Local Video Camera Capturer — before the offer/answer, so the video m-line
+        // is negotiated in the first SDP rather than added later, when only a renegotiation
+        // the app does not implement could carry it.
         webRtcManager.startVideoCapturer(binding.localVideoRenderer);
 
+        com.insta.nova.calling.CallForegroundService.start(
+                this, callId, otherUsername, otherAvatar, true);
+
         // Start Signaling Listener
+        signalingClient.startSignalPolling(callId,
+                com.insta.nova.data.local.SessionManager.getInstance(this).getUserId());
         signalingClient.startListening(callId, new CallSignalingClient.SignalingListener() {
             @Override
             public void onCallSessionUpdated(@NonNull CallSession session) {
@@ -309,11 +366,11 @@ public class VideoCallActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (!isEnded) {
                         isEnded = true;
-                        int durationSec = (isConnected && callStartMs > 0)
-                                ? (int) ((System.currentTimeMillis() - callStartMs) / 1000) : 0;
-                        CallManager.getInstance(VideoCallActivity.this).endCall(callId, durationSec);
+                        CallTones.getInstance().stop();
+                        // Prompt M: observer only performs local teardown — do NOT call endCall(),
+                        // which would overwrite ended_by on the calls row.
                         binding.tvCallState.setText("reject".equalsIgnoreCase(reason) || CallSession.STATUS_REJECTED.equalsIgnoreCase(reason) ? "Call declined" : "Call ended");
-                        handler.postDelayed(VideoCallActivity.this::finishAfterEnd, 1000L);
+                        handler.postDelayed(VideoCallActivity.this::finishAfterEnd, 600L);
                     }
                 });
             }
@@ -393,6 +450,15 @@ public class VideoCallActivity extends AppCompatActivity {
         this.remoteVideoTrack = track;
         try {
             track.addSink(binding.remoteVideoRenderer);
+            // A second sink that only counts frames. "Track exists" and "frames are
+            // arriving" are different facts, and only the second one means the remote
+            // picture is really up — this is what makes a black tile diagnosable instead
+            // of a guess.
+            track.addSink(frame -> {
+                if (firstRemoteFrame.compareAndSet(false, true)) {
+                    Log.i("WRTCDBG", "REMOTE_VIDEO_FIRST_FRAME at " + System.currentTimeMillis());
+                }
+            });
             binding.remoteVideoRenderer.setVisibility(View.VISIBLE);
             binding.layoutRemotePlaceholder.setVisibility(View.GONE);
             remoteVideoAttached = true;
@@ -467,6 +533,10 @@ public class VideoCallActivity extends AppCompatActivity {
         Log.d(TAG, "IceConnectionState changed to: " + state);
         if (state == PeerConnection.IceConnectionState.CONNECTED ||
             state == PeerConnection.IceConnectionState.COMPLETED) {
+            // Media is flowing, so the call is answered even if the calls row never
+            // delivered a `connected` frame. Without this the caller's ringback kept
+            // beeping under the conversation.
+            CallTones.getInstance().stop();
             if (!isConnected) {
                 isConnected = true;
                 callStartMs = System.currentTimeMillis();
@@ -521,7 +591,9 @@ public class VideoCallActivity extends AppCompatActivity {
         boolean newMute = !webRtcManager.isMuted();
         webRtcManager.setMuted(newMute);
         binding.ivMicToggle.setImageResource(newMute ? R.drawable.ic_mic_off : R.drawable.ic_mic);
-        binding.btnToggleMic.setAlpha(newMute ? 0.6f : 1.0f);
+        binding.btnToggleMic.setBackgroundResource(newMute
+                ? R.drawable.bg_call_control_active : R.drawable.bg_call_control_idle);
+        binding.btnToggleMic.setSelected(newMute);
     }
 
     private void endCall() {
@@ -560,7 +632,10 @@ public class VideoCallActivity extends AppCompatActivity {
 
         CallManager.getInstance(this).removeObserver(callObserver);
         CallTones.getInstance().stop();
+        CallRingtone.get().stopFor(callId);
         CallManager.getInstance(this).clearActiveSession(callId);
+        com.insta.nova.calling.CallForegroundService.stop(this);
+        com.insta.nova.calling.CallNotificationHelper.cancelOngoingCallNotification(this);
 
         if (remoteVideoTrack != null) {
             try {

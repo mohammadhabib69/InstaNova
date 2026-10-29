@@ -91,7 +91,13 @@ public class StoryTrayAdapter extends RecyclerView.Adapter<StoryTrayAdapter.View
                         ? StoryRingView.RingState.NONE
                         : (unseen ? StoryRingView.RingState.UNSEEN
                         : StoryRingView.RingState.SEEN), !active);
-                binding.ivAddBadge.setVisibility(active ? View.GONE : View.VISIBLE);
+                // The badge used to disappear as soon as the owner had an active story, which left
+                // no way at all to add a second one — tapping the tile only opened the viewer.
+                binding.ivAddBadge.setVisibility(View.VISIBLE);
+                binding.ivAddBadge.setClickable(true);
+                binding.ivAddBadge.setOnClickListener(v -> {
+                    if (listener != null) listener.onAddStoryClick();
+                });
             } else {
                 binding.ivAddBadge.setVisibility(View.GONE);
                 binding.storyRingView.setRingState(unseen

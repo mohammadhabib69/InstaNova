@@ -153,6 +153,20 @@ public class NewPostActivity extends AppCompatActivity {
             finish();
             return;
         }
+        String captionText = binding.etCaption.getText().toString().trim();
+        if (!captionText.isEmpty()) {
+            com.insta.nova.safe.NovaModerationDialog.guard(this, "caption", captionText, 3, false,
+                    this::doShare, () -> binding.etCaption.requestFocus());
+            return;
+        }
+        doShare();
+    }
+
+    private void doShare() {
+        if (mediaUri == null) {
+            finish();
+            return;
+        }
         SessionManager session = SessionManager.getInstance(this);
         String userId = session.getUserId();
         String username = session.getUsername();

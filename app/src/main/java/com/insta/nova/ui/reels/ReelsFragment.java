@@ -22,7 +22,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
+import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
 import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
@@ -133,13 +136,14 @@ public class ReelsFragment extends Fragment {
 
     /**
      * Wires the decorative PAGE 5 chrome. Design-only elements follow the
-     * shared Constants.DECORATIVE_UI contract: visible with a 'Not available'
-     * toast when enabled, hidden when the flag is off.
+     * shared Constants.DECORATIVE_UI contract.
      */
     private void setupChrome() {
         if (Constants.DECORATIVE_UI) {
             binding.btnReelTitle.setVisibility(View.VISIBLE);
-            binding.btnReelTitle.setOnClickListener(v -> ToastUtil.showNotAvailable(requireContext()));
+            binding.btnReelTitle.setOnClickListener(v -> {
+                if (binding.vpReels != null) binding.vpReels.setCurrentItem(0, true);
+            });
         } else {
             binding.btnReelTitle.setVisibility(View.GONE);
             binding.ivReelTitleChevron.setVisibility(View.GONE);
@@ -148,6 +152,35 @@ public class ReelsFragment extends Fragment {
 
     private void openCreateReel() {
         startActivity(new Intent(requireContext(), NewReelActivity.class));
+    }
+
+    /** Always / Wi-Fi only / Never, applied to every reel page change. */
+    private boolean autoplayAllowed() {
+        if (!isAdded()) return true;
+        String mode = new com.insta.nova.data.local.AppSettingsStore(requireContext()).autoplay();
+        if (com.insta.nova.data.local.AppSettingsStore.AUTOPLAY_NEVER.equals(mode)) return false;
+        if (com.insta.nova.data.local.AppSettingsStore.AUTOPLAY_WIFI.equals(mode)) {
+            android.net.NetworkInfo info = ((android.net.ConnectivityManager)
+                    requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE))
+                    .getActiveNetworkInfo();
+            return info != null && info.getType() == android.net.ConnectivityManager.TYPE_WIFI;
+        }
+        return true;
+    }
+
+    /** Opens the pager at the reel explicitly requested by Profile. */
+    private void scrollToRequestedReel() {
+        if (getActivity() == null || getActivity().getIntent() == null) return;
+        String reelId = getActivity().getIntent().getStringExtra(
+                com.insta.nova.ui.main.MainActivity.EXTRA_REEL_ID);
+        if (reelId == null || reelId.isEmpty()) return;
+        for (int i = 0; i < reelsList.size(); i++) {
+            if (reelId.equals(reelsList.get(i).getId())) {
+                binding.vpReels.setCurrentItem(i, false);
+                break;
+            }
+        }
+        getActivity().getIntent().removeExtra(com.insta.nova.ui.main.MainActivity.EXTRA_REEL_ID);
     }
 
     public void loadReels() {
@@ -169,7 +202,10 @@ public class ReelsFragment extends Fragment {
                 } else {
                     binding.layoutReelsEmpty.setVisibility(View.GONE);
                     binding.vpReels.setVisibility(View.VISIBLE);
-                    binding.vpReels.post(() -> adapter.onPageSelected(binding.vpReels.getCurrentItem()));
+                    binding.vpReels.post(() -> {
+                        scrollToRequestedReel();
+                        adapter.onPageSelected(binding.vpReels.getCurrentItem());
+                    });
                 }
             } else if (resource.status == Resource.Status.ERROR) {
                 // Offline: locally composed reels still play.
@@ -182,7 +218,10 @@ public class ReelsFragment extends Fragment {
                 } else {
                     binding.layoutReelsEmpty.setVisibility(View.GONE);
                     binding.vpReels.setVisibility(View.VISIBLE);
-                    binding.vpReels.post(() -> adapter.onPageSelected(binding.vpReels.getCurrentItem()));
+                    binding.vpReels.post(() -> {
+                        scrollToRequestedReel();
+                        adapter.onPageSelected(binding.vpReels.getCurrentItem());
+                    });
                 }
             }
         });
@@ -266,6 +305,7 @@ public class ReelsFragment extends Fragment {
             if (currentHolder != null) {
                 currentHolder.pausePlayer();
             }
+            if (!autoplayAllowed()) return;
             RecyclerView rv = (RecyclerView) binding.vpReels.getChildAt(0);
             if (rv != null) {
                 ReelViewHolder holder = (ReelViewHolder) rv.findViewHolderForAdapterPosition(position);
@@ -293,8 +333,23 @@ public class ReelsFragment extends Fragment {
         class ReelViewHolder extends RecyclerView.ViewHolder {
             private final ItemReelPlayerBinding itemBinding;
             private ExoPlayer exoPlayer;
+            private ExoPlayer musicPlayer;
             private Post currentPost;
             private boolean isMuted = false;
+            private float appliedOriginalVolume = 1f;
+            private float appliedMusicVolume = 0f;
+            /** Timed text lines from the author's editor meta: {text,startMs,endMs}. */
+            private java.util.List<java.util.Map<String, Object>> timedLines =
+                    new java.util.ArrayList<>();
+            private android.widget.TextView timedText;
+            private final android.os.Handler uiHandler =
+                    new android.os.Handler(android.os.Looper.getMainLooper());
+            private final Runnable ticker = new Runnable() {
+                @Override public void run() {
+                    showLineAt(positionMs());
+                    uiHandler.postDelayed(this, 120L);
+                }
+            };
 
             ReelViewHolder(ItemReelPlayerBinding itemBinding) {
                 super(itemBinding.getRoot());
@@ -311,7 +366,14 @@ public class ReelsFragment extends Fragment {
                     // Real action: hand the reel to the system share sheet.
                     itemBinding.ivReelSend.setOnClickListener(v -> shareReel(itemView.getContext(), post));
                     itemBinding.ivReelMore.setVisibility(View.VISIBLE);
-                    itemBinding.ivReelMore.setOnClickListener(v -> ToastUtil.showNotAvailable(itemView.getContext()));
+                    itemBinding.ivReelMore.setOnClickListener(v ->
+                            com.insta.nova.ui.post.PostOptionsSheet.show(
+                                    itemView.getContext(), post,
+                                    new com.insta.nova.ui.post.PostOptionsSheet.Callback() {
+                                        @Override public void onChanged() { }
+                                        @Override public void onDeleted() { loadReels(); }
+                                        @Override public void onArchived() { loadReels(); }
+                                    }));
                 } else {
                     itemBinding.layoutReelSend.setVisibility(View.GONE);
                     itemBinding.ivReelMore.setVisibility(View.GONE);
@@ -364,14 +426,18 @@ public class ReelsFragment extends Fragment {
                 });
 
                 itemBinding.ivReelComment.setOnClickListener(v -> {
-                    CommentsBottomSheet sheet = CommentsBottomSheet.newInstance(post.getId(), post.getCommentsCount());
+                    CommentsBottomSheet sheet = CommentsBottomSheet.newInstance(post.getId(), post.getCommentsCount(),
+                            null, post.isCommentsDisabled());
                     sheet.show(getChildFragmentManager(), "CommentsBottomSheet");
                 });
 
                 itemBinding.ivReelMute.setOnClickListener(v -> {
                     isMuted = !isMuted;
                     if (exoPlayer != null) {
-                        exoPlayer.setVolume(isMuted ? 0f : 1f);
+                        exoPlayer.setVolume(isMuted ? 0f : appliedOriginalVolume);
+                    }
+                    if (musicPlayer != null) {
+                        musicPlayer.setVolume(isMuted ? 0f : appliedMusicVolume);
                     }
                     itemBinding.ivReelMute.setImageResource(isMuted ? R.drawable.ic_volume_off : R.drawable.ic_volume_up);
                 });
@@ -380,15 +446,139 @@ public class ReelsFragment extends Fragment {
                     if (exoPlayer != null) {
                         if (exoPlayer.isPlaying()) {
                             exoPlayer.pause();
+                            if (musicPlayer != null) musicPlayer.pause();
+                            uiHandler.removeCallbacks(ticker);
                             itemBinding.ivPlayIndicator.setVisibility(View.VISIBLE);
                         } else {
                             exoPlayer.play();
+                            // Autoplay can be off (Wi-Fi only, for instance), and then the
+                            // track and the caption clock have to start with the manual tap.
+                            if (musicPlayer != null) {
+                                try {
+                                    musicPlayer.seekTo(Math.max(0L, exoPlayer.getCurrentPosition()));
+                                } catch (Exception ignored) {
+                                }
+                                musicPlayer.play();
+                            }
+                            uiHandler.removeCallbacks(ticker);
+                            uiHandler.post(ticker);
                             itemBinding.ivPlayIndicator.setVisibility(View.GONE);
                         }
                     }
                 });
 
+                ensureTimedText();
                 initPlayer(post);
+            }
+
+            /** One centred caption above the video, reused across binds. */
+            private void ensureTimedText() {
+                if (timedText != null) return;
+                timedText = new android.widget.TextView(itemView.getContext());
+                timedText.setTextColor(android.graphics.Color.WHITE);
+                timedText.setTextSize(22);
+                timedText.setGravity(android.view.Gravity.CENTER);
+                timedText.setShadowLayer(8f, 0f, 0f, 0xCC000000);
+                timedText.setVisibility(View.GONE);
+                android.widget.FrameLayout.LayoutParams lp =
+                        new android.widget.FrameLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT);
+                lp.gravity = android.view.Gravity.CENTER;
+                lp.leftMargin = lp.rightMargin = 32;
+                ((ViewGroup) itemView).addView(timedText, lp);
+            }
+
+            private long positionMs() {
+                if (exoPlayer == null) return 0L;
+                try {
+                    return exoPlayer.getCurrentPosition();
+                } catch (Exception e) {
+                    return 0L;
+                }
+            }
+
+            private void showLineAt(long ms) {
+                if (timedText == null) return;
+                String text = null;
+                for (java.util.Map<String, Object> line : timedLines) {
+                    long start = longOf(line.get("startMs"));
+                    long end = longOf(line.get("endMs"));
+                    if (ms >= start && ms <= end) {
+                        Object raw = line.get("text");
+                        text = raw == null ? null : String.valueOf(raw);
+                        break;
+                    }
+                }
+                if (text == null || text.isEmpty()) {
+                    timedText.setVisibility(View.GONE);
+                } else {
+                    timedText.setText(text);
+                    timedText.setVisibility(View.VISIBLE);
+                }
+            }
+
+            private long longOf(Object value) {
+                return value instanceof Number ? ((Number) value).longValue() : 0L;
+            }
+
+            /**
+             * Applies the author's editor meta: the two volume levels, the attached track and
+             * the timed text. The clip itself is unchanged — the text and the music are drawn
+             * and mixed at playback.
+             */
+            private void applyEditorMeta(Post post) {
+                // The editor block is parsed out of the caption by PostDto.toPost(), so it is
+                // already on the model when the row is bound.
+                java.util.Map<String, Object> meta = post.getReelMeta();
+                if (meta == null || meta.isEmpty()) {
+                    timedLines = new java.util.ArrayList<>();
+                    return;
+                }
+                float original = com.insta.nova.data.reel.ReelMetaStore.number(
+                        meta, "originalVolume", 1f);
+                appliedOriginalVolume = original;
+                if (exoPlayer != null) {
+                    exoPlayer.setVolume(isMuted ? 0f : original);
+                }
+                timedLines = com.insta.nova.data.reel.ReelMetaStore.list(meta, "elements");
+                Object musicUrl = meta.get("musicUrl");
+                float musicLevel = com.insta.nova.data.reel.ReelMetaStore.number(
+                        meta, "musicVolume", 0f);
+                appliedMusicVolume = musicLevel;
+                if (musicUrl != null && !String.valueOf(musicUrl).isEmpty()) {
+                    startMusicTrack(String.valueOf(musicUrl), musicLevel);
+                }
+                uiHandler.removeCallbacks(ticker);
+                uiHandler.post(ticker);
+            }
+
+            private void startMusicTrack(String rawUrl, float level) {
+                releaseMusic();
+                try {
+                    String url = com.insta.nova.util.MediaUrl.toAuthenticated(
+                            com.insta.nova.util.MediaUrl.normalize("posts", rawUrl));
+                    musicPlayer = new ExoPlayer.Builder(itemView.getContext()).build();
+                    musicPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
+                    musicPlayer.setVolume(level);
+                    musicPlayer.setMediaSource(new ProgressiveMediaSource.Factory(
+                            com.insta.nova.util.MediaUrl.streamFactory())
+                            .createMediaSource(MediaItem.fromUri(url)));
+                    musicPlayer.prepare();
+                    if (exoPlayer != null && exoPlayer.isPlaying()) musicPlayer.play();
+                } catch (Exception e) {
+                    releaseMusic();
+                }
+            }
+
+            private void releaseMusic() {
+                if (musicPlayer == null) return;
+                try {
+                    musicPlayer.stop();
+                    musicPlayer.release();
+                } catch (Exception ignored) {
+                }
+                musicPlayer = null;
             }
 
             /** Abbreviated counter, hidden at 0. */
@@ -519,12 +709,27 @@ public class ReelsFragment extends Fragment {
                 exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
                 exoPlayer.setVolume(isMuted ? 0f : 1f);
 
-                MediaItem mediaItem = MediaItem.fromUri(videoUrl);
-                exoPlayer.setMediaItem(mediaItem);
+                // ExoPlayer does not share the app's OkHttp client, so it does not get the
+                // apikey/bearer pair that a private bucket requires. The URL is rewritten to
+                // the authenticated endpoint here and the same headers are attached to the
+                // data source; without this the player fails with HTTP 400 on every reel.
+                String streamUrl = com.insta.nova.util.MediaUrl.toAuthenticated(
+                        com.insta.nova.util.MediaUrl.normalize("posts", videoUrl));
+                MediaSource source = new ProgressiveMediaSource.Factory(
+                        com.insta.nova.util.MediaUrl.streamFactory())
+                        .createMediaSource(MediaItem.fromUri(streamUrl));
+                exoPlayer.setMediaSource(source);
+                exoPlayer.addListener(new Player.Listener() {
+                    @Override
+                    public void onPlayerError(androidx.media3.common.PlaybackException error) {
+                        Log.e("InstaReel", "playback error on " + streamUrl, error);
+                    }
+                });
                 exoPlayer.prepare();
 
                 itemBinding.playerView.setPlayer(exoPlayer);
                 activePlayers.add(exoPlayer);
+                applyEditorMeta(post);
             }
 
             void startPlayer() {
@@ -532,15 +737,26 @@ public class ReelsFragment extends Fragment {
                     exoPlayer.play();
                     itemBinding.ivPlayIndicator.setVisibility(View.GONE);
                 }
+                if (musicPlayer != null) {
+                    musicPlayer.play();
+                }
+                uiHandler.removeCallbacks(ticker);
+                uiHandler.post(ticker);
             }
 
             void pausePlayer() {
                 if (exoPlayer != null) {
                     exoPlayer.pause();
                 }
+                if (musicPlayer != null) {
+                    musicPlayer.pause();
+                }
+                uiHandler.removeCallbacks(ticker);
             }
 
             void releasePlayer() {
+                uiHandler.removeCallbacks(ticker);
+                releaseMusic();
                 if (exoPlayer != null) {
                     activePlayers.remove(exoPlayer);
                     try {

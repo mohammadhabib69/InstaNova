@@ -43,7 +43,14 @@ public class HighlightViewerActivity extends AppCompatActivity {
         if (highlightId == null) { finish(); return; }
 
         new HighlightRepository(this).getHighlightItems(highlightId).observe(this, res -> {
-            if (res == null || res.status != Resource.Status.SUCCESS || res.data == null) {
+            android.util.Log.d("InstaHl", "viewer id=" + highlightId
+                    + " status=" + (res == null ? "null" : res.status)
+                    + " n=" + (res == null || res.data == null ? -1 : res.data.size()));
+            if (res == null) { finish(); return; }
+            // LOADING is the first emission, always. Finishing on it closed the viewer in the same
+            // frame it opened — every server highlight looked like a dead tile.
+            if (res.status == Resource.Status.LOADING) return;
+            if (res.status != Resource.Status.SUCCESS || res.data == null) {
                 finish();
                 return;
             }

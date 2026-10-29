@@ -174,7 +174,11 @@ public class ProfileScreenAdapter extends RecyclerView.Adapter<RecyclerView.View
         bindFollowedBy(b);
 
         // Follow button state.
-        if (ui.iFollow) {
+        if (ui.isRequested) {
+            b.tvFollow.setText("Requested");
+            b.ivFollowChevron.setVisibility(View.GONE);
+            b.btnFollow.setBackgroundResource(R.drawable.bg_p18_button);
+        } else if (ui.iFollow) {
             b.tvFollow.setText("Following");
             b.ivFollowChevron.setVisibility(View.VISIBLE);
             b.btnFollow.setBackgroundResource(R.drawable.bg_p18_button);

@@ -82,7 +82,7 @@ public class AccountPrivacyActivity extends AppCompatActivity {
             binding.switchPrivate.setChecked(serverValue);
             return;
         }
-        final boolean target = !binding.switchPrivate.isChecked();
+        final boolean target = binding.switchPrivate.isChecked();
         if (target) {
             applyPrivacy(true);
         } else {
@@ -135,9 +135,8 @@ public class AccountPrivacyActivity extends AppCompatActivity {
         span.setSpan(new ClickableSpan() {
             @Override
             public void onClick(@NonNull View widget) {
-                if (com.insta.nova.util.Constants.DECORATIVE_UI) {
-                    ToastUtil.showNotAvailable(AccountPrivacyActivity.this);
-                }
+                startActivity(LegalActivity.docIntent(AccountPrivacyActivity.this,
+                        LegalActivity.DOC_PRIVACY));
             }
         }, start, span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         paragraph.setMovementMethod(LinkMovementMethod.getInstance());

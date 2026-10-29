@@ -28,6 +28,7 @@ import com.insta.nova.InstaApp;
 import com.insta.nova.R;
 import com.insta.nova.util.Constants;
 import com.insta.nova.data.model.Post;
+import com.insta.nova.data.model.Story;
 import com.insta.nova.data.model.StoryGroup;
 import com.insta.nova.databinding.DialogPostOptionsBinding;
 import com.insta.nova.databinding.FragmentHomeBinding;
@@ -41,8 +42,6 @@ import com.insta.nova.ui.activity.NotificationsActivity;
 import com.insta.nova.ui.chat.InboxActivity;
 import com.insta.nova.ui.chat.UserProfileActivity;
 import com.insta.nova.ui.comment.CommentsBottomSheet;
-import com.insta.nova.ui.create.CreateStoryActivity;
-import com.insta.nova.ui.create.NewStoryActivity;
 import com.insta.nova.ui.create.CreateSheet;
 import com.insta.nova.ui.story.LocalStoryViewerActivity;
 import com.insta.nova.ui.story.StoryViewerActivity;
@@ -100,6 +99,7 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
             startActivity(intent);
         });
         // PAGE 8A — the '+' opens the Create sheet, whose rows launch the existing flows
+        // Back to the original pop-up sheet: Story, Post, Reel, Highlight, Live, Made for you.
         binding.btnCreate.setOnClickListener(v -> CreateSheet.show(requireContext()));
 
         setupRecyclerView();
@@ -199,6 +199,11 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
         super.onResume();
         if (viewModel != null) viewModel.refresh();
         refreshUnreadBadges();
+        // The heart badge counts backend rows only. Syncing on resume keeps it honest
+        // without waiting for the notifications screen to be opened.
+        if (getContext() != null) {
+            NotificationCenter.get(requireContext()).syncFromServer(null);
+        }
     }
 
     /**
@@ -266,12 +271,70 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
     }
 
     // --- Story Tray Callbacks ---
+    private boolean isOnline() {
+        try {
+            android.net.ConnectivityManager cm = (android.net.ConnectivityManager)
+                    requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+            android.net.Network n = cm == null ? null : cm.getActiveNetwork();
+            android.net.NetworkCapabilities caps = n == null ? null : cm.getNetworkCapabilities(n);
+            return caps != null && caps.hasCapability(
+                    android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Override
     public void onStoryClick(StoryGroup group, int position) {
         if (group == null || !isAdded()) return;
         LocalSocialStore localStore = new LocalSocialStore(requireContext());
-        if (group.isOwner() && !localStore.getActiveStories().isEmpty()) {
-            startActivity(new Intent(requireContext(), LocalStoryViewerActivity.class));
+        if (group.isOwner()) {
+            // The owner tile means "watch mine" only when there is something to watch. With no
+            // active story it used to open an empty viewer, which from the user's side is
+            // indistinguishable from a dead tap — the reported "story e dhuke na".
+            //
+            // The decision was made from the local store alone, so an owner whose stories live
+            // only on the server (published on another device, or a fresh install) got the
+            // add-story picker while their ring was on screen. The group is the authority now:
+            // it is the same object that drew the ring.
+            boolean serverStories = group.hasActiveStory()
+                    && group.getStories() != null && !group.getStories().isEmpty();
+            if (serverStories) {
+                Intent intent = new Intent(requireContext(),
+                        com.insta.nova.ui.story.StoryViewerActivity.class);
+                intent.putExtra("user_id",
+                        com.insta.nova.data.local.SessionManager.getInstance(requireContext()).getUserId());
+                intent.putExtra("username",
+                        com.insta.nova.data.local.SessionManager.getInstance(requireContext()).getUsername());
+                startActivity(intent);
+            } else if (localStore.getActiveStories().isEmpty()) {
+                // Nothing captured locally. The new story flow publishes straight to the
+                // server and keeps no local copy, so the only way to know is to ask the
+                // viewer: it opens the story when one exists and hands off to the camera
+                // when the account has none.
+                Intent intent = new Intent(requireContext(),
+                        com.insta.nova.ui.story.StoryViewerActivity.class);
+                intent.putExtra("user_id",
+                        com.insta.nova.data.local.SessionManager.getInstance(requireContext()).getUserId());
+                intent.putExtra("username",
+                        com.insta.nova.data.local.SessionManager.getInstance(requireContext()).getUsername());
+                startActivity(intent);
+            } else if (hasPublishedCopy(requireContext(), localStore)) {
+                // A published story belongs in the server viewer: that is the only screen with
+                // delete, save, add-to-highlight and the audience control. Opening the local
+                // viewer here was why the owner never saw those options.
+                Intent intent = new Intent(requireContext(),
+                        com.insta.nova.ui.story.StoryViewerActivity.class);
+                intent.putExtra("user_id",
+                        com.insta.nova.data.local.SessionManager.getInstance(requireContext()).getUserId());
+                intent.putExtra("username",
+                        com.insta.nova.data.local.SessionManager.getInstance(requireContext()).getUsername());
+                startActivity(intent);
+            } else {
+                // Never published (offline capture): the server viewer would list nothing, so the
+                // local viewer is the only one that can show these pixels.
+                startActivity(new Intent(requireContext(), LocalStoryViewerActivity.class));
+            }
             return;
         }
         if (group.getUserId() == null || group.getUserId().trim().isEmpty()) return;
@@ -284,7 +347,28 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
     @Override
     public void onAddStoryClick() {
         if (!isAdded()) return;
-        startActivity(new Intent(requireContext(), NewStoryActivity.class));
+        startActivity(new Intent(requireContext(), com.insta.nova.ui.story2.StoryCameraActivity.class));
+    }
+
+    /**
+     * True when at least one cached story was accepted by Storage and the `stories` table.
+     *
+     * <p>{@code NewStoryActivity} records the published URL under {@code story_url_<file>} at the
+     * moment the row is created, so this is the same evidence the highlight picker uses — not a
+     * guess based on connectivity.
+     */
+    private static boolean hasPublishedCopy(@NonNull android.content.Context context,
+                                           @NonNull LocalSocialStore store) {
+        android.content.SharedPreferences urls =
+                context.getSharedPreferences("story_urls", android.content.Context.MODE_PRIVATE);
+        if (urls.getAll().isEmpty()) return false;
+        for (Story story : store.getActiveStories()) {
+            String url = story.getMediaUrl();
+            if (url == null || !url.startsWith("file://")) continue;
+            String name = android.net.Uri.parse(url).getLastPathSegment();
+            if (name != null && urls.getString("story_url_" + name, null) != null) return true;
+        }
+        return false;
     }
 
     // --- Post Interaction Callbacks ---
@@ -322,18 +406,16 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
     @Override
     public void onLikeClick(Post post, int position) {
         if (post == null) return;
-        boolean becomingLiked = !post.isLikedByMe();
+        // The like itself is the only effect: notifications come from the backend when
+        // somebody else reacts, never from a local "demo audience".
         viewModel.toggleLike(post, position);
-        if (becomingLiked && isAdded()) {
-            // Demo audience reacts to real in-app activity.
-            NotificationCenter.get(requireContext()).onPostLiked(post);
-        }
     }
 
     @Override
     public void onCommentClick(Post post) {
         if (post == null || post.getId() == null || post.getId().trim().isEmpty() || !isAdded()) return;
-        CommentsBottomSheet sheet = CommentsBottomSheet.newInstance(post.getId(), post.getCommentsCount());
+        CommentsBottomSheet sheet = CommentsBottomSheet.newInstance(post.getId(), post.getCommentsCount(),
+                null, post.isCommentsDisabled());
         sheet.show(getChildFragmentManager(), "CommentsBottomSheet");
     }
 
@@ -381,8 +463,13 @@ public class HomeFragment extends Fragment implements FeedPostAdapter.OnPostInte
 
         boolean isMyPost = Objects.equals(post.getUserId(), viewModel.getCurrentUserId());
 
+        // Owner-only rows. The layout ships them visible, so anybody else's post showed
+        // "Edit caption / Archive / Delete" — actions the viewer can never perform.
+        dialogBinding.btnEditCaption.setVisibility(isMyPost ? View.VISIBLE : View.GONE);
+        dialogBinding.btnArchivePost.setVisibility(isMyPost ? View.VISIBLE : View.GONE);
+        dialogBinding.btnDeletePost.setVisibility(isMyPost ? View.VISIBLE : View.GONE);
+
         if (isMyPost) {
-            dialogBinding.btnDeletePost.setVisibility(View.VISIBLE);
             dialogBinding.btnDeletePost.setOnClickListener(v -> {
                 dialog.dismiss();
                 viewModel.deletePost(post);

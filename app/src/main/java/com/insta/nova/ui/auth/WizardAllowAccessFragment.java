@@ -65,14 +65,8 @@ public class WizardAllowAccessFragment extends WizardStepFragment {
         binding.tvHelper.setText(getString(R.string.vibe_allow_helper, Constants.APP_NAME));
         buildContactsDescription();
 
-        // Contacts is design-only: it claims more than the app does.
-        if (Constants.DECORATIVE_UI) {
-            binding.rowContacts.setVisibility(View.VISIBLE);
-            binding.rowContacts.setOnClickListener(v ->
-                    com.insta.nova.util.ToastUtil.showNotAvailable(requireContext()));
-        } else {
-            binding.rowContacts.setVisibility(View.GONE);
-        }
+        // Contacts is design-only: removed entry point.
+        binding.rowContacts.setVisibility(View.GONE);
 
         binding.btnSkip.setOnClickListener(v -> openHome());
         binding.btnNext.setOnClickListener(v -> requestNotificationsThenFinish());

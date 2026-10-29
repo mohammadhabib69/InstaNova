@@ -16,6 +16,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.insta.nova.R;
+import com.insta.nova.data.model.Post;
 import com.insta.nova.data.local.TemplateCatalog;
 import com.insta.nova.databinding.ActivityTemplateEditorBinding;
 import com.insta.nova.databinding.DialogTemplatePreviewBinding;
@@ -164,16 +165,18 @@ public class TemplateEditorActivity extends AppCompatActivity {
 
         String[] inputs = values();
         if (asStory) {
-            Intent next = new Intent(this, NewStoryActivity.class);
-            next.putExtra(NewStoryActivity.EXTRA_MEDIA_URI, mediaUri);
+            Intent next = new Intent(this, com.insta.nova.ui.story2.StoryEditorActivity.class);
+            next.putStringArrayListExtra("segments", new java.util.ArrayList<>(
+                    java.util.Collections.singletonList(mediaUri.toString())));
             startActivity(next);
         } else {
-            Intent next = new Intent(this, NewPostActivity.class);
-            next.putExtra(NewPostActivity.EXTRA_MEDIA_URI, mediaUri);
-            next.putExtra(NewPostActivity.EXTRA_CAPTION,
-                    template.caption(inputs.length > 0 ? inputs[0] : "",
-                            inputs.length > 1 ? inputs[1] : ""));
+            // The old stub only kept the card on this device and claimed "post shared".
+            // Hand the rendered card to the real composer so it uploads like any other post.
+            Intent next = new Intent(this, CreatePostActivity.class);
+            next.putExtra(CreatePostActivity.EXTRA_INITIAL_MEDIA, mediaUri);
+            next.putExtra(CreatePostActivity.EXTRA_SPACE, Post.SPACE_INSTA);
             startActivity(next);
+            setResult(RESULT_OK);
         }
         finish();
     }

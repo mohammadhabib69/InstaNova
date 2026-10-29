@@ -1,5 +1,6 @@
 package com.insta.nova.ui.chat;
 
+import android.view.View;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -21,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.insta.nova.R;
 import com.insta.nova.calling.CallManager;
 import com.insta.nova.calling.CallRecord;
+import com.insta.nova.calling.CallRingtone;
 import com.insta.nova.calling.CallSession;
 import com.insta.nova.calling.CallSignalingClient;
 import com.insta.nova.calling.CallTones;
@@ -46,6 +48,7 @@ import java.util.UUID;
  * recipient-scoped signaling, mute/speaker toggles, and call duration tracking.
  */
 public class AudioCallActivity extends AppCompatActivity {
+    private static final int ACTIVE_TINT = 0xFF3DDC84;
 
     private static final String TAG = "AudioCallActivity";
 
@@ -198,11 +201,11 @@ public class AudioCallActivity extends AppCompatActivity {
         }
 
         binding.tvCallUsername.setText(otherUsername != null && !otherUsername.isEmpty() ? otherUsername : (com.insta.nova.util.Constants.APP_NAME + " User"));
-        if (otherAvatar != null && !otherAvatar.isEmpty()) {
-            GlideUtils.loadAvatar(binding.ivCallAvatar, otherAvatar);
-        } else {
-            binding.ivCallAvatar.setImageResource(R.drawable.ic_person_placeholder);
-        }
+        applyPeerAvatar();
+        // A chat header or a call bubble may know only the id. The call screen is the one
+        // place where the person's face matters most, so resolve the rest from the profile
+        // row rather than showing a placeholder for the whole call.
+        resolvePeerProfileIfNeeded();
 
         // Pulse animation for avatar ring
         AlphaAnimation pulse = new AlphaAnimation(0.4f, 1.0f);
@@ -222,6 +225,61 @@ public class AudioCallActivity extends AppCompatActivity {
         callManager.startRealtime();
 
         checkPermissionsAndStart();
+    }
+
+    /** Draws the peer's picture, or the placeholder while it is unknown. */
+    private void applyPeerAvatar() {
+        if (otherAvatar != null && !otherAvatar.isEmpty() && !"none".equalsIgnoreCase(otherAvatar)) {
+            GlideUtils.loadAvatar(binding.ivCallAvatar, otherAvatar);
+        } else {
+            binding.ivCallAvatar.setImageResource(R.drawable.ic_person_placeholder);
+        }
+    }
+
+    /**
+     * Fills in the peer's name and avatar when the caller only had the id.
+     *
+     * <p>Every entry point into a call (chat header, call bubble, call history, incoming
+     * notification) carries a different subset of {name, avatar}; the screen used to render
+     * whatever it was handed, so "call again" from history or a tapped call bubble showed
+     * "InstaNova User" with a grey head. One profile lookup makes all four paths identical.
+     */
+    private void resolvePeerProfileIfNeeded() {
+        if (otherUserId == null || otherUserId.isEmpty()) return;
+        boolean needName = otherUsername == null || otherUsername.trim().isEmpty();
+        boolean needAvatar = otherAvatar == null || otherAvatar.trim().isEmpty()
+                || "none".equalsIgnoreCase(otherAvatar);
+        if (!needName && !needAvatar) return;
+
+        java.util.Map<String, String> q = new java.util.HashMap<>();
+        q.put("id", "eq." + otherUserId);
+        q.put("select", "username,avatar_url");
+        q.put("limit", "1");
+        com.insta.nova.data.remote.RetrofitClient.getInstance(this).getRestApi()
+                .getProfiles(q)
+                .enqueue(new retrofit2.Callback<List<com.insta.nova.data.remote.dto.ProfileDto>>() {
+                    @Override
+                    public void onResponse(@NonNull retrofit2.Call<List<com.insta.nova.data.remote.dto.ProfileDto>> c,
+                                           @NonNull retrofit2.Response<List<com.insta.nova.data.remote.dto.ProfileDto>> r) {
+                        if (isFinishing() || !r.isSuccessful() || r.body() == null || r.body().isEmpty()) return;
+                        com.insta.nova.data.remote.dto.ProfileDto p = r.body().get(0);
+                        if (p == null) return;
+                        if (needName && p.getUsername() != null && !p.getUsername().isEmpty()) {
+                            otherUsername = p.getUsername();
+                            binding.tvCallUsername.setText(otherUsername);
+                        }
+                        if (needAvatar && p.getAvatarUrl() != null && !p.getAvatarUrl().isEmpty()) {
+                            otherAvatar = p.getAvatarUrl();
+                            applyPeerAvatar();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull retrofit2.Call<List<com.insta.nova.data.remote.dto.ProfileDto>> c,
+                                          @NonNull Throwable t) {
+                        Log.w(TAG, "peer profile lookup failed: " + t.getMessage());
+                    }
+                });
     }
 
     private void checkPermissionsAndStart() {
@@ -263,8 +321,16 @@ public class AudioCallActivity extends AppCompatActivity {
         });
 
         webRtcManager.init();
+        webRtcManager.startStatsTrace();
+
+        // Keep the call reachable from the status bar while it is up: minimising the call
+        // screen used to leave nothing in the shade and no way back to hang up.
+        com.insta.nova.calling.CallForegroundService.start(
+                this, callId, otherUsername, otherAvatar, false);
 
         // Start Signaling Listener
+        signalingClient.startSignalPolling(callId,
+                com.insta.nova.data.local.SessionManager.getInstance(this).getUserId());
         signalingClient.startListening(callId, new CallSignalingClient.SignalingListener() {
             @Override
             public void onCallSessionUpdated(@NonNull CallSession session) {
@@ -310,11 +376,11 @@ public class AudioCallActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (!isEnded) {
                         isEnded = true;
-                        int durationSec = (isConnected && callStartMs > 0)
-                                ? (int) ((System.currentTimeMillis() - callStartMs) / 1000) : 0;
-                        CallManager.getInstance(AudioCallActivity.this).endCall(callId, durationSec);
+                        CallTones.getInstance().stop();
+                        // Prompt M: observer only performs local teardown — do NOT call endCall(),
+                        // which would overwrite ended_by on the calls row.
                         binding.tvCallState.setText("reject".equalsIgnoreCase(reason) || CallSession.STATUS_REJECTED.equalsIgnoreCase(reason) ? "Call declined" : "Call ended");
-                        handler.postDelayed(AudioCallActivity.this::finishAfterEnd, 1000L);
+                        handler.postDelayed(AudioCallActivity.this::finishAfterEnd, 600L);
                     }
                 });
             }
@@ -459,6 +525,9 @@ public class AudioCallActivity extends AppCompatActivity {
         Log.d(TAG, "IceConnectionState changed to: " + state);
         if (state == PeerConnection.IceConnectionState.CONNECTED ||
             state == PeerConnection.IceConnectionState.COMPLETED) {
+            // Answered: drop the caller-side ringback even if the `connected` frame
+            // never arrives over Realtime.
+            CallTones.getInstance().stop();
             if (!isConnected) {
                 isConnected = true;
                 callStartMs = System.currentTimeMillis();
@@ -476,12 +545,27 @@ public class AudioCallActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Selected state for an in-call toggle.
+     *
+     * <p>The layout already draws a circle behind each control, so the marker is an accent-filled
+     * version of that same circle: the button visibly "lights up" while the glyph stays legible.
+     */
+    private void setToggleActive(@NonNull View control, boolean active) {
+        control.setBackgroundResource(active
+                ? R.drawable.bg_call_control_active : R.drawable.bg_call_control_idle);
+        control.setSelected(active);
+        control.setContentDescription(active ? "On" : "Off");
+    }
+
     private void toggleMute() {
         if (webRtcManager == null) return;
         boolean newMute = !webRtcManager.isMuted();
         webRtcManager.setMuted(newMute);
         binding.ivMute.setImageResource(newMute ? R.drawable.ic_mic_off : R.drawable.ic_mic);
-        binding.btnMute.setAlpha(newMute ? 0.6f : 1.0f);
+        // Selected state is a colour, not a dimmed glyph: the layout already draws a circle behind
+        // every control, so tinting the icon is what reads as "this toggle is on".
+        setToggleActive(binding.btnMute, newMute);
     }
 
     private void toggleSpeaker() {
@@ -489,6 +573,9 @@ public class AudioCallActivity extends AppCompatActivity {
         boolean newSpeaker = !webRtcManager.isSpeakerphoneOn();
         webRtcManager.setSpeakerphoneOn(newSpeaker);
         binding.ivSpeaker.setImageResource(newSpeaker ? R.drawable.ic_volume_up : R.drawable.ic_speaker);
+        // Same affordance as mute: a filled circle plus the glyph, so "is the speaker on?" is
+        // answerable at a glance instead of from a subtly different icon.
+        setToggleActive(binding.btnSpeaker, newSpeaker);
     }
 
     private void endCall() {
@@ -528,7 +615,12 @@ public class AudioCallActivity extends AppCompatActivity {
         CallManager.getInstance(this).removeObserver(callObserver);
         // Prompt J: no tone may outlive the screen that started it.
         CallTones.getInstance().stop();
+        CallRingtone.get().stopFor(callId);
         CallManager.getInstance(this).clearActiveSession(callId);
+        // The screen owns the in-progress chip: once it is gone there is no call to hang
+        // up and no screen to return to, so the chip must go with it.
+        com.insta.nova.calling.CallForegroundService.stop(this);
+        com.insta.nova.calling.CallNotificationHelper.cancelOngoingCallNotification(this);
 
         if (webRtcManager != null) {
             webRtcManager.dispose();

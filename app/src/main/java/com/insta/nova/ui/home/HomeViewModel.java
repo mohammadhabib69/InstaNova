@@ -47,6 +47,8 @@ public class HomeViewModel extends AndroidViewModel {
     private final SessionManager sessionManager;
     private final CommentStore commentStore;
     private final LocalSocialStore localStore;
+    /** Blocked + muted authors are filtered out of the feed and the story tray. */
+    private final com.insta.nova.data.BlockMuteCache relationships;
     private boolean ownerProfileStarted;
 
     private final MutableLiveData<List<Post>> postsLiveData = new MutableLiveData<>(new ArrayList<>());
@@ -62,12 +64,20 @@ public class HomeViewModel extends AndroidViewModel {
     private boolean hasMorePosts = true;
     private boolean initialLoadStarted;
     private int loadGeneration;
+    /** Feed mix state: one shuffle seed per refresh, one own-post slot per refresh. */
+    private long feedSeed;
+    private int feedOffset;
+    private int ownRowsShown;
+    private final Set<String> feedSeenIds = new HashSet<>();
+    /** How long after publishing the author's own post may still appear in their feed. */
+    private static final long OWN_POST_WINDOW_MS = 24L * 60L * 60L * 1000L;
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
         this.sessionManager = SessionManager.getInstance(application);
         this.commentStore = new CommentStore(application);
         this.localStore = new LocalSocialStore(application);
+        this.relationships = com.insta.nova.data.BlockMuteCache.get(application);
         // 24-hour stories are moved to the archive on every cold start.
         this.localStore.pruneExpiredStories();
 
@@ -120,6 +130,10 @@ public class HomeViewModel extends AndroidViewModel {
         final int generation = ++loadGeneration;
         lastCreatedAtCursor = null;
         hasMorePosts = true;
+        feedSeed = System.nanoTime();
+        feedOffset = 0;
+        ownRowsShown = 0;
+        feedSeenIds.clear();
         isRefreshingLiveData.setValue(true);
         isAllCaughtUpLiveData.setValue(false);
         errorMessageLiveData.setValue(null);
@@ -129,6 +143,9 @@ public class HomeViewModel extends AndroidViewModel {
         // the network calls so an empty/error tray still keeps "Your story".
         ensureOwnerProfile();
         publishOwnerOnly();
+
+        // Refresh the block/mute sets before the feed result is filtered through them.
+        if (relationships != null) relationships.refresh();
 
         if (postRepository == null || storyRepository == null) {
             isRefreshingLiveData.setValue(false);
@@ -154,23 +171,28 @@ public class HomeViewModel extends AndroidViewModel {
         }
 
         try {
-            observeOnce(postRepository.getFeed(null, Constants.PAGE_SIZE_FEED), resource -> {
-                if (generation != loadGeneration || resource == null) return;
-                if (resource.status == Resource.Status.SUCCESS) {
-                    List<Post> fetched = sanitizePosts(resource.data);
-                    postsLiveData.postValue(mergeLocalPosts(fetched));
-                    if (!fetched.isEmpty()) {
-                        lastCreatedAtCursor = TimeUtils.toSupabaseTimestamp(
-                                fetched.get(fetched.size() - 1).getCreatedAt());
-                    }
-                    hasMorePosts = fetched.size() >= Constants.PAGE_SIZE_FEED;
-                    isAllCaughtUpLiveData.postValue(!hasMorePosts && !fetched.isEmpty());
-                } else if (resource.status == Resource.Status.ERROR) {
-                    publishError(resource.message, isSessionError(resource.message));
+            // Direct callback, not a LiveData: the request was returning 200 while the
+            // observer never received the value, so Home only ever showed the cache.
+            // Discovery pool + local mix. v_feed only carried own + followed rows, so an
+            // account following one quiet poster saw a timeline of its own posts.
+            postRepository.loadDiscoveryFeed(Constants.PAGE_SIZE_FEED, 0, fetchedRaw -> {
+                if (generation != loadGeneration) return;
+                List<Post> fetched = mixFeed(sanitizePosts(fetchedRaw));
+                List<Post> merged = mergeLocalPosts(fetched);
+                postsLiveData.setValue(merged);
+                feedOffset = fetchedRaw == null ? 0 : fetchedRaw.size();
+                if (!fetched.isEmpty()) {
+                    lastCreatedAtCursor = TimeUtils.toSupabaseTimestamp(
+                            fetched.get(fetched.size() - 1).getCreatedAt());
                 }
-                if (resource.status == Resource.Status.SUCCESS || resource.status == Resource.Status.ERROR) {
-                    isRefreshingLiveData.postValue(false);
-                }
+                hasMorePosts = feedOffset >= Constants.PAGE_SIZE_FEED;
+                isAllCaughtUpLiveData.setValue(!hasMorePosts && !fetched.isEmpty());
+                isRefreshingLiveData.setValue(false);
+                saveFeedCache(fetched);
+            }, message -> {
+                if (generation != loadGeneration) return;
+                restoreFeedCache(message);
+                isRefreshingLiveData.setValue(false);
             });
         } catch (RuntimeException e) {
             Log.e(TAG, "Unable to request feed", e);
@@ -179,44 +201,130 @@ public class HomeViewModel extends AndroidViewModel {
         }
     }
 
+    /** Keeps the last good Home payload so a dead connection still shows something real. */
+    private void saveFeedCache(List<Post> posts) {
+        if (posts == null || posts.isEmpty()) return;
+        final String payload = new com.google.gson.Gson().toJson(posts);
+        new Thread(() -> {
+            try {
+                com.insta.nova.data.NovaDb.get(getApplication())
+                        .feedCacheDao()
+                        .put(new com.insta.nova.data.entity.CachedFeed(
+                                "home", payload, System.currentTimeMillis()));
+            } catch (RuntimeException ignored) {
+                // A cache miss is never fatal.
+            }
+        }).start();
+    }
+
+    /**
+     * Room refuses main-thread reads, so the cache is read on a worker and published back.
+     * When it yields posts the user sees their saved feed plus an explanation; otherwise the
+     * real error is reported.
+     */
+    private void restoreFeedCache(String failureMessage) {
+        new Thread(() -> {
+            List<Post> restored = null;
+            try {
+                com.insta.nova.data.entity.CachedFeed cached =
+                        com.insta.nova.data.NovaDb.get(getApplication()).feedCacheDao().get("home");
+                if (cached != null && cached.payload != null && !cached.payload.isEmpty()) {
+                    java.lang.reflect.Type type =
+                            new com.google.gson.reflect.TypeToken<List<Post>>() { }.getType();
+                    restored = new com.google.gson.Gson().fromJson(cached.payload, type);
+                }
+            } catch (RuntimeException ignored) {
+                restored = null;
+            }
+            List<Post> safe = restored == null ? new ArrayList<>() : sanitizePosts(restored);
+            if (safe.isEmpty()) {
+                publishError(failureMessage, isSessionError(failureMessage));
+            } else {
+                postsLiveData.postValue(mergeLocalPosts(safe));
+                publishError("Offline — showing your saved feed.", false);
+            }
+        }).start();
+    }
+
     public void loadMore() {
         if (Boolean.TRUE.equals(isLoadingMoreLiveData.getValue())
                 || Boolean.TRUE.equals(isRefreshingLiveData.getValue())
                 || !hasMorePosts
-                || lastCreatedAtCursor == null
-                || lastCreatedAtCursor.isEmpty()
                 || postRepository == null) {
             return;
         }
 
         final int generation = loadGeneration;
+        final int offset = feedOffset;
         isLoadingMoreLiveData.setValue(true);
         try {
-            observeOnce(postRepository.getFeed(lastCreatedAtCursor, Constants.PAGE_SIZE_FEED), resource -> {
-                if (generation != loadGeneration || resource == null) return;
-                if (resource.status == Resource.Status.SUCCESS) {
-                    List<Post> fetched = sanitizePosts(resource.data);
-                    if (!fetched.isEmpty()) {
-                        List<Post> current = new ArrayList<>(sanitizePosts(postsLiveData.getValue()));
-                        current.addAll(fetched);
-                        postsLiveData.postValue(current);
-                        lastCreatedAtCursor = TimeUtils.toSupabaseTimestamp(
-                                fetched.get(fetched.size() - 1).getCreatedAt());
-                    }
-                    hasMorePosts = fetched.size() >= Constants.PAGE_SIZE_FEED;
-                    if (!hasMorePosts) isAllCaughtUpLiveData.postValue(true);
-                } else if (resource.status == Resource.Status.ERROR) {
-                    publishError(resource.message, isSessionError(resource.message));
+            postRepository.loadDiscoveryFeed(Constants.PAGE_SIZE_FEED, offset, fetchedRaw -> {
+                if (generation != loadGeneration) {
+                    isLoadingMoreLiveData.setValue(false);
+                    return;
                 }
-                if (resource.status == Resource.Status.SUCCESS || resource.status == Resource.Status.ERROR) {
-                    isLoadingMoreLiveData.postValue(false);
+                List<Post> fetched = mixFeed(sanitizePosts(fetchedRaw));
+                if (!fetched.isEmpty()) {
+                    List<Post> current = new ArrayList<>(sanitizePosts(postsLiveData.getValue()));
+                    current.addAll(fetched);
+                    postsLiveData.postValue(current);
+                    lastCreatedAtCursor = TimeUtils.toSupabaseTimestamp(
+                            fetched.get(fetched.size() - 1).getCreatedAt());
                 }
+                feedOffset = offset + (fetchedRaw == null ? 0 : fetchedRaw.size());
+                hasMorePosts = fetchedRaw != null
+                        && fetchedRaw.size() >= Constants.PAGE_SIZE_FEED;
+                if (!hasMorePosts) isAllCaughtUpLiveData.postValue(true);
+                isLoadingMoreLiveData.postValue(false);
+            }, message -> {
+                isLoadingMoreLiveData.setValue(false);
+                publishError(message, isSessionError(message));
             });
         } catch (RuntimeException e) {
             Log.e(TAG, "Unable to request more feed posts", e);
             isLoadingMoreLiveData.setValue(false);
             publishError("Unable to load more posts.", false);
         }
+    }
+
+    /**
+     * Turns one discovery page into the home feed.
+     *
+     * <p>Other people's posts come first, shuffled with the refresh's seed so the order
+     * differs on every pull-to-refresh but stays stable while the user scrolls. The author's
+     * own rows are capped at one per refresh and only while the newest one is under
+     * {@link #OWN_POST_WINDOW_MS} old, which is what makes "I just posted, show it once, then
+     * get out of the way" true instead of a timeline of only my own posts.
+     */
+    private List<Post> mixFeed(List<Post> page) {
+        List<Post> ordered = new ArrayList<>();
+        if (page == null || page.isEmpty()) return ordered;
+
+        String myId = getCurrentUserId();
+        List<Post> others = new ArrayList<>();
+        List<Post> mine = new ArrayList<>();
+        for (Post post : page) {
+            if (post == null || post.getId() == null) continue;
+            if (!feedSeenIds.add(post.getId())) continue;
+            if (myId != null && myId.equals(post.getUserId())) mine.add(post);
+            else others.add(post);
+        }
+
+        java.util.Random random = new java.util.Random(feedSeed + feedOffset);
+        ordered.addAll(others);
+        java.util.Collections.shuffle(ordered, random);
+
+        boolean freshOwn = !mine.isEmpty()
+                && System.currentTimeMillis() - mine.get(0).getCreatedAt() < OWN_POST_WINDOW_MS;
+        if (freshOwn && ownRowsShown < 1) {
+            int at = ordered.isEmpty() ? 0 : 1 + random.nextInt(Math.min(2, ordered.size()));
+            ordered.add(at, mine.get(0));
+            ownRowsShown++;
+        }
+        // A brand-new account has nobody else to show yet; without this the feed would open
+        // empty and look broken.
+        if (ordered.isEmpty() && !mine.isEmpty()) ordered.add(mine.get(0));
+        return ordered;
     }
 
     public void toggleLike(Post post, int position) {
@@ -267,7 +375,11 @@ public class HomeViewModel extends AndroidViewModel {
         // Persisted locally so the Saved grid and restarts keep the state; locally
         // created posts have no server row to write.
         localStore.setSaved(targetId, newSaveState);
-        if (targetId.startsWith("local_")) return;
+        // Only real server rows can be written. Local posts ("local_…") and the
+        // synthetic rows the feed builds for reposts ("repost_…") have no uuid, and
+        // posting one produced "invalid input syntax for type uuid" and rolled the
+        // bookmark back. Their saved flag lives in LocalSocialStore only.
+        if (!isServerUuid(targetId)) return;
 
         observeOnce(postRepository.toggleSave(targetId, newSaveState), resource -> {
             if (resource != null && resource.status == Resource.Status.ERROR) {
@@ -280,6 +392,12 @@ public class HomeViewModel extends AndroidViewModel {
                 publishError(resource.message, isSessionError(resource.message));
             }
         });
+    }
+
+    /** True only for a real {@code posts.id} uuid; synthetic feed ids are filtered out. */
+    private static boolean isServerUuid(String id) {
+        return id != null && id.matches(
+                "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
     }
 
     public void deletePost(Post post) {
@@ -336,20 +454,33 @@ public class HomeViewModel extends AndroidViewModel {
         if (changed) postsLiveData.setValue(updated);
     }
 
-    /** Local creations always sit above the server page. */
+    /**
+     * Local creations always sit above the server page.
+     *
+     * <p>Only Instagram rows are merged in: a Nova post lives in its own table
+     * and must never reach the Instagram home feed, not even through the
+     * device-local mirror of a post that was created on another tab.
+     */
     private List<Post> mergeLocalPosts(List<Post> remote) {
+        // The server page goes first. It is already newest-first, and a local copy is
+        // only a snapshot: putting the local store ahead of it pinned stale rows (and
+        // stale fields, e.g. posts saved before music existed) to the top of the feed
+        // while the fresh page sat underneath them.
         List<Post> out = new ArrayList<>();
         Set<String> ids = new HashSet<>();
-        for (Post local : localStore.getPosts()) {
-            if (local == null) continue;
-            out.add(applyLocalSaveState(local));
-            ids.add(local.getId());
-        }
         if (remote != null) {
             for (Post post : remote) {
-                if (post == null || ids.contains(post.getId())) continue;
+                if (post == null) continue;
+                ids.add(post.getId());
                 out.add(applyLocalSaveState(post));
             }
+        }
+        for (Post local : localStore.getPosts()) {
+            if (local == null) continue;
+            if (local.isNova()) continue;
+            if (ids.contains(local.getId())) continue;
+            out.add(applyLocalSaveState(local));
+            ids.add(local.getId());
         }
         return withRepostCopies(out);
     }
@@ -379,7 +510,10 @@ public class HomeViewModel extends AndroidViewModel {
             Post copy = new Post(origin);
             copy.setId(REPOST_ID_PREFIX + originId);
             copy.setLocation(REPOST_LOCATION);
-            out.add(copy);
+            // The bookmark is keyed by the row the user tapped, and a repost row has its
+            // own "repost_…" id. Re-applying the local state here keeps the filled glyph
+            // after any refresh instead of inheriting the origin post's flag.
+            out.add(applyLocalSaveState(copy));
         }
         for (Post post : base) {
             if (post == null || post.getId() == null) continue;
@@ -438,6 +572,8 @@ public class HomeViewModel extends AndroidViewModel {
         if (source == null) return result;
         for (Post post : source) {
             if (!isUsablePost(post)) continue;
+            // A blocked or muted author must not appear in the feed, anywhere.
+            if (relationships != null && relationships.hidesPosts(post.getUserId())) continue;
             if (post.getUserId() == null) post.setUserId("");
             if (post.getUsername() == null) post.setUsername("");
             if (post.getAvatarUrl() == null) post.setAvatarUrl("");
@@ -455,6 +591,9 @@ public class HomeViewModel extends AndroidViewModel {
         if (source == null) return result;
         for (StoryGroup group : source) {
             if (group == null) continue;
+            // Never draw a blocked account, and respect a stories-only mute.
+            if (relationships != null && !group.isOwner()
+                    && relationships.hidesStories(group.getUserId())) continue;
             if (group.getUserId() == null) group.setUserId("");
             if (group.getUsername() == null) group.setUsername("");
             if (group.getAvatarUrl() == null) group.setAvatarUrl("");
@@ -497,11 +636,17 @@ public class HomeViewModel extends AndroidViewModel {
                     sessionManager.getUsername(), sessionManager.getAvatarUrl(),
                     true, true, merged));
         }
-        return StoryTrayOrdering.ownerFirst(
+        List<StoryGroup> ordered = StoryTrayOrdering.ownerFirst(
                 source,
                 sessionManager.getUserId(),
                 sessionManager.getUsername(),
                 sessionManager.getAvatarUrl());
+        StoryGroup own = ordered.isEmpty() ? null : ordered.get(0);
+        Log.i(TAG, "story tray: in=" + (groups == null ? -1 : groups.size())
+                + " local=" + localStories.size()
+                + " out=" + ordered.size()
+                + " ownerActive=" + (own != null && own.hasActiveStory()));
+        return ordered;
     }
 
     private void publishOwnerFirst(List<StoryGroup> groups) {
@@ -561,9 +706,11 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     private void publishError(String message, boolean sessionExpired) {
-        String safeMessage = message == null || message.trim().isEmpty()
-                ? "Unable to load the Home feed. Please try again."
-                : message;
+        // Whatever a repository hands over is shown verbatim in the feed banner, and a
+        // transport failure arrives as the raw OkHttp sentence ("Unable to resolve host
+        // ..."). Collapse those to one human line; keep real server messages intact.
+        String safeMessage = com.insta.nova.util.NetworkErrors.sanitize(
+                message, "Unable to load the Home feed. Please try again.");
         errorMessageLiveData.postValue(safeMessage);
         if (sessionExpired) {
             sessionManager.clearSession();

@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -53,6 +54,12 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
 
     private static boolean isAudioMuted = true;
     private final OnPostInteractionListener listener;
+    /** Tag markers per post id; empty list = fetched and there are none. */
+    private final java.util.Map<String, List<com.insta.nova.data.remote.dto.PostTagDto>> tagCache =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Set<String> tagRequests = java.util.Collections.synchronizedSet(
+            new java.util.HashSet<>());
+    private com.insta.nova.data.remote.api.RestApi tagApi;
 
     public FeedPostAdapter(OnPostInteractionListener listener) {
         super(DIFF_CALLBACK);
@@ -106,6 +113,115 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
         ViewHolder(ItemFeedPostBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
+        }
+
+        /**
+         * Draws the post's tag markers and toggles them on tap.
+         *
+         * <p>Instagram keeps tags hidden until the photo is tapped, so the markers are built
+         * once and kept in the overlay; the tap only flips its visibility. Coordinates come
+         * straight from {@code post_tags.x/y} (0..1) and are scaled to the media bounds the
+         * first time the overlay is laid out, which is also what makes them survive a resize.
+         */
+        private void bindTags(ItemFeedPostBinding binding, Post post,
+                              FeedPostAdapter adapter, OnPostInteractionListener listener) {
+            binding.layoutTags.removeAllViews();
+            binding.layoutTags.setVisibility(View.INVISIBLE);
+            final String postId = post.getId();
+            if (postId == null || postId.startsWith("local_") || postId.startsWith("repost_")) {
+                binding.ivSingleMedia.setOnClickListener(null);
+                return;
+            }
+
+            List<com.insta.nova.data.remote.dto.PostTagDto> tags = adapter.tagCache.get(postId);
+            if (tags != null) {
+                paintTags(binding, tags, listener);
+            } else {
+                fetchTags(postId, binding, adapter, listener);
+            }
+
+            binding.ivSingleMedia.setOnClickListener(v -> {
+                List<com.insta.nova.data.remote.dto.PostTagDto> current =
+                        adapter.tagCache.get(postId);
+                if (current == null || current.isEmpty()) return;
+                binding.layoutTags.setVisibility(
+                        binding.layoutTags.getVisibility() == View.VISIBLE
+                                ? View.INVISIBLE : View.VISIBLE);
+            });
+        }
+
+        private void fetchTags(String postId, ItemFeedPostBinding binding,
+                               FeedPostAdapter adapter, OnPostInteractionListener listener) {
+            if (!adapter.tagRequests.add(postId)) return;
+            if (adapter.tagApi == null) {
+                adapter.tagApi = com.insta.nova.data.remote.RetrofitClient
+                        .getInstance(binding.getRoot().getContext()).getRestApi();
+            }
+            java.util.Map<String, String> query = new java.util.HashMap<>();
+            query.put("select", "user_id,x,y,profiles(username)");
+            query.put("post_id", "eq." + postId);
+            adapter.tagApi.getPostTagMarkers(query).enqueue(
+                    new retrofit2.Callback<List<com.insta.nova.data.remote.dto.PostTagDto>>() {
+                @Override public void onResponse(
+                        retrofit2.Call<List<com.insta.nova.data.remote.dto.PostTagDto>> call,
+                        retrofit2.Response<List<com.insta.nova.data.remote.dto.PostTagDto>> response) {
+                    List<com.insta.nova.data.remote.dto.PostTagDto> rows =
+                            response.isSuccessful() && response.body() != null
+                                    ? response.body()
+                                    : new ArrayList<>();
+                    adapter.tagCache.put(postId, rows);
+                    if (!rows.isEmpty()) paintTags(binding, rows, listener);
+                }
+
+                @Override public void onFailure(
+                        retrofit2.Call<List<com.insta.nova.data.remote.dto.PostTagDto>> call,
+                        Throwable t) {
+                    adapter.tagRequests.remove(postId);
+                }
+            });
+        }
+
+        /** Places one pill per tag at its stored position inside the media box. */
+        private void paintTags(ItemFeedPostBinding binding,
+                               List<com.insta.nova.data.remote.dto.PostTagDto> tags,
+                               OnPostInteractionListener listener) {
+            binding.layoutTags.removeAllViews();
+            if (tags.isEmpty()) return;
+            final float density = binding.getRoot().getResources().getDisplayMetrics().density;
+            for (com.insta.nova.data.remote.dto.PostTagDto tag : tags) {
+                android.widget.TextView pill = new android.widget.TextView(
+                        binding.getRoot().getContext());
+                String name = tag.username();
+                pill.setText("@" + (name.isEmpty() ? "tagged" : name));
+                pill.setTextColor(android.graphics.Color.WHITE);
+                pill.setTextSize(11);
+                pill.setAlpha(0.95f);
+                android.graphics.drawable.GradientDrawable bg =
+                        new android.graphics.drawable.GradientDrawable();
+                bg.setColor(0x99000000);
+                bg.setCornerRadius(10 * density);
+                pill.setBackground(bg);
+                pill.setPadding((int) (8 * density), (int) (3 * density),
+                        (int) (8 * density), (int) (3 * density));
+                final String taggedName = name;
+                pill.setOnClickListener(v -> {
+                    if (listener != null) listener.onUserClick(tag.userId, taggedName);
+                });
+                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                float x = Math.max(0f, Math.min(1f, tag.x));
+                float y = Math.max(0f, Math.min(1f, tag.y));
+                binding.layoutTags.addView(pill, lp);
+                final FrameLayout.LayoutParams placed = lp;
+                binding.layoutTags.post(() -> {
+                    int w = binding.layoutTags.getWidth();
+                    int h = binding.layoutTags.getHeight();
+                    placed.leftMargin = Math.round(x * w - pill.getWidth() / 2f);
+                    placed.topMargin = Math.round(y * h - pill.getHeight() / 2f);
+                    pill.setLayoutParams(placed);
+                });
+            }
         }
 
         void bind(Post post, int position, OnPostInteractionListener listener, FeedPostAdapter adapter) {
@@ -173,6 +289,9 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                 com.insta.nova.util.GlideUtils.load(binding.ivSingleMedia, "posts", singleUrl);
             }
 
+            // 2b. Tag markers: fetched once per post, drawn on tap.
+            bindTags(binding, post, adapter, listener);
+
             // Audio indicator for reels
             if (post.isReel()) {
                 binding.ivAudioToggle.setVisibility(View.VISIBLE);
@@ -189,7 +308,9 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
             if (post.isReel() && Constants.DECORATIVE_UI) {
                 binding.layoutMediaAttribution.setVisibility(View.VISIBLE);
                 GlideUtils.loadAvatar(binding.ivMediaAvatar, post.getAvatarUrl());
-                binding.layoutMediaAttribution.setOnClickListener(v -> ToastUtil.showNotAvailable(context));
+                binding.layoutMediaAttribution.setOnClickListener(v -> {
+                    if (listener != null) listener.onUserClick(post.getUserId(), post.getUsername());
+                });
             } else {
                 binding.layoutMediaAttribution.setVisibility(View.GONE);
                 binding.layoutMediaAttribution.setOnClickListener(null);
@@ -225,13 +346,25 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                 if (target != null) listener.onSaveClick(target, pos);
             });
 
-            // 6. Comments click
-            binding.ivComment.setOnClickListener(v -> {
-                if (listener != null) listener.onCommentClick(post);
-            });
-            binding.tvViewComments.setOnClickListener(v -> {
-                if (listener != null) listener.onCommentClick(post);
-            });
+            // 6. Comments click. "Turn off commenting" applies to every viewer, so the entry
+            // still opens the post but the caption link states the thread is closed.
+            if (post.isCommentsDisabled()) {
+                binding.ivComment.setOnClickListener(v -> {
+                    if (listener != null) listener.onCommentClick(post);
+                });
+                binding.ivComment.setAlpha(0.4f);
+                binding.tvViewComments.setText(R.string.post_comments_turned_off);
+                binding.tvViewComments.setAlpha(0.6f);
+            } else {
+                binding.ivComment.setAlpha(1f);
+                binding.ivComment.setOnClickListener(v -> {
+                    if (listener != null) listener.onCommentClick(post);
+                });
+                binding.tvViewComments.setAlpha(1f);
+                binding.tvViewComments.setOnClickListener(v -> {
+                    if (listener != null) listener.onCommentClick(post);
+                });
+            }
 
             // 7. Share click
             binding.ivShare.setOnClickListener(v -> {
@@ -252,8 +385,37 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
                 if (listener != null) listener.onOptionsClick(post, position);
             });
 
-            // 9. Likes line: "Liked by <user> and <n> others" (hidden at 0)
-            if (post.getLikesCount() > 0) {
+            // 8b. The post's track, when it has one.
+            final String musicUrl = post.getMusicUrl();
+            final String musicTitle = post.getMusicTitle();
+            if (musicTitle != null && !musicTitle.trim().isEmpty()) {
+                binding.tvMusic.setVisibility(View.VISIBLE);
+                binding.tvMusic.setText(com.insta.nova.util.PostMusicPlayer.isActive(musicUrl)
+                        ? "\u23F8  " + musicTitle : "\u266A  " + musicTitle);
+                binding.tvMusic.setOnClickListener(v -> {
+                    final android.widget.TextView chip = binding.tvMusic;
+                    Runnable repaint = () -> {
+                        boolean playing = com.insta.nova.util.PostMusicPlayer.isActive(musicUrl);
+                        chip.setText(playing ? "\u23F8  " + musicTitle : "\u266A  " + musicTitle);
+                    };
+                    com.insta.nova.util.PostMusicPlayer.toggle(v.getContext(), musicUrl);
+                    // The chip repaints itself instead of notifying the adapter: the feed lives
+                    // inside a ConcatAdapter, where a feed position is not a global position.
+                    repaint.run();
+                    // Playback begins after the file is cached, so refresh again once it runs.
+                    chip.postDelayed(repaint, 1200);
+                    chip.postDelayed(repaint, 2600);
+                });
+            } else {
+                binding.tvMusic.setVisibility(View.GONE);
+                binding.tvMusic.setOnClickListener(null);
+            }
+
+            // 9. Likes line: "Liked by <user> and <n> others" (hidden at 0).
+            // "Hide like count" is an author choice that applies to every viewer, so the whole
+            // line and the action-row tally disappear for everyone.
+            boolean hideLikes = post.isHideLikeCount();
+            if (post.getLikesCount() > 0 && !hideLikes) {
                 binding.tvLikesCount.setText(buildLikesLine(context, post));
                 binding.tvLikesCount.setVisibility(View.VISIBLE);
                 final Post likesPost = post;
@@ -267,7 +429,7 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
             }
 
             // 9b. Action-row counts (abbreviated, hidden at 0)
-            if (post.getLikesCount() > 0) {
+            if (post.getLikesCount() > 0 && !hideLikes) {
                 binding.tvLikeCount.setText(abbreviate(post.getLikesCount()));
                 binding.tvLikeCount.setVisibility(View.VISIBLE);
             } else {
@@ -411,10 +573,11 @@ public class FeedPostAdapter extends ListAdapter<Post, FeedPostAdapter.ViewHolde
     /**
      * Inner adapter for carousel pages.
      */
-    static class CarouselPagerAdapter extends RecyclerView.Adapter<CarouselPagerAdapter.PageViewHolder> {
+    public static class CarouselPagerAdapter
+            extends RecyclerView.Adapter<CarouselPagerAdapter.PageViewHolder> {
         private final List<String> urls;
 
-        CarouselPagerAdapter(List<String> urls) {
+        public CarouselPagerAdapter(List<String> urls) {
             this.urls = urls;
         }
 

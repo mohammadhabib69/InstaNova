@@ -22,6 +22,12 @@ import java.util.List;
  */
 public class TemplatesActivity extends AppCompatActivity {
 
+    private final androidx.activity.result.ActivityResultLauncher<Intent> launcher =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts
+                    .StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) finish();
+            });
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,7 +40,9 @@ public class TemplatesActivity extends AppCompatActivity {
         list.setAdapter(new TemplateAdapter(TemplateCatalog.all(), template -> {
             Intent intent = new Intent(this, TemplateEditorActivity.class);
             intent.putExtra(TemplateCatalog.EXTRA_TEMPLATE_ID, template.id);
-            startActivity(intent);
+            // Returns RESULT_OK once the card has been handed to the composer, so this list
+            // does not sit behind the new post all the way back to Home.
+            launcher.launch(intent);
         }));
     }
 

@@ -6,6 +6,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,13 +24,16 @@ import com.insta.nova.R;
 import com.insta.nova.calling.CallRecord;
 import com.insta.nova.data.model.Message;
 import com.insta.nova.data.model.MessageReaction;
+import com.insta.nova.databinding.ItemChatAlbumBinding;
 import com.insta.nova.databinding.ItemChatIntroBinding;
 import com.insta.nova.databinding.ItemChatReceivedBinding;
 import com.insta.nova.databinding.ItemChatSeenBinding;
 import com.insta.nova.databinding.ItemChatSentBinding;
 import com.insta.nova.databinding.ItemChatSeparatorBinding;
 import com.insta.nova.util.GlideUtils;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,6 +49,7 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
     public static final int TYPE_SENT = 2;
     public static final int TYPE_RECEIVED = 3;
     public static final int TYPE_SEEN = 4;
+    public static final int TYPE_ALBUM = 5;
 
     /** One rendered row; built from ChatState, never held by the ViewModel. */
     public static class ChatRow {
@@ -56,6 +61,11 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
         public boolean showAvatar;
         public int topPaddingDp;
         public boolean showReactions;
+        /** Only the last message of a sender run carries the clock, so a photo burst stays one block. */
+        public boolean showTime;
+        /** Non-null on a TYPE_ALBUM row: the 2+ photos rendered as one bubble. */
+        public List<Message> album;
+        public boolean sent;
 
         static ChatRow intro(ChatIntro intro) {
             ChatRow r = new ChatRow();
@@ -90,6 +100,21 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
             r.id = "seen";
             return r;
         }
+
+        /** A burst of 2+ photos from one sender, drawn as Instagram's album grid. */
+        static ChatRow album(List<Message> photos, boolean sent, boolean showAvatar, int topPaddingDp) {
+            ChatRow r = new ChatRow();
+            r.type = TYPE_ALBUM;
+            Message first = photos.get(0);
+            r.id = "album-" + (first.getId() != null ? first.getId() : first.hashCode());
+            r.message = first;
+            r.album = photos;
+            r.sent = sent;
+            r.showAvatar = showAvatar;
+            r.topPaddingDp = topPaddingDp;
+            r.showReactions = false;
+            return r;
+        }
     }
 
     public interface Listener {
@@ -99,6 +124,9 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
         void onMessageDoubleTap(Message message);
         void onRetry(Message message);
         void onReactionClick(Message message);
+
+        /** A call entry in the thread was tapped: re-dial the same kind. */
+        void onCallEntryClick(boolean video);
         void onImageClick(Message message);
         void onVoicePlayClick(Message message, ProgressBar progress, ImageView playBtn);
         void onBackgroundLongPress();
@@ -147,6 +175,11 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
             if (a.type == TYPE_INTRO) return sameIntro(a.intro, b.intro);
             if (a.type == TYPE_SEPARATOR) return eq(a.label, b.label);
             if (a.type == TYPE_SEEN) return true;
+            if (a.type == TYPE_ALBUM) {
+                if (!albumKey(a).equals(albumKey(b))) return false;
+                return a.showAvatar == b.showAvatar && a.showTime == b.showTime
+                        && a.topPaddingDp == b.topPaddingDp;
+            }
             Message ma = a.message;
             Message mb = b.message;
             if (ma == null || mb == null) return false;
@@ -161,6 +194,7 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
                     && ma.isFailed() == mb.isFailed()
                     && ma.isRead() == mb.isRead()
                     && a.showAvatar == b.showAvatar
+                    && a.showTime == b.showTime
                     && a.topPaddingDp == b.topPaddingDp
                     && reactionKey(ma).equals(reactionKey(mb));
         }
@@ -172,6 +206,16 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
                 && eq(a.avatarUrl, b.avatarUrl) && a.followers == b.followers
                 && a.posts == b.posts && eq(a.followLine, b.followLine)
                 && eq(a.mutualLine, b.mutualLine);
+    }
+
+    private static String albumKey(ChatRow row) {
+        StringBuilder sb = new StringBuilder();
+        if (row.album == null) return sb.toString();
+        for (Message m : row.album) {
+            sb.append(m.getId()).append('@').append(m.getLocalImageUri())
+              .append('#').append(m.getImageUrl()).append('|');
+        }
+        return sb.toString();
     }
 
     private static String reactionKey(Message m) {
@@ -195,14 +239,30 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
         }
 
         List<Message> messages = state.messages;
+        List<Message> consumed = new ArrayList<>();
         for (int i = 0; i < messages.size(); i++) {
             Message current = messages.get(i);
+            if (consumed.contains(current)) continue;
             Message previous = i > 0 ? messages.get(i - 1) : null;
             Message next = i + 1 < messages.size() ? messages.get(i + 1) : null;
 
             boolean separator = ChatViewModel.needsSeparator(previous, current);
             if (separator) {
                 rows.add(ChatRow.separator(ChatViewModel.separatorLabel(current.getCreatedAt())));
+            }
+
+            // A burst of photos becomes one album bubble instead of N stacked singles. The
+            // burst is "consecutive same-sender photos, no captions, sent within a minute",
+            // which is exactly how the picker delivers a multi-select.
+            List<Message> album = collectAlbum(messages, i);
+            if (album.size() >= 2) {
+                boolean albumSent = current.getSenderId() != null && current.getSenderId().equals(myId);
+                ChatRow built = ChatRow.album(album, albumSent, !albumSent, separator ? 0 : 16);
+                built.showTime = true;
+                rows.add(built);
+                consumed.addAll(album);
+                i += album.size() - 1;
+                continue;
             }
 
             boolean sent = current.getSenderId() != null && current.getSenderId().equals(myId);
@@ -218,7 +278,11 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
             boolean lastOfGroup = !nextContinues;
 
             int topPadding = separator ? 0 : (newGroup ? 16 : 4);
-            rows.add(ChatRow.message(current, sent, !sent && lastOfGroup, topPadding));
+            ChatRow built = ChatRow.message(current, sent, !sent && lastOfGroup, topPadding);
+            // Every media message carries its clock: a burst of photos otherwise reads as one
+            // blob with no way to tell when each was sent.
+            built.showTime = lastOfGroup || current.hasImage();
+            rows.add(built);
         }
 
         if (!messages.isEmpty()) {
@@ -229,6 +293,32 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
             }
         }
         return rows;
+    }
+
+    /** Photos sent as one burst share a sender and arrive within a minute of each other. */
+    private static final long ALBUM_WINDOW_MS = 60 * 1000L;
+
+    private static boolean isPhoto(Message m) {
+        if (m == null || !m.hasImage()) return false;
+        String body = m.getText();
+        return body == null || body.trim().isEmpty() || isMediaPlaceholder(body);
+    }
+
+    private static List<Message> collectAlbum(List<Message> messages, int start) {
+        List<Message> out = new ArrayList<>();
+        Message first = messages.get(start);
+        if (!isPhoto(first)) return out;
+        out.add(first);
+        for (int j = start + 1; j < messages.size(); j++) {
+            Message candidate = messages.get(j);
+            Message prev = messages.get(j - 1);
+            if (!isPhoto(candidate)) break;
+            if (candidate.getSenderId() == null || first.getSenderId() == null
+                    || !candidate.getSenderId().equals(first.getSenderId())) break;
+            if (candidate.getCreatedAt() - prev.getCreatedAt() > ALBUM_WINDOW_MS) break;
+            out.add(candidate);
+        }
+        return out;
     }
 
     @Override
@@ -247,6 +337,8 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
                 return new SeparatorHolder(ItemChatSeparatorBinding.inflate(inflater, parent, false));
             case TYPE_SEEN:
                 return new SeenHolder(ItemChatSeenBinding.inflate(inflater, parent, false));
+            case TYPE_ALBUM:
+                return new AlbumHolder(ItemChatAlbumBinding.inflate(inflater, parent, false));
             case TYPE_SENT:
                 return new SentHolder(ItemChatSentBinding.inflate(inflater, parent, false));
             default:
@@ -273,6 +365,11 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
             h.binding.rowRoot.setOnLongClickListener(v -> { listener.onBackgroundLongPress(); return true; });
             applyTopPadding(h.binding.rowRoot, row.topPaddingDp);
             bindReceived(h, row);
+        } else if (holder instanceof AlbumHolder) {
+            AlbumHolder h = (AlbumHolder) holder;
+            h.binding.rowRoot.setOnLongClickListener(v -> { listener.onBackgroundLongPress(); return true; });
+            applyTopPadding(h.binding.rowRoot, row.topPaddingDp);
+            bindAlbum(h, row);
         }
     }
 
@@ -308,9 +405,10 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
         bindCommon(b.layoutBubble, b.tvMessage, b.ivMessageImage,
                 b.layoutVoiceMessage, b.btnVoicePlay, b.progressVoice, b.tvVoiceDuration,
                 b.layoutCallMessage, b.ivCallIcon, b.tvCallTitle, b.tvCallSubtitle,
-                b.layoutQuotedReply, b.tvReplyUser, b.tvReplyText,
-                b.ivError, b.layoutReactionPill, b.tvReactions, row, true);
-    }
+                 b.layoutQuotedReply, b.tvReplyUser, b.tvReplyText,
+                 b.ivError, b.layoutReactionPill, b.tvReactions, row, true);
+         bindClock(b.tvMessageTime, row);
+     }
 
     private void bindReceived(ReceivedHolder h, ChatRow row) {
         ItemChatReceivedBinding b = h.binding;
@@ -328,7 +426,153 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
                 b.layoutVoiceMessage, b.btnVoicePlay, b.progressVoice, b.tvVoiceDuration,
                 b.layoutCallMessage, b.ivCallIcon, b.tvCallTitle, b.tvCallSubtitle,
                 b.layoutQuotedReply, b.tvReplyUser, b.tvReplyText,
-                null, b.layoutReactionPill, b.tvReactions, row, false);
+                 null, b.layoutReactionPill, b.tvReactions, row, false);
+         bindClock(b.tvMessageTime, row);
+     }
+
+    /**
+     * One bubble for a photo burst: 2 tiles side by side, 3 as one large plus two stacked,
+     * 4+ as a 2x2 with a "+N" overlay on the last tile.
+     */
+    private void bindAlbum(AlbumHolder h, ChatRow row) {
+        ItemChatAlbumBinding b = h.binding;
+        if (row.album == null || row.album.isEmpty()) return;
+        boolean sent = row.sent;
+
+        b.rowRoot.setGravity((sent ? Gravity.END : Gravity.START) | Gravity.BOTTOM);
+        b.rowRoot.setPadding((int) ((sent ? 64 : 8) * density), 0, (int) (12 * density), 0);
+
+        boolean showAvatar = !sent && row.showAvatar;
+        b.ivAvatar.setVisibility(showAvatar ? View.VISIBLE : View.GONE);
+        if (showAvatar) {
+            if (otherAvatarUrl != null && !otherAvatarUrl.isEmpty()) {
+                GlideUtils.loadAvatar(b.ivAvatar, otherAvatarUrl);
+            } else {
+                b.ivAvatar.setImageResource(R.drawable.ic_person_placeholder);
+            }
+        }
+
+        int width = (int) (screenWidthPx * 0.70f);
+        b.albumGrid.setAlbumWidthPx(width);
+
+        ImageView[] tiles = {b.albumImage1, b.albumImage2, b.albumImage3, b.albumImage4};
+        int shown = Math.min(tiles.length, row.album.size());
+        b.albumGrid.setTileCount(shown);
+
+        for (int i = 0; i < tiles.length; i++) {
+            ImageView tile = tiles[i];
+            if (i >= shown) {
+                tile.setImageDrawable(null);
+                tile.setOnClickListener(null);
+                continue;
+            }
+            final Message photo = row.album.get(i);
+            String local = photo.getLocalImageUri();
+            String remote = photo.getImageUrl();
+            applyAlbumCorners(tile);
+            // A picker URI from an earlier session is dead once the grant expires, so the
+            // uploaded object wins whenever it exists; the local preview only covers the
+            // window between picking and the upload completing.
+            if (remote != null && remote.startsWith("http")) {
+                GlideUtils.loadRounded(tile, "chat", remote, (int) (4 * density));
+            } else if (local != null && !local.isEmpty()) {
+                GlideUtils.load(tile, "chat", local);
+            }
+            tile.setOnClickListener(v -> listener.onImageClick(photo));
+        }
+
+        int extra = row.album.size() - shown;
+        if (extra > 0) {
+            int cell = (width - (int) (3 * density)) / 2;
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) b.tvAlbumOverflow.getLayoutParams();
+            lp.width = cell;
+            lp.height = cell;
+            b.tvAlbumOverflow.setLayoutParams(lp);
+            b.tvAlbumOverflow.setText("+" + extra);
+            b.tvAlbumOverflow.setVisibility(View.VISIBLE);
+        } else {
+            b.tvAlbumOverflow.setVisibility(View.GONE);
+        }
+
+        b.tvAlbumTime.setText(ChatAdapter.timeLabel(row.album.get(row.album.size() - 1).getCreatedAt()));
+        b.tvAlbumTime.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Placeholder for a media message whose bytes cannot be fetched (an expired story share,
+     * a revoked object). The tile keeps its box so the thread never shows an unexplained gap,
+     * but it is a quiet grey card with a small icon rather than a blank hole.
+     */
+    private void showMissingMedia(ImageView image, int heightPx) {
+        ViewGroup.LayoutParams lp = image.getLayoutParams();
+        if (lp != null && lp.height != heightPx) {
+            lp.height = heightPx;
+            image.setLayoutParams(lp);
+        }
+        image.setScaleType(ImageView.ScaleType.CENTER);
+        image.setBackgroundColor(0xFFF1F1F1);
+        image.setImageResource(R.drawable.ic_image);
+        image.setAlpha(0.45f);
+    }
+
+    private void applyAlbumCorners(ImageView tile) {
+        if (tile instanceof com.google.android.material.imageview.ShapeableImageView) {
+            com.google.android.material.imageview.ShapeableImageView siv =
+                    (com.google.android.material.imageview.ShapeableImageView) tile;
+            siv.setShapeAppearanceModel(siv.getShapeAppearanceModel().toBuilder()
+                    .setAllCornerSizes(4 * density).build());
+        }
+    }
+
+    /**
+     * The per-bubble clock. Instagram puts a sent-at stamp under the last bubble of a sender run
+     * (and under every media bubble), which is what {@link ChatRow#showTime} encodes. The view was
+     * declared in both bubble layouts but never written, so media rows — the ones that have no
+     * text and therefore no other timestamp cue — came out blank.
+     */
+    private void bindClock(TextView time, ChatRow row) {
+        if (time == null) return;
+        if (row == null || row.message == null || !row.showTime) {
+            time.setVisibility(View.GONE);
+            time.setText("");
+            return;
+        }
+        String label = timeLabel(row.message.getCreatedAt());
+        if (label.isEmpty()) {
+            time.setVisibility(View.GONE);
+        } else {
+            time.setText(label);
+            time.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /** "3:42 PM" today, "Yesterday 3:42 PM", then "Mar 4, 3:42 PM". */
+    static String timeLabel(long millis) {
+        if (millis <= 0L) return "";
+        Calendar then = Calendar.getInstance();
+        then.setTimeInMillis(millis);
+        Calendar now = Calendar.getInstance();
+        String clock = new SimpleDateFormat("h:mm a", Locale.US).format(then.getTime());
+        if (isSameDay(now, then)) return clock;
+        Calendar yesterday = Calendar.getInstance();
+        yesterday.add(Calendar.DAY_OF_YEAR, -1);
+        if (isSameDay(yesterday, then)) return "Yesterday " + clock;
+        return new SimpleDateFormat("MMM d, ", Locale.US).format(then.getTime()) + clock;
+    }
+
+    private static boolean isSameDay(Calendar a, Calendar b) {
+        return a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
+                && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
+    }
+
+    /** Bodies that older versions wrote for media-only messages. */
+    private static boolean isMediaPlaceholder(String body) {
+        if (body == null) return false;
+        String t = body.trim();
+        return "Sent a photo".equalsIgnoreCase(t)
+                || "Shared a story".equalsIgnoreCase(t)
+                || "Shared a video story".equalsIgnoreCase(t)
+                || "Photo".equalsIgnoreCase(t);
     }
 
     private void bindCommon(LinearLayout bubble, TextView text, ImageView image,
@@ -346,6 +590,11 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
         boolean isCall = "audio_call".equals(m.getMessageType()) || "video_call".equals(m.getMessageType());
         String body = m.getText();
         boolean hasText = body != null && !body.trim().isEmpty() && !isVoice && !isCall;
+        // Older rows stored "Sent a photo" / "Shared a story" as the body of a media message,
+        // which then rendered as a caption under the picture. Instagram shows the media alone.
+        if (hasText && isImage && isMediaPlaceholder(body)) {
+            hasText = false;
+        }
 
         // Background styling
         if (isImage && !hasText) {
@@ -363,6 +612,14 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
             int h = (int) (16 * density);
             int v = (int) (9 * density);
             bubble.setPadding(h, v, h, v);
+            // Explicit colours: the layout's theme attributes resolved to white on a white
+            // bubble in light mode, which made whole messages look missing.
+            if (text != null) {
+                int uiMode = ctx.getResources().getConfiguration().uiMode
+                        & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+                boolean night = uiMode == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+                text.setTextColor(sent || night ? 0xFFFFFFFF : 0xFF111111);
+            }
         }
 
         // Quoted Reply Preview
@@ -386,11 +643,27 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
             image.setMaxWidth(imageWidth);
             image.setMaxHeight((int) (screenWidthPx * 0.95f));
 
+            // A media bubble sizes itself from the bitmap, so a refused fetch used to collapse
+            // it to zero height and leave an empty gap in the thread. Give it a visible box
+            // when nothing arrives and say what the row is.
+            final int fallbackHeight = (int) (imageWidth * 0.72f);
             String local = m.getLocalImageUri();
             if (local != null && !local.isEmpty()) {
                 GlideUtils.load(image, "chat", local);
             } else {
-                GlideUtils.load(image, "chat", m.getImageUrl());
+                GlideUtils.loadTracked(image, "chat", m.getImageUrl(), ok -> {
+                    if (ok) return;
+                    showMissingMedia(image, fallbackHeight);
+                });
+            }
+            // The XML shapeAppearanceOverlay does not survive on every theme; setting the model
+            // directly guarantees Instagram's uniform rounded media corner.
+            if (image instanceof com.google.android.material.imageview.ShapeableImageView) {
+                com.google.android.material.imageview.ShapeableImageView siv =
+                        (com.google.android.material.imageview.ShapeableImageView) image;
+                float r = 18 * density;
+                siv.setShapeAppearanceModel(siv.getShapeAppearanceModel().toBuilder()
+                        .setAllCornerSizes(r).build());
             }
             image.setOnClickListener(v -> listener.onImageClick(m));
         } else {
@@ -420,6 +693,11 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
             boolean isVideo = "video_call".equals(m.getMessageType());
             String kind = isVideo ? "Video call" : "Audio call";
             callIcon.setImageResource(isVideo ? R.drawable.ic_video : R.drawable.ic_phone_call);
+            // Tapping a call entry redials with the same kind, which is what the row looks like it
+            // does. Before this the bubble was inert.
+            callLayout.setOnClickListener(v -> {
+                if (listener != null) listener.onCallEntryClick(isVideo);
+            });
 
             long secs = m.getCallDurationSec();
             String outcome = m.getCallOutcome();
@@ -584,6 +862,14 @@ public class ChatAdapter extends ListAdapter<ChatAdapter.ChatRow, RecyclerView.V
     static class SentHolder extends RecyclerView.ViewHolder {
         final ItemChatSentBinding binding;
         SentHolder(ItemChatSentBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+    }
+
+    static class AlbumHolder extends RecyclerView.ViewHolder {
+        final ItemChatAlbumBinding binding;
+        AlbumHolder(ItemChatAlbumBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

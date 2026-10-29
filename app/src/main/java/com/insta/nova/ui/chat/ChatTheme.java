@@ -46,6 +46,24 @@ public class ChatTheme {
         return gd;
     }
 
+    /**
+     * The "Default" wallpaper in light mode: same sent gradient, but a white conversation
+     * surface and a pale received bubble so the light theme reads as light instead of
+     * opening a black screen.
+     */
+    public static ChatTheme lightDefault() {
+        return new ChatTheme(
+                "default",
+                "Default",
+                Color.parseColor("#FFFFFF"),
+                Color.parseColor("#3797F0"),
+                Color.parseColor("#7B3FE4"),
+                Color.parseColor("#EFEFEF"),
+                Color.parseColor("#3797F0"),
+                Color.parseColor("#7B3FE4")
+        );
+    }
+
     public static List<ChatTheme> getThemes() {
         List<ChatTheme> list = new ArrayList<>();
         list.add(new ChatTheme(

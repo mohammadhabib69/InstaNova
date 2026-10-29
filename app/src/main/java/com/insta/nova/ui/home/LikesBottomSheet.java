@@ -61,19 +61,39 @@ public class LikesBottomSheet extends BottomSheetDialogFragment {
         int count = getArguments() == null ? 0 : getArguments().getInt(ARG_COUNT, 0);
         boolean likedByMe = getArguments() != null && getArguments().getBoolean(ARG_LIKED, false);
 
-        SessionManager session = SessionManager.getInstance(requireContext());
-        likers.addAll(store.getLikers(postId, count, session.getUserId(),
-                session.getUsername(), session.getAvatarUrl(), likedByMe));
-
-        binding.tvLikesTitle.setText(likers.isEmpty()
-                ? getString(R.string.likes)
-                : getString(R.string.likes) + " · " + likers.size());
-
         binding.rvLikers.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvLikers.setAdapter(new LikerAdapter());
+        binding.tvLikesTitle.setText(getString(R.string.likes));
 
-        binding.tvLikesEmpty.setVisibility(likers.isEmpty() ? View.VISIBLE : View.GONE);
-        binding.rvLikers.setVisibility(likers.isEmpty() ? View.GONE : View.VISIBLE);
+        // Real likers from public.likes, not a generated roster: the sheet used to cap
+        // at six placeholder names, so a post with 14 likes listed seven rows.
+        // A "You reposted" row carries a synthetic "repost_<uuid>" id; the likes rows
+        // belong to the original post, so query with the bare uuid.
+        String likersPostId = postId == null ? null : postId.replaceFirst("^repost_", "");
+        new com.insta.nova.data.repository.PostRepository(requireContext())
+                .getLikers(likersPostId)
+                .observe(getViewLifecycleOwner(), resource -> {
+                    if (binding == null || resource == null) return;
+                    if (resource.status == com.insta.nova.util.Resource.Status.SUCCESS
+                            && resource.data != null) {
+                        likers.clear();
+                        for (com.insta.nova.data.model.Profile profile : resource.data) {
+                            if (profile == null || profile.getId() == null) continue;
+                            likers.add(new LocalSocialStore.Liker(profile.getId(),
+                                    profile.getUsername(),
+                                    profile.getFullName(),
+                                    profile.getAvatarUrl()));
+                        }
+                    }
+                    binding.tvLikesTitle.setText(likers.isEmpty()
+                            ? getString(R.string.likes)
+                            : getString(R.string.likes) + " · " + likers.size());
+                    if (binding.rvLikers.getAdapter() != null) {
+                        binding.rvLikers.getAdapter().notifyDataSetChanged();
+                    }
+                    binding.tvLikesEmpty.setVisibility(likers.isEmpty() ? View.VISIBLE : View.GONE);
+                    binding.rvLikers.setVisibility(likers.isEmpty() ? View.GONE : View.VISIBLE);
+                });
     }
 
     @Override

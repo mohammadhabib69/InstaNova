@@ -152,6 +152,9 @@ public class WordmarkView extends View {
 
         int textColor = customTextColor != 0 ? customTextColor : resolveThemeTextColor();
         paintInsta.setColor(textColor);
+        paintNova.setColor(textColor);
+        paintNova.setShader(null);
+        paintStar.setShader(null);
     }
 
     private int resolveThemeTextColor() {
@@ -174,10 +177,7 @@ public class WordmarkView extends View {
 
         Paint.FontMetrics fm = paintInsta.getFontMetrics();
         float textHeight = Math.abs(fm.ascent);
-        float starSize = 0.45f * textHeight;
-        float starGap = 0.15f * starSize;
-
-        float contentWidth = instaWidth + novaWidth + starGap + starSize;
+        float contentWidth = instaWidth + novaWidth;
         float contentHeight = fm.descent - fm.ascent;
 
         int desiredWidth = Math.round(contentWidth + getPaddingLeft() + getPaddingRight());
@@ -203,11 +203,7 @@ public class WordmarkView extends View {
         float novaWidth = paintNova.measureText(TEXT_NOVA);
 
         Paint.FontMetrics fm = paintInsta.getFontMetrics();
-        float textHeight = Math.abs(fm.ascent);
-        float starSize = 0.45f * textHeight;
-        float starGap = 0.15f * starSize;
-
-        float totalContentWidth = instaWidth + novaWidth + starGap + starSize;
+        float totalContentWidth = instaWidth + novaWidth;
         float totalContentHeight = fm.descent - fm.ascent;
 
         // Horizontally center within available width
@@ -218,34 +214,9 @@ public class WordmarkView extends View {
         // 1. Draw "Insta"
         canvas.drawText(TEXT_INSTA, startX, baseline, paintInsta);
 
-        // 2. Draw "Nova" with horizontal gradient (#22D3EE -> #7C4DFF -> #D946EF)
+        // 2. Draw "Nova" in the same solid colour as "Insta". The wordmark is a
+        //    logotype, not a gradient badge: the mark beside it carries the colour.
         float novaX = startX + instaWidth;
-        float starX = novaX + novaWidth + starGap;
-        float gradientEndX = starX + starSize;
-
-        LinearGradient gradient = new LinearGradient(
-                novaX, 0, gradientEndX, 0,
-                new int[]{0xFF22D3EE, 0xFF7C4DFF, 0xFFD946EF},
-                new float[]{0.0f, 0.5f, 1.0f},
-                Shader.TileMode.CLAMP
-        );
-        paintNova.setShader(gradient);
-        paintStar.setShader(gradient);
-
         canvas.drawText(TEXT_NOVA, novaX, baseline, paintNova);
-
-        // 3. Draw small star (the mark, 0.45 x text height) as superscript
-        if (baseStarPath != null) {
-            float starTop = baseline + fm.ascent; // Aligned with the top of the text
-            float scale = starSize / 24f;
-
-            starMatrix.reset();
-            starMatrix.postScale(scale, scale);
-            starMatrix.postTranslate(starX, starTop);
-
-            transformedStarPath.reset();
-            baseStarPath.transform(starMatrix, transformedStarPath);
-            canvas.drawPath(transformedStarPath, paintStar);
-        }
     }
 }

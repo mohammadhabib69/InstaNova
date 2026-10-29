@@ -13,19 +13,28 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.insta.nova.BuildConfig;
 import com.insta.nova.R;
 import com.insta.nova.data.local.LocalSocialStore;
 import com.insta.nova.data.local.SessionManager;
 import com.insta.nova.data.model.Highlight;
 import com.insta.nova.data.model.HighlightItem;
 import com.insta.nova.data.model.Story;
+import com.insta.nova.data.remote.RetrofitClient;
 import com.insta.nova.databinding.BottomSheetHighlightCreateBinding;
 import com.insta.nova.util.TimeUtils;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Creates a highlight from archived (past) stories: name field plus a selectable
@@ -83,8 +92,129 @@ public class HighlightCreateSheet extends BottomSheetDialogFragment {
         highlight.setItems(items);
 
         store.addHighlight(highlight);
-        Toast.makeText(requireContext(), R.string.highlight_saved, Toast.LENGTH_SHORT).show();
+
+        // Local-only highlights never left this device: a friend opening the profile saw an empty
+        // row, and reinstalling lost them. Two things were missing here: the stories that never
+        // finished uploading were simply skipped, and nothing ever tried again. Upload them now
+        // and mirror, so what the picker promised ("Saved") is what other people can actually see.
+        List<HighlightItem> unresolved = new ArrayList<>();
+        for (HighlightItem item : items) {
+            if (resolveMedia(item.getMediaUrl()) == null) unresolved.add(item);
+        }
+        final String highlightName = name;
+        uploadMissing(unresolved, 0, () -> finishMirror(highlightName, items));
+    }
+
+    /**
+     * Uploads, one at a time, the stories that never made it to Storage. Failures are logged and
+     * skipped: a highlight with three of four slides is better than a save that errors out.
+     */
+    private void uploadMissing(List<HighlightItem> missing, int index, Runnable onDone) {
+        if (index >= missing.size() || !isAdded()) {
+            onDone.run();
+            return;
+        }
+        final File file = localFile(missing.get(index).getMediaUrl());
+        if (file == null || !file.exists() || file.length() == 0) {
+            uploadMissing(missing, index + 1, onDone);
+            return;
+        }
+        String userId = SessionManager.getInstance(requireContext()).getUserId();
+        if (userId == null || userId.isEmpty()) {
+            onDone.run();
+            return;
+        }
+        boolean video = file.getName().toLowerCase().endsWith(".mp4");
+        String extension = video ? ".mp4" : ".jpg";
+        String path = userId + "/hl_" + System.currentTimeMillis() + extension;
+        RequestBody body = RequestBody.create(
+                MediaType.parse(video ? "video/mp4" : "image/jpeg"), file);
+
+        RetrofitClient.getInstance(requireContext()).getStorageApi()
+                .uploadFile("stories", path, body)
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            String base = BuildConfig.SUPABASE_URL == null
+                                    ? "" : BuildConfig.SUPABASE_URL.trim();
+                            while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+                            // Remember the mapping, so the same local file is never re-uploaded
+                            // when another highlight picks it.
+                            requireContext().getSharedPreferences("story_urls",
+                                            android.content.Context.MODE_PRIVATE)
+                                    .edit().putString("story_url_" + file.getName(),
+                                            base + "/storage/v1/object/public/stories/" + path)
+                                    .apply();
+                        } else {
+                            android.util.Log.w("InstaApi",
+                                    "highlight mirror upload failed: HTTP " + response.code());
+                        }
+                        uploadMissing(missing, index + 1, onDone);
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                        android.util.Log.w("InstaApi",
+                                "highlight mirror upload failed: " + t.getMessage());
+                        uploadMissing(missing, index + 1, onDone);
+                    }
+                });
+    }
+
+    /** The local file behind a story row, whether it is stored as a raw path or a file:// URI. */
+    private File localFile(String mediaUrl) {
+        if (mediaUrl == null || mediaUrl.isEmpty()) return null;
+        if (mediaUrl.startsWith("http://") || mediaUrl.startsWith("https://")) return null;
+        String path = mediaUrl.startsWith("file://")
+                ? android.net.Uri.parse(mediaUrl).getPath() : mediaUrl;
+        return path == null ? null : new File(path);
+    }
+
+    /** Mirrors whatever resolved to a real URL and reports exactly what the user ended up with. */
+    private void finishMirror(String name, List<HighlightItem> items) {
+        if (!isAdded()) return;
+        List<String> urls = new ArrayList<>();
+        for (HighlightItem item : items) {
+            String resolved = resolveMedia(item.getMediaUrl());
+            if (resolved != null) urls.add(resolved);
+        }
+        String coverUrl = null;
+        for (String url : urls) { coverUrl = url; break; }
+
+        if (coverUrl == null || urls.isEmpty()) {
+            Toast.makeText(requireContext(),
+                    "Saved on this device only — these stories never finished uploading.",
+                    Toast.LENGTH_LONG).show();
+            dismiss();
+            return;
+        }
+        new com.insta.nova.data.repository.HighlightRepository(requireContext())
+                .createHighlight(name, coverUrl, urls);
+        if (urls.size() < items.size()) {
+            Toast.makeText(requireContext(),
+                    "Saved — " + (items.size() - urls.size())
+                            + " story(ies) stayed on this device because they could not upload.",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(requireContext(), R.string.highlight_saved, Toast.LENGTH_SHORT).show();
+        }
         dismiss();
+    }
+
+    /**
+     * Stories live on this device as {@code files/stories/story_<ts>.jpg}. Publishing that path
+     * verbatim produced highlights nobody else could load. The publish step records the public URL
+     * per file name; anything without a mapping is skipped rather than written as a dead link.
+     */
+    private String resolveMedia(String url) {
+        if (url == null || url.isEmpty()) return null;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        String name = url.substring(url.lastIndexOf('/') + 1);
+        String published = requireContext()
+                .getSharedPreferences("story_urls", android.content.Context.MODE_PRIVATE)
+                .getString("story_url_" + name, null);
+        return published;
     }
 
     @Override

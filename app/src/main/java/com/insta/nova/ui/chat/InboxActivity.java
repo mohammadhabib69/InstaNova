@@ -1,5 +1,6 @@
 package com.insta.nova.ui.chat;
 
+import androidx.lifecycle.LiveData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -67,6 +68,8 @@ public class InboxActivity extends AppCompatActivity {
     private ImageView ivVideo;
     private EditText etSearch;
     private ConversationAdapter adapter;
+    /** Kept so a re-entry can drop the previous observer instead of stacking a new one. */
+    private LiveData<com.insta.nova.util.Resource<java.util.List<Conversation>>> conversationsLive;
     private final List<Conversation> allConversations = new ArrayList<>();
     private final List<Conversation> visibleConversations = new ArrayList<>();
 
@@ -112,7 +115,7 @@ public class InboxActivity extends AppCompatActivity {
             intent.putExtra("EXTRA_OTHER_USERNAME", conv.getOtherUsername());
             intent.putExtra("EXTRA_OTHER_AVATAR", conv.getOtherAvatarUrl());
             startActivity(intent);
-        });
+        }, this::showConversationActions);
 
         rvConversations.setLayoutManager(new LinearLayoutManager(this));
         rvConversations.setAdapter(adapter);
@@ -165,15 +168,18 @@ public class InboxActivity extends AppCompatActivity {
     }
 
     /**
-     * Design-only chrome follows the shared Constants.DECORATIVE_UI contract:
-     * visible with a 'Not available' toast when enabled, hidden when off.
+     * Design-only chrome follows the shared Constants.DECORATIVE_UI contract.
      */
     private void setupDecorativeChrome() {
         if (Constants.DECORATIVE_UI) {
             ivTitleChevron.setVisibility(View.VISIBLE);
             ivVideo.setVisibility(View.VISIBLE);
             tvRequests.setVisibility(View.VISIBLE);
-            ivTitleChevron.setOnClickListener(v -> ToastUtil.showNotAvailable(this));
+            ivTitleChevron.setOnClickListener(v -> {
+                Intent intent = new Intent(InboxActivity.this,
+                        com.insta.nova.ui.settings.SettingsActivity.class);
+                startActivity(intent);
+            });
             ivVideo.setOnClickListener(v -> {
                 Intent intent = new Intent(InboxActivity.this, com.insta.nova.calling.CallHistoryActivity.class);
                 startActivity(intent);
@@ -203,16 +209,52 @@ public class InboxActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Long-press actions for one thread. Mute and Delete are the two that matter here:
+     * Delete only takes the thread out of my inbox (the other side keeps their history),
+     * which is what Instagram's delete does.
+     */
+    private void showConversationActions(Conversation conversation) {
+        if (conversation == null) return;
+        ChatSettingsStore settings = ChatSettingsStore.getInstance(this);
+        boolean muted = settings.isMuted(conversation.getId());
+        String[] actions = {
+                getString(muted ? R.string.inbox_action_unmute : R.string.inbox_action_mute),
+                getString(R.string.inbox_action_delete)
+        };
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(conversation.getOtherUsername())
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) {
+                        settings.setMuted(conversation.getId(), !muted);
+                        applyConversationFilter(etSearch.getText() != null ? etSearch.getText().toString() : "");
+                        Toast.makeText(this, muted
+                                ? R.string.inbox_unmuted : R.string.inbox_muted,
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        settings.setHidden(conversation.getId(), true);
+                        applyConversationFilter(etSearch.getText() != null ? etSearch.getText().toString() : "");
+                        Toast.makeText(this, R.string.inbox_deleted,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
+    }
+
     private void applyConversationFilter(String query) {
         String needle = query == null ? "" : query.trim().toLowerCase(Locale.US);
         visibleConversations.clear();
+        ChatSettingsStore settings = ChatSettingsStore.getInstance(this);
         if (needle.isEmpty()) {
-            visibleConversations.addAll(allConversations);
+            for (Conversation c : allConversations) {
+                if (!settings.isHidden(c.getId())) visibleConversations.add(c);
+            }
         } else {
             for (Conversation c : allConversations) {
                 String username = c.getOtherUsername() == null ? "" : c.getOtherUsername().toLowerCase(Locale.US);
                 String fullName = c.getOtherFullName() == null ? "" : c.getOtherFullName().toLowerCase(Locale.US);
-                if (username.contains(needle) || fullName.contains(needle)) {
+                if ((username.contains(needle) || fullName.contains(needle))
+                        && !settings.isHidden(c.getId())) {
                     visibleConversations.add(c);
                 }
             }
@@ -220,18 +262,49 @@ public class InboxActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
+    private final List<Conversation> restrictedConversations = new ArrayList<>();
+
+    private void updateRequestsRow() {
+        if (tvRequests == null) return;
+        int count = restrictedConversations.size();
+        String label = getString(R.string.st_message_requests);
+        tvRequests.setText(count > 0 ? label + " (" + count + ")" : label);
+        tvRequests.setOnClickListener(v -> startActivity(
+                new Intent(InboxActivity.this, MessageRequestsActivity.class)));
+        tvRequests.setVisibility(count > 0 ? View.VISIBLE : View.GONE);
+    }
+
     private void loadInbox() {
-        swipeRefresh.setRefreshing(true);
-        chatRepository.getConversations().observe(this, resource -> {
+        // Only spin on a genuinely empty screen: re-entering the inbox with rows already on
+        // screen used to flash the refresh spinner, then rebuild the list, which read as a
+        // blink every time the screen opened.
+        swipeRefresh.setRefreshing(allConversations.isEmpty());
+        // One observer, not one per resume. onResume calls this every time the screen is
+        // shown, so the old code stacked observers on the same LiveData and each copy
+        // cleared and refilled the list again — the other half of the flicker.
+        if (conversationsLive != null) conversationsLive.removeObservers(this);
+        conversationsLive = chatRepository.getConversations();
+        conversationsLive.observe(this, resource -> {
             swipeRefresh.setRefreshing(false);
             if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
                 ChatSettingsStore settings = ChatSettingsStore.getInstance(InboxActivity.this);
+                com.insta.nova.data.local.RelationshipStore relationships =
+                        new com.insta.nova.data.local.RelationshipStore(InboxActivity.this);
                 allConversations.clear();
+                restrictedConversations.clear();
                 for (Conversation c : resource.data) {
-                    if (c != null && !settings.isBlocked(c.getOtherUserId())) {
+                    if (c == null || settings.isBlocked(c.getOtherUserId())) continue;
+                    // `c.isRequest()` is the server's answer for this viewer: the last
+                    // sender does not follow them and they have not accepted the thread.
+                    // The local restrict list stays as a second, manual route — the two
+                    // are independent, and either one keeps a thread out of the inbox.
+                    if (c.isRequest() || relationships.isRestricted(c.getOtherUserId())) {
+                        restrictedConversations.add(c);
+                    } else {
                         allConversations.add(c);
                     }
                 }
+                updateRequestsRow();
                 applyConversationFilter(etSearch.getText() != null ? etSearch.getText().toString() : "");
                 layoutEmpty.setVisibility(allConversations.isEmpty() ? View.VISIBLE : View.GONE);
                 rvConversations.setVisibility(allConversations.isEmpty() ? View.GONE : View.VISIBLE);
@@ -343,16 +416,23 @@ public class InboxActivity extends AppCompatActivity {
         private final List<Conversation> items;
         private final LocalChatStore localChatStore;
         private final OnConversationClickListener listener;
+        private final OnConversationLongClickListener longListener;
 
         interface OnConversationClickListener {
             void onClick(Conversation conversation);
         }
 
+        interface OnConversationLongClickListener {
+            void onLongClick(Conversation conversation);
+        }
+
         ConversationAdapter(List<Conversation> items, LocalChatStore localChatStore,
-                            OnConversationClickListener listener) {
+                            OnConversationClickListener listener,
+                            OnConversationLongClickListener longListener) {
             this.items = items;
             this.localChatStore = localChatStore;
             this.listener = listener;
+            this.longListener = longListener;
         }
 
         @NonNull
@@ -381,8 +461,14 @@ public class InboxActivity extends AppCompatActivity {
             // Preview and timestamp come from the shared server inbox row.
             String lastMsg = c.getLastMessage();
             String time = compactTime(c.getLastMessageAt());
-            if (lastMsg == null || lastMsg.trim().isEmpty() || "Photo".equalsIgnoreCase(lastMsg.trim())) {
-                lastMsg = context.getString(R.string.inbox_sent_a_photo);
+            if (lastMsg == null || lastMsg.trim().isEmpty() || "Photo".equalsIgnoreCase(lastMsg.trim())
+                    || "Sent a photo".equalsIgnoreCase(lastMsg.trim())) {
+                // A multi-select arrives as N media messages; the server reports how many belong
+                // to the trailing burst so the row reads "4 photos" rather than "Sent a photo".
+                int photos = c.getPhotoCount();
+                lastMsg = photos > 1
+                        ? context.getResources().getQuantityString(R.plurals.inbox_photos, photos, photos)
+                        : context.getString(R.string.inbox_sent_a_photo);
             }
             holder.tvLastMessage.setText(time.isEmpty() ? lastMsg : lastMsg + " · " + time);
             holder.tvLastMessage.setTypeface(null, unread ? Typeface.BOLD : Typeface.NORMAL);
@@ -398,12 +484,10 @@ public class InboxActivity extends AppCompatActivity {
                 holder.tvUnreadBadge.setVisibility(View.GONE);
             }
 
-            // Camera: textPrimary while unread, muted grey once read
-            ImageViewCompat.setImageTintList(holder.ivCamera, ColorStateList.valueOf(
-                    ContextCompat.getColor(context, unread ? R.color.color_text_primary : R.color.color_icon_muted)));
-            holder.ivCamera.setVisibility(Constants.DECORATIVE_UI ? View.VISIBLE : View.GONE);
-            holder.ivCamera.setOnClickListener(Constants.DECORATIVE_UI
-                    ? v -> ToastUtil.showNotAvailable(context) : null);
+            // No camera affordance on conversation rows: it duplicated the composer's camera
+            // and fired a story capture from the wrong place.
+            holder.ivCamera.setVisibility(View.GONE);
+            holder.ivCamera.setOnClickListener(null);
 
             // Story ring: only when the other user has an active story.
             // The Conversation model carries no story flag, so it stays hidden.
@@ -417,6 +501,11 @@ public class InboxActivity extends AppCompatActivity {
 
             holder.itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onClick(c);
+            });
+            holder.itemView.setOnLongClickListener(v -> {
+                if (longListener == null) return false;
+                longListener.onLongClick(c);
+                return true;
             });
         }
 

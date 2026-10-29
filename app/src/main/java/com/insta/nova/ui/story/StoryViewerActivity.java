@@ -81,6 +81,24 @@ public class StoryViewerActivity extends AppCompatActivity {
     private static final String TAG_API = "InstaApi";
     private static final String TAG_GLIDE = "InstaGlide";
     private static final long STORY_DURATION_MS = 5000L;
+
+    /* Video stories: the row only carries the original file, so the player applies the
+       trim range and mute flag that the editor wrote into editor_meta. */
+    private androidx.media3.exoplayer.ExoPlayer storyPlayer;
+    private androidx.media3.ui.PlayerView storyPlayerView;
+    private long currentDurationMs = STORY_DURATION_MS;
+    private long trimStartMs = 0L;
+    private long trimEndMs = 0L;
+    private boolean metaMuted = false;
+    /** 9:16 box the clip and its stroke overlay share, so the drawing stays registered. */
+    private android.widget.FrameLayout mediaBox;
+    private boolean metaFit = false;
+    /** The story's chosen track; one at a time, released whenever the story changes. */
+    private androidx.media3.exoplayer.ExoPlayer storyMusic;
+    private android.widget.FrameLayout overlayLayer;
+    private android.widget.LinearLayout pollCard;
+    /** Guards the deferred timer start against a story the user has already swiped past. */
+    private int mediaLoadToken;
     private static final int TICK_MS = 16;
     private static final float SWIPE_DOWN_CLOSE_PX_DP = 120f;
     private static final float SWIPE_SIDE_PX_DP = 80f;
@@ -193,17 +211,12 @@ public class StoryViewerActivity extends AppCompatActivity {
             (i < 3 ? row1 : row2).addView(tv);
         }
         // 'Avatar' segment is design-only.
-        binding.tvSegAvatar.setOnClickListener(v -> {
-            if (com.insta.nova.util.Constants.DECORATIVE_UI) {
-                com.insta.nova.util.ToastUtil.showNotAvailable(this);
-            }
-        });
+        binding.tvSegAvatar.setVisibility(View.GONE);
     }
 
     private void wireHeader() {
         binding.btnCloseStory.setOnClickListener(v -> finish());
         binding.btnStoryMore.setOnClickListener(v -> showMoreSheet());
-        binding.btnOwnerMore.setOnClickListener(v -> showMoreSheet());
     }
 
     private void wireReply() {
@@ -336,6 +349,522 @@ public class StoryViewerActivity extends AppCompatActivity {
     /* Playback                                                            */
     /* ------------------------------------------------------------------ */
 
+    /**
+     * Images are baked by the editor, so they only need Glide. A video keeps its original
+     * file: the trim range, the mute flag and the story's on-screen duration all come from
+     * editor_meta, and the player has to stop at the trim end instead of the file end.
+     */
+    private void bindStoryMedia(Story story) {
+        Log.e("StoryMedia", "type=" + story.getMediaType() + " meta=" + story.getEditorMeta());
+        currentDurationMs = STORY_DURATION_MS;
+        trimStartMs = 0L;
+        trimEndMs = 0L;
+        metaMuted = false;
+
+        String meta = story.getEditorMeta();
+        org.json.JSONObject json = null;
+        if (meta != null && !meta.isEmpty()) {
+            try {
+                json = new org.json.JSONObject(meta);
+                trimStartMs = json.optLong("trimStartMs", 0L);
+                trimEndMs = json.optLong("trimEndMs", 0L);
+                metaMuted = json.optBoolean("muted", false);
+                metaFit = json.optBoolean("fit", false);
+            } catch (Exception e) {
+                Log.w(TAG_API, "bad editor_meta: " + e.getMessage());
+            }
+        }
+
+        startStoryMusic(json);
+
+        boolean isVideo = story.getMediaType() != null
+                && story.getMediaType().equalsIgnoreCase("video");
+        if (!isVideo) {
+            // stopStoryPlayer() clears overlayLayer and pollCard, so it must run *before*
+            // renderPoll(); the other order silently discards the poll card.
+            stopStoryPlayer();
+            binding.ivStoryMedia.setVisibility(View.VISIBLE);
+            // Nothing used to put the photo into this view, so every photo story showed the
+            // empty black image view — including fully baked collages.
+            loadStoryPhoto(story.getMediaUrl());
+            // Section: GIF stickers are animated, so they are never baked into the photo; the
+            // author's editor_meta is replayed here, over the image.
+            renderGifStickers(json);
+            renderPoll(json, story);
+            return;
+        }
+
+        long span = trimEndMs - trimStartMs;
+        currentDurationMs = span > 0 ? Math.min(span, 60_000L) : 60_000L;
+        binding.ivStoryMedia.setVisibility(View.INVISIBLE);
+        playStoryVideo(story.getMediaUrl());
+        renderOverlays(json);
+        renderPoll(json, story);
+    }
+
+    /**
+     * Plays the story's attached track, if it has one.
+     *
+     * <p>Music is not part of the media file: a photo story is a baked JPEG and a video story
+     * is the original clip, so the track is a separate column in editor_meta. It loops under
+     * the story and is released by stopStoryMusic() as soon as the story changes.
+     */
+    private void startStoryMusic(@Nullable org.json.JSONObject json) {
+        stopStoryMusic();
+        if (json == null) return;
+        String rawUrl = json.optString("music_url", "");
+        if (rawUrl.isEmpty()) return;
+        try {
+            String url = com.insta.nova.util.MediaUrl.toAuthenticated(
+                    com.insta.nova.util.MediaUrl.normalize("stories", rawUrl));
+            storyMusic = new androidx.media3.exoplayer.ExoPlayer.Builder(this).build();
+            storyMusic.setVolume(metaMuted ? 0f : 0.9f);
+            storyMusic.setRepeatMode(androidx.media3.common.Player.REPEAT_MODE_ONE);
+            storyMusic.setMediaSource(new androidx.media3.exoplayer.source.ProgressiveMediaSource
+                    .Factory(com.insta.nova.util.MediaUrl.streamFactory())
+                    .createMediaSource(androidx.media3.common.MediaItem.fromUri(url)));
+            storyMusic.prepare();
+            storyMusic.setPlayWhenReady(true);
+        } catch (Exception e) {
+            Log.e(TAG_API, "story music failed: " + e.getMessage(), e);
+            stopStoryMusic();
+        }
+    }
+
+    private void stopStoryMusic() {
+        if (storyMusic == null) return;
+        try {
+            storyMusic.release();
+        } catch (Exception ignored) {
+        }
+        storyMusic = null;
+    }
+
+    /**
+     * Draws the story's freehand strokes.
+     *
+     * <p>The editor bakes strokes into a transparent PNG and stores it as meta.overlay, but
+     * nothing ever read that key back, so drawing on a story — photo or video — vanished on
+     * publish. The PNG is scaled to the media box, which is the same 9:16 frame it was made in.
+     */
+    /** Loads a photo story; the bucket is private, so the request carries the auth headers. */
+    private void loadStoryPhoto(String rawUrl) {
+        if (rawUrl == null || rawUrl.trim().isEmpty()) return;
+        String url = com.insta.nova.util.MediaUrl.toAuthenticated(
+                com.insta.nova.util.MediaUrl.normalize("stories", rawUrl));
+        com.bumptech.glide.request.RequestOptions options =
+                new com.bumptech.glide.request.RequestOptions()
+                        .placeholder(android.R.color.black)
+                        .error(android.R.color.black);
+        com.bumptech.glide.load.model.LazyHeaders.Builder headers =
+                new com.bumptech.glide.load.model.LazyHeaders.Builder();
+        for (java.util.Map.Entry<String, String> header
+                : com.insta.nova.util.MediaUrl.streamHeaders().entrySet()) {
+            headers.addHeader(header.getKey(), header.getValue());
+        }
+        com.bumptech.glide.Glide.with(this)
+                .load(new com.bumptech.glide.load.model.GlideUrl(url, headers.build()))
+                .apply(options)
+                .into(binding.ivStoryMedia);
+    }
+
+    private void playStoryVideo(String rawUrl) {
+        stopStoryPlayer();
+        try {
+            ViewGroup parent = (ViewGroup) binding.ivStoryMedia.getParent();
+            if (parent == null) return;
+
+            int parentW = parent.getWidth() > 0 ? parent.getWidth() : 1080;
+            int parentH = parent.getHeight() > 0 ? parent.getHeight() : 1920;
+            // The editor's stage is a fixed 9:16 frame and the stroke overlay is drawn in that
+            // space. The clip therefore has to be boxed the same way, otherwise a FIT_XY
+            // overlay is stretched to the full-bleed screen and the drawing drifts off target.
+            int boxH = Math.min(parentH, Math.round(parentW * 16f / 9f));
+            int boxW = Math.min(parentW, Math.round(boxH * 9f / 16f));
+
+            mediaBox = new android.widget.FrameLayout(this);
+            mediaBox.setClipChildren(false);
+            android.widget.FrameLayout.LayoutParams boxLp = new android.widget.FrameLayout.LayoutParams(
+                    boxW, boxH);
+            boxLp.gravity = android.view.Gravity.CENTER;
+            parent.addView(mediaBox, parent.indexOfChild(binding.ivStoryMedia), boxLp);
+
+            storyPlayerView = new androidx.media3.ui.PlayerView(this);
+            storyPlayerView.setUseController(false);
+            storyPlayerView.setResizeMode(metaFit
+                    ? androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    : androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+            mediaBox.addView(storyPlayerView, new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+            String url = com.insta.nova.util.MediaUrl.toAuthenticated(
+                    com.insta.nova.util.MediaUrl.normalize("stories", rawUrl));
+            storyPlayer = new androidx.media3.exoplayer.ExoPlayer.Builder(this).build();
+            storyPlayer.setVolume(metaMuted ? 0f : 1f);
+            storyPlayer.setMediaSource(new androidx.media3.exoplayer.source.ProgressiveMediaSource
+                    .Factory(com.insta.nova.util.MediaUrl.streamFactory())
+                    .createMediaSource(androidx.media3.common.MediaItem.fromUri(url)));
+            storyPlayer.prepare();
+            storyPlayer.seekTo(trimStartMs);
+            storyPlayer.setPlayWhenReady(true);
+            storyPlayerView.setPlayer(storyPlayer);
+        } catch (Exception e) {
+            Log.e(TAG_API, "video story failed: " + e.getMessage(), e);
+            binding.ivStoryMedia.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private android.widget.FrameLayout ensureOverlayLayer() {
+        if (overlayLayer != null) return overlayLayer;
+        ViewGroup parent = mediaBox != null
+                ? mediaBox : (ViewGroup) binding.ivStoryMedia.getParent();
+        if (parent == null) return null;
+        overlayLayer = new android.widget.FrameLayout(this);
+        overlayLayer.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        overlayLayer.setClipChildren(false);
+        parent.addView(overlayLayer);
+        return overlayLayer;
+    }
+
+    /**
+     * Poll sticker: the question and options come from editor_meta, the counts from
+     * story_poll_vote / story_poll_results. The card is rebuilt after a vote so percentages
+     * and the chosen option replace the plain options.
+     */
+    private void renderPoll(org.json.JSONObject meta, Story story) {
+        if (meta == null) return;
+        org.json.JSONObject poll = meta.optJSONObject("poll");
+        if (poll == null) return;
+        android.widget.FrameLayout layer = ensureOverlayLayer();
+        if (layer == null) return;
+
+        String question = poll.optString("question", "");
+        org.json.JSONArray options = poll.optJSONArray("options");
+        if (question.isEmpty() || options == null || options.length() < 2) return;
+
+        pollCard = new android.widget.LinearLayout(this);
+        pollCard.setOrientation(android.widget.LinearLayout.VERTICAL);
+        pollCard.setBackgroundColor(0xFFFFFFFF);
+        pollCard.setPadding(32, 24, 32, 24);
+        int w = (int) (getResources().getDisplayMetrics().density * 260);
+        android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                w, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.gravity = android.view.Gravity.CENTER;
+        layer.addView(pollCard, lp);
+
+        android.widget.TextView q = new android.widget.TextView(this);
+        q.setText(question);
+        q.setTextColor(0xFF111111);
+        q.setTextSize(16);
+        q.setGravity(android.view.Gravity.CENTER);
+        pollCard.addView(q);
+
+        final java.util.List<String> labels = new java.util.ArrayList<>();
+        for (int i = 0; i < options.length(); i++) labels.add(options.optString(i, ""));
+        final String storyId = story.getId();
+        final boolean votable = !isOwnStory();
+        // A poll needs reading time; the 5 s story clock would otherwise advance while the
+        // viewer is still deciding. The author only sees the tally, so their story keeps going.
+        if (votable) pauseForPoll();
+        paintPollOptions(storyId, labels, null, -1, 0, votable);
+
+        com.insta.nova.data.remote.api.RestApi api = com.insta.nova.data.remote.RetrofitClient
+                .getInstance(this).getRestApi();
+
+        java.util.Map<String, Object> args = new java.util.HashMap<>();
+        args.put("p_story", storyId);
+        api.storyPollMine(args).enqueue(new retrofit2.Callback<Integer>() {
+            @Override public void onResponse(retrofit2.Call<Integer> c,
+                                             retrofit2.Response<Integer> r) {
+                Integer mine = r.body();
+                int mineValue = mine == null ? -1 : mine;
+                api.storyPollResults(args).enqueue(
+                        resultsCallback(storyId, labels, mineValue, votable));
+            }
+
+            @Override public void onFailure(retrofit2.Call<Integer> c, Throwable t) {
+                android.util.Log.w(TAG_API, "poll mine failed: " + t.getMessage());
+            }
+        });
+    }
+
+    private retrofit2.Callback<java.util.List<java.util.Map<String, Object>>> resultsCallback(
+            String storyId, java.util.List<String> labels, int mine, boolean votable) {
+        return new retrofit2.Callback<java.util.List<java.util.Map<String, Object>>>() {
+            @Override public void onResponse(
+                    retrofit2.Call<java.util.List<java.util.Map<String, Object>>> c,
+                    retrofit2.Response<java.util.List<java.util.Map<String, Object>>> r) {
+                int[] counts = new int[labels.size()];
+                int total = 0;
+                if (r.body() != null) {
+                    for (java.util.Map<String, Object> row : r.body()) {
+                        int index = ((Number) row.get("option_index")).intValue();
+                        int votes = ((Number) row.get("votes")).intValue();
+                        if (index >= 0 && index < counts.length) {
+                            counts[index] = votes;
+                            total += votes;
+                        }
+                    }
+                }
+                paintPollOptions(storyId, labels, counts, mine, total, votable);
+            }
+
+            @Override public void onFailure(
+                    retrofit2.Call<java.util.List<java.util.Map<String, Object>>> c,
+                    Throwable t) {
+                android.util.Log.w(TAG_API, "poll results failed: " + t.getMessage());
+            }
+        };
+    }
+
+    private void paintPollOptions(String storyId, java.util.List<String> labels,
+                                   int[] counts, int mine, int total, boolean votable) {
+        if (pollCard == null) return;
+        while (pollCard.getChildCount() > 1) pollCard.removeViewAt(1);
+
+        for (int i = 0; i < labels.size(); i++) {
+            final int index = i;
+            android.widget.TextView row = new android.widget.TextView(this);
+            String text = labels.get(i);
+            if (counts != null && total > 0) {
+                int pct = Math.round(counts[i] * 100f / total);
+                text = text + "   " + pct + "%";
+            }
+            row.setText(text);
+            row.setTextSize(14);
+            row.setTextColor(i == mine ? 0xFF1E88FF : 0xFF333333);
+            row.setGravity(android.view.Gravity.CENTER);
+            row.setPadding(16, 18, 16, 18);
+            android.graphics.drawable.GradientDrawable bg =
+                    new android.graphics.drawable.GradientDrawable();
+            bg.setColor(i == mine ? 0x221E88FF : 0xFFF2F2F2);
+            bg.setCornerRadius(24f);
+            row.setBackground(bg);
+            android.widget.LinearLayout.LayoutParams rowLp =
+                    new android.widget.LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT);
+            rowLp.topMargin = 12;
+            pollCard.addView(row, rowLp);
+
+            // The author sees the tally, not a ballot: voting on your own story is not a
+            // thing Instagram allows and would skew the counts you are reading.
+            if (mine < 0 && votable) {
+                row.setOnClickListener(v -> vote(storyId, index, labels));
+            }
+        }
+    }
+
+    private void vote(String storyId, int option, java.util.List<String> labels) {
+        java.util.Map<String, Object> args = new java.util.HashMap<>();
+        args.put("p_story", storyId);
+        args.put("p_option", option);
+        com.insta.nova.data.remote.RetrofitClient.getInstance(this).getRestApi()
+                .voteStoryPoll(args).enqueue(new retrofit2.Callback<Void>() {
+                    @Override public void onResponse(retrofit2.Call<Void> c,
+                                                     retrofit2.Response<Void> r) {
+                        if (!r.isSuccessful()) {
+                            android.util.Log.w(TAG_API, "vote HTTP " + r.code());
+                            return;
+                        }
+                        // The ballot is answered, so the story can move on immediately
+                        // instead of waiting out the hold.
+                        stopPollHold();
+                        resumePlayback();
+                        java.util.Map<String, Object> query = new java.util.HashMap<>();
+                        query.put("p_story", storyId);
+                        com.insta.nova.data.remote.RetrofitClient.getInstance(
+                                StoryViewerActivity.this).getRestApi()
+                                .storyPollResults(query)
+                                .enqueue(resultsCallback(storyId, labels, option, true));
+                    }
+
+                    @Override public void onFailure(retrofit2.Call<Void> c, Throwable t) {
+                        android.util.Log.w(TAG_API, "vote failed: " + t.getMessage());
+                    }
+                });
+    }
+
+    private int dpPx(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    /** Draws only the animated GIF stickers of a photo story, on their own layer. */
+    private void renderGifStickers(@Nullable org.json.JSONObject json) {
+        if (json == null) return;
+        org.json.JSONArray elements = json.optJSONArray("elements");
+        if (elements == null) return;
+        final java.util.List<org.json.JSONObject> gifs = new java.util.ArrayList<>();
+        for (int i = 0; i < elements.length(); i++) {
+            org.json.JSONObject el = elements.optJSONObject(i);
+            if (el == null) continue;
+            String name = el.optString("gif", "");
+            if (!name.isEmpty()) gifs.add(el);
+        }
+        if (gifs.isEmpty()) return;
+        ViewGroup parent = (ViewGroup) binding.ivStoryMedia.getParent();
+        if (parent == null) return;
+        android.widget.FrameLayout layer = new android.widget.FrameLayout(this);
+        layer.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        parent.addView(layer);
+        layer.post(() -> {
+            int w = layer.getWidth();
+            int h = layer.getHeight();
+            for (org.json.JSONObject el : gifs) {
+                android.widget.ImageView sticker = new android.widget.ImageView(this);
+                com.bumptech.glide.Glide.with(this)
+                        .load("file:///android_asset/gifs/" + el.optString("gif") + ".gif")
+                        .into(sticker);
+                float scale = (float) el.optDouble("scale", 1);
+                sticker.setScaleX(scale);
+                sticker.setScaleY(scale);
+                sticker.setRotation((float) el.optDouble("rot", 0));
+                int size = dpPx(120);
+                layer.addView(sticker, new android.widget.FrameLayout.LayoutParams(size, size));
+                final float x = (float) el.optDouble("x", 0.5) * w;
+                final float y = (float) el.optDouble("y", 0.45) * h;
+                final int half = size / 2;
+                sticker.post(() -> {
+                    sticker.setX(x - half);
+                    sticker.setY(y - half);
+                });
+            }
+        });
+    }
+
+    private void renderOverlays(org.json.JSONObject meta) {
+        if (meta == null) return;
+        // Videos live inside a 9:16 mediaBox so the stroke PNG lines up with the frame it was
+        // drawn on; photos keep painting straight into the full-bleed media container.
+        ViewGroup parent = mediaBox != null
+                ? mediaBox : (ViewGroup) binding.ivStoryMedia.getParent();
+        if (parent == null) return;
+
+        overlayLayer = new android.widget.FrameLayout(this);
+        overlayLayer.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        overlayLayer.setClipChildren(false);
+        parent.addView(overlayLayer);
+        overlayLayer.post(() -> {
+            int w = overlayLayer.getWidth();
+            int h = overlayLayer.getHeight();
+
+            String overlayUrl = meta.optString("overlay", null);
+            if (overlayUrl != null && !overlayUrl.isEmpty()) {
+                android.widget.ImageView art = new android.widget.ImageView(this);
+                art.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+                overlayLayer.addView(art, new android.widget.FrameLayout.LayoutParams(w, h));
+                com.insta.nova.util.GlideUtils.load(art, "stories", overlayUrl);
+            }
+
+            org.json.JSONArray elements = meta.optJSONArray("elements");
+            if (elements == null) return;
+            for (int i = 0; i < elements.length(); i++) {
+                org.json.JSONObject el = elements.optJSONObject(i);
+                if (el == null) continue;
+                String gif = el.optString("gif", "");
+                if (!gif.isEmpty()) {
+                    // Bundled GIF: same asset the author picked, so no network fetch.
+                    android.widget.ImageView sticker = new android.widget.ImageView(this);
+                    com.bumptech.glide.Glide.with(this)
+                            .load("file:///android_asset/gifs/" + gif + ".gif")
+                            .into(sticker);
+                    float gscale = (float) el.optDouble("scale", 1);
+                    sticker.setScaleX(gscale);
+                    sticker.setScaleY(gscale);
+                    sticker.setRotation((float) el.optDouble("rot", 0));
+                    overlayLayer.addView(sticker, new android.widget.FrameLayout.LayoutParams(
+                            dpPx(120), dpPx(120)));
+                    final float gx = (float) el.optDouble("x", 0.5) * w;
+                    final float gy = (float) el.optDouble("y", 0.45) * h;
+                    final int half = dpPx(60);
+                    sticker.post(() -> {
+                        sticker.setX(gx - half);
+                        sticker.setY(gy - half);
+                    });
+                    continue;
+                }
+                String text = el.optString("text", "");
+                if (text.isEmpty()) continue;
+                android.widget.TextView tv = new android.widget.TextView(this);
+                tv.setText(text);
+                tv.setTextSize(el.optInt("sp", 22));
+                tv.setTextColor(el.optInt("color", 0xFFFFFFFF));
+                tv.setGravity(android.view.Gravity.CENTER);
+                int font = el.optInt("font", 0);
+                tv.setTypeface(font == 0
+                        ? android.graphics.Typeface.create("sans-serif-black", android.graphics.Typeface.BOLD)
+                        : font == 3
+                        ? android.graphics.Typeface.create("monospace", android.graphics.Typeface.NORMAL)
+                        : android.graphics.Typeface.create("serif", android.graphics.Typeface.ITALIC));
+                tv.setShadowLayer(font == 2 ? 18f : 6f, 0f, 0f,
+                        font == 2 ? 0xFF00E5FF : 0x99000000);
+                int bg = el.optInt("bg", 0);
+                if (bg > 0) {
+                    android.graphics.drawable.GradientDrawable d =
+                            new android.graphics.drawable.GradientDrawable();
+                    d.setColor(bg == 1 ? 0xCC000000 : 0x66000000);
+                    d.setCornerRadius(24f);
+                    tv.setBackground(d);
+                    tv.setPadding(16, 8, 16, 8);
+                }
+                float scale = (float) el.optDouble("scale", 1);
+                tv.setScaleX(scale);
+                tv.setScaleY(scale);
+                tv.setRotation((float) el.optDouble("rot", 0));
+                overlayLayer.addView(tv, new android.widget.FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT));
+                final float x = (float) el.optDouble("x", 0.5) * w;
+                final float y = (float) el.optDouble("y", 0.4) * h;
+                tv.post(() -> {
+                    tv.setX(x - tv.getWidth() / 2f);
+                    tv.setY(y - tv.getHeight() / 2f);
+                });
+            }
+        });
+    }
+
+    private void stopStoryPlayer() {
+        pollCard = null;
+        if (mediaBox != null) {
+            ViewGroup boxParent = (ViewGroup) mediaBox.getParent();
+            if (boxParent != null) boxParent.removeView(mediaBox);
+            mediaBox = null;
+        }
+        if (overlayLayer != null) {
+            ViewGroup parent = (ViewGroup) overlayLayer.getParent();
+            if (parent != null) parent.removeView(overlayLayer);
+            overlayLayer = null;
+        }
+        if (storyPlayerView != null) {
+            ViewGroup parent = (ViewGroup) storyPlayerView.getParent();
+            if (parent != null) parent.removeView(storyPlayerView);
+            storyPlayerView = null;
+        }
+        if (storyPlayer != null) {
+            storyPlayer.release();
+            storyPlayer = null;
+        }
+    }
+
+    /**
+     * Own ring with no story: hand off to the camera instead of a dead "could not open"
+     * toast, which is what Instagram does when you tap your empty story circle.
+     */
+    private boolean openCameraIfMine() {
+        if (storyUserId == null || currentUserId == null
+                || !storyUserId.trim().equals(currentUserId.trim())) {
+            return false;
+        }
+        startActivity(new android.content.Intent(this,
+                com.insta.nova.ui.story2.StoryCameraActivity.class));
+        finish();
+        return true;
+    }
+
     private void loadStories() {
         binding.progressStory.setVisibility(View.VISIBLE);
         String singleStoryId = getIntent() != null ? getIntent().getStringExtra("story_id") : null;
@@ -362,6 +891,8 @@ query.put("order", "created_at.asc");
                     showStory(0);
                 } else {
                     Log.d(TAG_API, "No active stories for " + storyUserId + " (HTTP " + response.code() + ")");
+                    if (fallBackToLocalCopy()) return;
+                    if (openCameraIfMine()) return;
                     toast(getString(R.string.story_vw_open_failed));
                     finish();
                 }
@@ -371,6 +902,8 @@ query.put("order", "created_at.asc");
             public void onFailure(Call<List<StoryDto>> call, Throwable t) {
                 binding.progressStory.setVisibility(View.GONE);
                 Log.e(TAG_API, "Failed to load stories: " + t.getMessage(), t);
+                if (fallBackToLocalCopy()) return;
+                if (openCameraIfMine()) return;
                 toast(getString(R.string.story_vw_open_failed));
                 finish();
             }
@@ -433,12 +966,29 @@ query.put("order", "created_at.asc");
         }
         binding.tvStoryTime.setText(story.getCreatedAt() > 0
                 ? TimeUtils.formatRelativeTime(story.getCreatedAt()) : "");
+        if (binding.tvCfIndicator != null) {
+            binding.tvCfIndicator.setVisibility(story.isCloseFriends() ? View.VISIBLE : View.GONE);
+        }
 
         for (int i = 0; i < progressFills.size(); i++) {
             setSegmentProgress(i, i < index ? 1f : 0f);
         }
 
-        com.insta.nova.util.GlideUtils.load(binding.ivStoryMedia, "stories", story.getMediaUrl());
+        // The timer must not start until the frame is actually on screen. Starting it at
+        // showStory() meant a slow load could run the whole 5 s behind a spinner and close
+        // the viewer before the story was ever visible.
+        final int loadToken = ++mediaLoadToken;
+        boolean storyIsVideo = story.getMediaType() != null
+                && story.getMediaType().equalsIgnoreCase("video");
+        if (storyIsVideo) {
+            com.insta.nova.util.GlideUtils.load(binding.ivStoryMedia, "stories", story.getMediaUrl());
+        } else {
+            com.insta.nova.util.GlideUtils.load(binding.ivStoryMedia, "stories",
+                    story.getMediaUrl(), () -> {
+                        if (loadToken == mediaLoadToken) restartPlayback();
+                    });
+        }
+        bindStoryMedia(story);
 
         // Use the owner id returned with this exact story, not only the launch
         // intent's group id. This keeps owner-view exclusion correct even when
@@ -461,7 +1011,7 @@ query.put("order", "created_at.asc");
             Log.w(TAG_API, "Skipping story view: unresolved viewer/story owner identity for " + story.getId());
         }
 
-        restartPlayback();
+        if (storyIsVideo) restartPlayback();
     }
 
     /**
@@ -498,7 +1048,7 @@ query.put("order", "created_at.asc");
                 long now = System.currentTimeMillis();
                 accumulatedMs += now - lastTickAt;
                 lastTickAt = now;
-                float fraction = accumulatedMs / STORY_DURATION_MS;
+                float fraction = accumulatedMs / (float) Math.max(1000L, currentDurationMs);
                 setSegmentProgress(currentStoryIndex, fraction);
                 if (fraction >= 1f) {
                     nextStory();
@@ -510,12 +1060,30 @@ query.put("order", "created_at.asc");
         handler.post(tick);
     }
 
+    private void stopPollHold() {
+        handler.removeCallbacks(pollResume);
+    }
+
     private void stopTick() {
+        stopPollHold();
         if (tick != null) {
             handler.removeCallbacks(tick);
             tick = null;
         }
     }
+
+    /** Holds the story open for a ballot, with a ceiling so it can never stick. */
+    private void pauseForPoll() {
+        pausePlayback();
+        handler.removeCallbacks(pollResume);
+        handler.postDelayed(pollResume, 10_000L);
+    }
+
+    private final Runnable pollResume = new Runnable() {
+        @Override public void run() {
+            resumePlayback();
+        }
+    };
 
     private void pausePlayback() {
         paused = true;
@@ -546,17 +1114,61 @@ query.put("order", "created_at.asc");
         return currentUserId != null && currentUserId.equals(storyUserId);
     }
 
+    /**
+     * Nothing came back from the server for the viewer's own story.
+     *
+     * <p>This is the case that answered "Story unavailable" for a story the phone still held: the
+     * row had expired, or the object was deleted while the cached copy stayed. The cached copy
+     * always wins over a dead end.
+     */
+    private boolean fallBackToLocalCopy() {
+        if (!isOwnStory()) return false;
+        com.insta.nova.data.local.LocalSocialStore store =
+                new com.insta.nova.data.local.LocalSocialStore(this);
+        if (store.getActiveStories().isEmpty()) return false;
+        Log.d(TAG_API, "No server story; showing the cached copy instead");
+        startActivity(new android.content.Intent(this, LocalStoryViewerActivity.class));
+        finish();
+        return true;
+    }
+
     /* ------------------------------------------------------------------ */
     /* Messaging                                                           */
     /* ------------------------------------------------------------------ */
 
+    /**
+     * A reaction to a story notifies the owner; it is deliberately not a direct
+     * message. It used to call sendMessageToOwner(), which created a conversation and
+     * posted the emoji into it, so every reaction showed up as a DM.
+     *
+     * <p>Typed replies still go through sendMessageToOwner() — a reply is a message,
+     * a tap on the emoji is not.
+     */
     private void sendReaction(String payload) {
         if (isOwnStory()) {
-            toast(getString(R.string.not_available));
             return;
         }
         playFloating(payload);
-        sendMessageToOwner(payload, null);
+
+        String storyId = stories.isEmpty() ? null : stories.get(currentStoryIndex).getId();
+        if (storyId == null) return;
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("p_story", storyId);
+        body.put("p_reaction", payload);
+        restApi.reactToStory(body).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (!response.isSuccessful()) {
+                    Log.e(TAG_API, "react_to_story failed HTTP " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e(TAG_API, "react_to_story network failure: " + t.getMessage(), t);
+            }
+        });
     }
 
     private void sendTypedReply() {
@@ -673,17 +1285,141 @@ query.put("order", "created_at.asc");
                 dialog.dismiss();
                 addToHighlight();
             }));
+            // Per-story privacy: close friends, everyone, or everyone except the hide list.
+            TextView privacyRow = sheetRow(R.string.story_vw_privacy, v -> {
+                dialog.dismiss();
+                choosePrivacy();
+            });
+            privacyRow.setText(getString(R.string.story_vw_privacy_row, privacyLabel()));
+            container.addView(privacyRow);
+            container.addView(sheetRow(R.string.story_vw_archive, v -> {
+                dialog.dismiss();
+                archiveCurrentStory();
+            }));
         } else {
             container.addView(sheetRow(R.string.story_vw_report, v -> {
                 dialog.dismiss();
-                toast(getString(R.string.story_vw_reported));
-                Log.d(TAG_API, "Story reported: " + (stories.isEmpty() ? "?" : stories.get(currentStoryIndex).getId()));
+                String id = stories.isEmpty() ? null : stories.get(currentStoryIndex).getId();
+                if (id == null) {
+                    toast(getString(R.string.nova_error));
+                    return;
+                }
+                Log.d(TAG_API, "Story reported: " + id);
+                com.insta.nova.safe.SafeActions.report(this, "story", id);
             }));
         }
         container.addView(sheetRow(R.string.story_vw_cancel, v -> dialog.dismiss()));
 
         dialog.setContentView(container);
         dialog.show();
+    }
+
+    private boolean isCurrentStoryCloseFriends() {
+        return !stories.isEmpty() && stories.get(currentStoryIndex).isCloseFriends();
+    }
+
+    /** audience values: everyone | public (everyone except the hide list) | close_friends. */
+    private String currentAudience() {
+        if (stories.isEmpty()) return "public";
+        String audience = stories.get(currentStoryIndex).getAudience();
+        return audience == null || audience.trim().isEmpty() ? "public" : audience;
+    }
+
+    private String privacyLabel() {
+        String audience = currentAudience();
+        if ("close_friends".equalsIgnoreCase(audience)) {
+            return getString(R.string.story_vw_privacy_close);
+        }
+        if ("everyone".equalsIgnoreCase(audience)) {
+            return getString(R.string.story_vw_privacy_everyone);
+        }
+        return getString(R.string.story_vw_privacy_except);
+    }
+
+    /**
+     * Three-way story privacy. Writes the same {@code audience} column {@code story_visible()}
+     * reads, so the choice takes effect for every client at once instead of being filtered
+     * locally: {@code close_friends} narrows to the list, {@code everyone} ignores the hide
+     * list, and {@code public} keeps the hide list in force.
+     */
+    private void choosePrivacy() {
+        if (stories.isEmpty()) return;
+        final Story story = stories.get(currentStoryIndex);
+        final String[] values = {"close_friends", "everyone", "public"};
+        final String[] labels = {
+                getString(R.string.story_vw_privacy_close),
+                getString(R.string.story_vw_privacy_everyone),
+                getString(R.string.story_vw_privacy_except)
+        };
+        String current = currentAudience();
+        int checked = 0;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equalsIgnoreCase(current)) checked = i;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.story_vw_privacy)
+                .setSingleChoiceItems(labels, checked, (dialog, which) -> {
+                    dialog.dismiss();
+                    applyAudience(story, values[which]);
+                })
+                .setNegativeButton(R.string.story_vw_cancel, null)
+                .show();
+    }
+
+    /**
+     * Archive = leave the tray now and keep the row for the Archive tab. The row is not
+     * deleted: it is flagged and its window is closed, which is exactly what the archive
+     * screen lists and what "Unarchive" reverses.
+     */
+    private void archiveCurrentStory() {
+        if (stories.isEmpty()) return;
+        final Story story = stories.get(currentStoryIndex);
+        // Only the flag: writing expires_at as well made the new row fail the SELECT policy
+        // (which requires expires_at > now()), so the PATCH returned 204 and changed nothing.
+        // Archived rows are hidden by v_stories / get_story_groups on is_archived alone.
+        Map<String, Object> body = new HashMap<>();
+        body.put("is_archived", true);
+        restApi.updateStory("eq." + story.getId(), body).enqueue(new Callback<Void>() {
+            @Override public void onResponse(Call<Void> call, Response<Void> response) {
+                if (!response.isSuccessful()) {
+                    toast(getString(R.string.story_vw_archive_failed) + " (HTTP " + response.code() + ")");
+                    return;
+                }
+                toast(getString(R.string.story_vw_archived));
+                int index = currentStoryIndex;
+                stories.remove(index);
+                if (stories.isEmpty()) {
+                    finish();
+                } else {
+                    buildProgressBars();
+                    showStory(Math.min(index, stories.size() - 1));
+                }
+            }
+
+            @Override public void onFailure(Call<Void> call, Throwable t) {
+                toast(getString(R.string.story_vw_archive_failed));
+            }
+        });
+    }
+
+    private void applyAudience(@NonNull Story story, @NonNull String audience) {
+        if (audience.equalsIgnoreCase(story.getAudience())) return;
+        Map<String, Object> body = new HashMap<>();
+        body.put("audience", audience);
+        restApi.updateStory("eq." + story.getId(), body).enqueue(new Callback<Void>() {
+            @Override public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    story.setAudience(audience);
+                    toast(getString(R.string.story_vw_audience_saved));
+                } else {
+                    toast(getString(R.string.story_vw_audience_failed) + " (HTTP " + response.code() + ")");
+                }
+            }
+
+            @Override public void onFailure(Call<Void> call, Throwable t) {
+                toast(getString(R.string.story_vw_audience_failed));
+            }
+        });
     }
 
     private TextView sheetRow(int textRes, View.OnClickListener listener) {
@@ -793,6 +1529,7 @@ query.put("order", "created_at.asc");
 
     @Override
     protected void onPause() {
+        stopStoryMusic();
         super.onPause();
         pausePlayback();
     }
@@ -805,6 +1542,7 @@ query.put("order", "created_at.asc");
 
     @Override
     protected void onDestroy() {
+        stopStoryPlayer();
         super.onDestroy();
         stopTick();
         handler.removeCallbacksAndMessages(null);

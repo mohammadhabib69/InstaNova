@@ -40,7 +40,7 @@ public final class CreateSheet {
 
         reel.setOnClickListener(v -> {
             dialog.dismiss();
-            context.startActivity(new Intent(context, NewReelActivity.class));
+            context.startActivity(new Intent(context, ReelCameraActivity.class));
         });
 
         // Same flow as the bottom-navigation "+" item: media selection -> edit -> details
@@ -55,7 +55,7 @@ public final class CreateSheet {
         // here.
         story.setOnClickListener(v -> {
             dialog.dismiss();
-            CreateStoryActivity.start(context, null);
+            context.startActivity(new android.content.Intent(context, com.insta.nova.ui.story2.StoryCameraActivity.class));
         });
 
         live.setOnClickListener(v -> {

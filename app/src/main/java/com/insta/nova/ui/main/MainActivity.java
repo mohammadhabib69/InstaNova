@@ -15,6 +15,10 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.util.Log;
 import android.util.TypedValue;
 import androidx.annotation.NonNull;
@@ -34,15 +38,19 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.insta.nova.R;
+import com.insta.nova.data.NovaBadgeStore;
+import com.insta.nova.data.NovaDataSaver;
+import com.insta.nova.data.NovaRepository;
 import com.insta.nova.data.local.SessionManager;
 import com.insta.nova.data.model.Profile;
 import com.insta.nova.data.repository.ActivityRepository;
 import com.insta.nova.data.repository.ProfileRepository;
 import com.insta.nova.databinding.ActivityMainBinding;
-import com.insta.nova.ui.create.CreatePostActivity;
 import com.insta.nova.ui.home.HomeFragment;
 import com.insta.nova.util.Constants;
 import com.insta.nova.util.Resource;
+import com.insta.nova.widget.GlowView;
+import com.insta.nova.widget.NovaUi;
 
 /**
  * Main application container with the shared bottom navigation.
@@ -54,8 +62,13 @@ import com.insta.nova.util.Resource;
  */
 public class MainActivity extends AppCompatActivity {
 
+    private static final String PREF_APP = "insta_settings";
+    private static final String KEY_NOTIFICATION_ASKED = "notification_permission_asked";
+
     /** Lets other screens open an existing destination (e.g. Settings > Saved). */
     public static final String EXTRA_NAV_DESTINATION = "nav_destination";
+    /** Reel to open when the Reels destination is selected from Profile. */
+    public static final String EXTRA_REEL_ID = "reel_id";
 
     private ActivityMainBinding binding;
     private NavController navController;
@@ -64,6 +77,11 @@ public class MainActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private final Handler badgePollHandler = new Handler(Looper.getMainLooper());
     private Runnable badgePollRunnable;
+    private final Handler novaPollHandler = new Handler(Looper.getMainLooper());
+    private Runnable novaPollRunnable;
+    private ObjectAnimator novaBreathAnimator;
+    private NovaRepository novaRepository;
+    private boolean novaSelected;
 
     private boolean profileSelected = false;
     private int bottomNavBaseHeight;
@@ -85,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // A row can only be left in "uploading" by a process that died mid-upload, so reclaim
+        // those before anything else can read the queue.
+        com.insta.nova.data.NovaPostQueue.reclaimStuck(this);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -95,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
                 ? getIntent().getIntExtra(EXTRA_NAV_DESTINATION, 0) : 0;
 
         activityRepository = new ActivityRepository(this);
+        novaRepository = new NovaRepository(this);
         profileRepository = new ProfileRepository(this);
         sessionManager = SessionManager.getInstance(this);
 
@@ -112,9 +134,47 @@ public class MainActivity extends AppCompatActivity {
 
         setupBottomNavigation();
         setupReelsBarTreatment();
+        setupNovaTab();
         loadProfileAvatarIcon();
         startBadgePolling();
+        ensureNotificationPermission();
     }
+
+    /**
+     * Asks for POST_NOTIFICATIONS if it was never granted.
+     *
+     * <p>The onboarding wizard asks once, and a denial there is permanent as far as the app
+     * is concerned — every later call notification and every missed-call entry is silently
+     * dropped by the platform. That is exactly the "no calls or notifications in the status
+     * bar" state a user cannot diagnose from inside the app, so the ask is repeated here
+     * (from an Activity the user is actually looking at) and the result is logged.
+     */
+    private void ensureNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) return;
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        // After two denials the platform stops showing the dialog, so launch() would
+        // return instantly with nothing on screen — a prompt that never appears, on
+        // every cold start. Once it has been asked, only ask again while the OS still
+        // considers the question open; otherwise leave it to the Notifications screen,
+        // which explains the state and links to system settings.
+        boolean askedBefore = getSharedPreferences(PREF_APP, MODE_PRIVATE)
+                .getBoolean(KEY_NOTIFICATION_ASKED, false);
+        boolean stillOpen = shouldShowRequestPermissionRationale(
+                android.Manifest.permission.POST_NOTIFICATIONS);
+        if (askedBefore && !stillOpen) {
+            return;
+        }
+        getSharedPreferences(PREF_APP, MODE_PRIVATE).edit()
+                .putBoolean(KEY_NOTIFICATION_ASKED, true).apply();
+        notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS);
+    }
+
+    private final androidx.activity.result.ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+                    granted -> Log.i("MainActivity", "POST_NOTIFICATIONS granted=" + granted));
 
     /**
      * The bar owns the navigation-bar inset once: its height grows by the inset
@@ -138,12 +198,6 @@ public class MainActivity extends AppCompatActivity {
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
 
-            // Create opens the New post picker and never stays selected.
-            if (itemId == R.id.navigation_create) {
-                CreatePostActivity.start(this);
-                return false;
-            }
-
             if (navController != null) {
                 return NavigationUI.onNavDestinationSelected(item, navController);
             }
@@ -152,14 +206,14 @@ public class MainActivity extends AppCompatActivity {
 
         // Re-selection on Home scrolls feed to top
         binding.bottomNavigation.setOnItemReselectedListener(item -> {
-            if (item.getItemId() == R.id.navigation_home) {
-                NavHostFragment navHost = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
-                if (navHost != null) {
-                    Fragment current = navHost.getChildFragmentManager().getPrimaryNavigationFragment();
-                    if (current instanceof HomeFragment) {
-                        ((HomeFragment) current).scrollToTop();
-                    }
-                }
+            NavHostFragment navHost = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_main);
+            if (navHost == null) return;
+            Fragment current = navHost.getChildFragmentManager().getPrimaryNavigationFragment();
+            if (item.getItemId() == R.id.navigation_home && current instanceof HomeFragment) {
+                ((HomeFragment) current).scrollToTop();
+            } else if (item.getItemId() == R.id.navigation_nova
+                    && current instanceof com.insta.nova.hub.NovaHubFragment) {
+                ((com.insta.nova.hub.NovaHubFragment) current).scrollToTop();
             }
         });
     }
@@ -183,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
             applyReelsStyling(onReels);
             applyReelsIconTint(onReels);
             profileSelected = destination.getId() == R.id.navigation_profile;
+            updateNovaTabState(destination.getId() == R.id.navigation_nova);
             loadProfileAvatarIcon();
         });
     }
@@ -442,10 +497,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        // #67 — a call can arrive while this app is behind the launcher, where only a
+        // notification can be shown. Opening the app from its icon has to bring the
+        // incoming screen back, otherwise the call is visible only in the shade.
+        com.insta.nova.calling.CallManager.getInstance(this).onAppForegrounded();
+        // Re-evaluated on every foregrounding: perf collection resumes on its own once
+        // the user has freed space, without needing a restart.
+        com.insta.nova.InstaApp.applyStorageAwarePerformanceCollection();
         if (sessionManager != null) {
             sessionManager.registerAvatarListener(avatarPrefListener);
             loadProfileAvatarIcon();
         }
+        startNovaPolling();
+        if (novaSelected) startNovaBreathing();
     }
 
     @Override
@@ -453,6 +517,8 @@ public class MainActivity extends AppCompatActivity {
         if (sessionManager != null) {
             sessionManager.unregisterAvatarListener(avatarPrefListener);
         }
+        stopNovaPolling();
+        stopNovaBreathing();
         super.onStop();
     }
 
@@ -462,6 +528,103 @@ public class MainActivity extends AppCompatActivity {
         if (badgePollRunnable != null) {
             badgePollHandler.removeCallbacks(badgePollRunnable);
         }
+        stopNovaPolling();
+        stopNovaBreathing();
         binding = null;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* NOVA centre tab                                                     */
+    /* ------------------------------------------------------------------ */
+
+    private void setupNovaTab() {
+        if (binding == null) return;
+        binding.bottomNavigation.setClipChildren(false);
+        binding.bottomNavigation.setClipToPadding(false);
+
+        // The Nova tab is a stock bottom-navigation item now: no glow, no breathing
+        // scale. Only the unread badge is Nova-specific.
+        binding.novaTabGlow.setVisibility(View.GONE);
+
+        NovaBadgeStore.get().unread().observe(this, count -> {
+            if (binding == null) return;
+            int value = count == null ? 0 : count;
+            if (value <= 0) {
+                binding.novaTabBadge.setVisibility(View.GONE);
+            } else {
+                binding.novaTabBadge.setText(value > 9 ? "9+" : String.valueOf(value));
+                binding.novaTabBadge.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void updateNovaTabState(boolean selected) {
+        novaSelected = selected;
+        if (binding == null) return;
+        binding.novaTabGlow.setVisibility(View.GONE);
+        stopNovaBreathing();
+        NovaUi.styleStatusBar(this, NovaUi.isNight(this));
+    }
+
+    private View novaItemView() {
+        if (binding == null) return null;
+        return binding.bottomNavigation.findViewById(R.id.navigation_nova);
+    }
+
+    private void startNovaBreathing() {
+        View item = novaItemView();
+        if (item == null || novaBreathAnimator != null) return;
+        if (!NovaUi.animationsEnabled(this)) {
+            item.setScaleX(1f);
+            item.setScaleY(1f);
+            return;
+        }
+        item.setPivotX(item.getWidth() / 2f);
+        item.setPivotY(item.getHeight() / 2f);
+        novaBreathAnimator = ObjectAnimator.ofPropertyValuesHolder(item,
+                android.animation.PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.08f),
+                android.animation.PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.08f));
+        novaBreathAnimator.setDuration(4000);
+        novaBreathAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        novaBreathAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        novaBreathAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        novaBreathAnimator.start();
+    }
+
+    private void stopNovaBreathing() {
+        if (novaBreathAnimator != null) {
+            novaBreathAnimator.cancel();
+            novaBreathAnimator = null;
+        }
+        View item = novaItemView();
+        if (item != null) {
+            item.setScaleX(1f);
+            item.setScaleY(1f);
+        }
+    }
+
+    private void startNovaPolling() {
+        if (novaRepository == null) return;
+        novaPollRunnable = new Runnable() {
+            @Override
+            public void run() {
+                refreshNovaUnread();
+                novaPollHandler.postDelayed(this, 60_000L);
+            }
+        };
+        novaPollHandler.post(novaPollRunnable);
+    }
+
+    private void stopNovaPolling() {
+        if (novaPollRunnable != null) novaPollHandler.removeCallbacks(novaPollRunnable);
+        novaPollRunnable = null;
+    }
+
+    private void refreshNovaUnread() {
+        if (sessionManager == null || sessionManager.getUserId().isEmpty()) return;
+        if (com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() == null) return;
+        novaRepository.unreadAlertsOnce(count -> NovaBadgeStore.get().set(count));
+        // One poll per minute also raises a system notification for each new alert id.
+        com.insta.nova.alerts.AlertsPoller.tick(this);
     }
 }

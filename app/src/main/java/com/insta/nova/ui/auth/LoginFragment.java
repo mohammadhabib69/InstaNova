@@ -22,13 +22,23 @@ import com.insta.nova.R;
 import com.insta.nova.data.local.SavedAccountsStore;
 import com.insta.nova.data.local.SessionManager;
 import com.insta.nova.data.model.SavedAccount;
+import com.insta.nova.data.remote.ProfileColumns;
+import com.insta.nova.data.remote.RetrofitClient;
+import com.insta.nova.data.remote.api.RestApi;
+import com.insta.nova.data.remote.dto.ProfileDto;
 import com.insta.nova.databinding.FragmentLoginBinding;
 import com.insta.nova.ui.main.MainActivity;
 import com.insta.nova.util.Constants;
 import com.insta.nova.util.Resource;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /** PAGE 16 — Screen B. Login form backed by FirebaseAuth. */
 public class LoginFragment extends Fragment {
@@ -53,6 +63,10 @@ public class LoginFragment extends Fragment {
         binding.tvFooter.setText(Constants.FOOTER_BRAND);
 
         String prefill = getArguments() == null ? null : getArguments().getString("prefillUsername");
+        if ((prefill == null || prefill.isEmpty()) && getActivity() != null
+                && getActivity().getIntent() != null) {
+            prefill = getActivity().getIntent().getStringExtra(AuthActivity.EXTRA_PREFILL_USERNAME);
+        }
         if (prefill != null && !prefill.isEmpty()) {
             binding.etIdentifier.setText(prefill);
             binding.etIdentifier.setSelection(prefill.length());
@@ -184,6 +198,11 @@ public class LoginFragment extends Fragment {
         SavedAccountsStore.getInstance(requireContext()).upsert(
                 new SavedAccount(uid, username, "", avatar, System.currentTimeMillis()));
 
+        // The deactivate screen promises the profile is hidden "until you log in again",
+        // but nothing ever cleared the flag: an owner who came back stayed invisible to
+        // everyone else for good. Clear it here, before the app opens.
+        clearDeactivation(session.getUserId());
+
         viewModel.loadProfile(uid).observe(getViewLifecycleOwner(), resource -> {
             String profileUsername = null;
             if (resource != null && resource.status == Resource.Status.SUCCESS && resource.data != null) {
@@ -205,6 +224,36 @@ public class LoginFragment extends Fragment {
             startActivity(intent);
             requireActivity().finish();
         });
+    }
+
+
+    /**
+     * Undo a previous deactivation. Idempotent: an account that was never deactivated
+     * simply writes the same value back. Failure is logged, never fatal — a user must
+     * still be able to sign in when the write is rejected.
+     */
+    private void clearDeactivation(String userId) {
+        if (userId == null || userId.isEmpty()) return;
+        Map<String, Object> body = new HashMap<>();
+        body.put("is_deactivated", false);
+        RestApi api = RetrofitClient.getInstance(requireContext()).getRestApi();
+        api.updateProfile("eq." + userId, ProfileColumns.WRITE_ECHO, body)
+                .enqueue(new Callback<List<ProfileDto>>() {
+                    @Override
+                    public void onResponse(Call<List<ProfileDto>> call,
+                                           Response<List<ProfileDto>> response) {
+                        if (!response.isSuccessful()) {
+                            android.util.Log.w("InstaApi",
+                                    "reactivate after login failed: HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<ProfileDto>> call, Throwable t) {
+                        android.util.Log.w("InstaApi",
+                                "reactivate after login failed: " + t.getMessage());
+                    }
+                });
     }
 
     private void setLoading(boolean loading) {

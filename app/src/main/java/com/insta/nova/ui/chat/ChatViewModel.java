@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
+import com.insta.nova.calling.CallRecord;
 import com.insta.nova.data.local.ChatSettingsStore;
 import com.insta.nova.data.local.LocalChatStore;
 import com.insta.nova.data.local.SessionManager;
@@ -79,6 +80,11 @@ public class ChatViewModel extends AndroidViewModel {
     private final MutableLiveData<ChatState> state = new MutableLiveData<>();
     private final MutableLiveData<String> toast = new MutableLiveData<>();
 
+    /** Longer than any configured OkHttp timeout, so a slow-but-real send is not cut short. */
+    private static final long SEND_WATCHDOG_MS = 25000L;
+    private final android.os.Handler handler =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+
     /** Local revision is retained for legacy call-entry rendering only. */
     private final Observer<Integer> localRevisionObserver = revision -> onLocalChatChanged();
 
@@ -139,6 +145,9 @@ public class ChatViewModel extends AndroidViewModel {
             capabilities = null;
             publish();
             mergeLocalMessages();
+            // Bring back messages that were typed but never reached the server, so a
+            // restart cannot erase them.
+            restoreOutbox();
         }
 
         if (initialized && sameConversation) {
@@ -227,7 +236,7 @@ public class ChatViewModel extends AndroidViewModel {
         mergeLocalMessages();
         loadLatest(false);
         long now = System.currentTimeMillis();
-        if (capabilities != null && capabilities.presence && now - lastPresenceFetch > 60_000L) {
+        if (capabilities != null && capabilities.presence && now - lastPresenceFetch > 15_000L) {
             loadPresence();
         }
     }
@@ -280,9 +289,76 @@ public class ChatViewModel extends AndroidViewModel {
                 m.setReplyToSender(replyMeta.replyToSender);
                 m.setReplyToText(replyMeta.replyToText);
             }
+            // #65 — a call is now also a real `messages` row, because that is what
+            // `get_inbox` previews. Its body is the preview text ("Audio call · 53s"),
+            // which must NOT render as a text bubble in the thread: the local call
+            // meta decides the bubble. Without this the entry appeared twice — once
+            // as a plain text bubble from the server and once as the call bubble —
+            // or, on a device with no meta, as raw "Audio call · 53s" text.
+            // The body wins, meta is the fallback.
+            //
+            // The row is written by the device that finished the call, so its body is
+            // the one piece of this entry both sides share — "Audio call · 53s" cannot
+            // disagree with itself. The local meta is a second-hand copy: entries
+            // stored before the duration was known (or before CallRecord decoded
+            // duration_sec at all) carry 0 and rendered every call as "Call ended".
+            if (!applyCallBody(m)) {
+                ChatSettingsStore.CallMeta callMeta = settings.getCallMeta(m.getId());
+                if (callMeta != null) {
+                    m.setMessageType(callMeta.isVideo ? "video_call" : "audio_call");
+                    m.setCallDurationSec(callMeta.durationSec);
+                    m.setCallOutcome(callMeta.outcome);
+                }
+            }
             byId.put(m.getId(), m);
         }
         publish();
+    }
+
+    /**
+     * Shapes a message that carries a call body into a call bubble.
+     *
+     * <p>The accepted shapes are exactly what {@code public.call_message_body} writes —
+     * nothing looser, so a sent text that happens to start with "Audio call" is not
+     * swallowed into a bubble: "Audio call · 53s", "Audio call · 2m 05s",
+     * "Audio call · declined", "Missed audio call" / "Missed video call".
+     *
+     * @return true when the message was recognised as a call entry
+     */
+    private static boolean applyCallBody(@NonNull Message m) {
+        String raw = m.getText();
+        if (raw == null) return false;
+        String body = raw.trim();
+
+        String lower = body.toLowerCase(java.util.Locale.US);
+        boolean video = lower.contains("video call");
+        boolean audio = lower.contains("audio call");
+        if (!video && !audio) return false;
+
+        java.util.regex.Matcher dur = java.util.regex.Pattern
+                .compile("^(?:Audio|Video) call · (?:(\\d+)m (\\d{2})s|(\\d+)s)$")
+                .matcher(body);
+        if (dur.matches()) {
+            long secs = dur.group(1) != null
+                    ? Long.parseLong(dur.group(1)) * 60 + Long.parseLong(dur.group(2))
+                    : Long.parseLong(dur.group(3));
+            m.setMessageType(video ? "video_call" : "audio_call");
+            m.setCallDurationSec(secs);
+            // 'connected' makes the renderer print the time, not "Call ended".
+            m.setCallOutcome(CallRecord.STATUS_CONNECTED);
+            return true;
+        }
+        if (body.matches("^(?:Audio|Video) call · declined$")) {
+            m.setMessageType(video ? "video_call" : "audio_call");
+            m.setCallOutcome(CallRecord.STATUS_DECLINED);
+            return true;
+        }
+        if (body.matches("^Missed (?:audio|video) call$")) {
+            m.setMessageType(video ? "video_call" : "audio_call");
+            m.setCallOutcome(CallRecord.STATUS_MISSED);
+            return true;
+        }
+        return false;
     }
 
     private String oldestServerTimestamp() {
@@ -399,6 +475,124 @@ public class ChatViewModel extends AndroidViewModel {
     /* Sending                                                             */
     /* ------------------------------------------------------------------ */
 
+    /* ---------------------------- outbox ---------------------------- */
+
+    private static final String OUTBOX_PREFS = "chat_outbox";
+
+    /**
+     * Unresolved sends are written to disk the moment they are created.
+     *
+     * <p>{@code mergePage(replace=true)} already keeps pending and failed bubbles in
+     * memory, but nothing survived process death: sending offline, closing the app and
+     * reopening showed a thread with no trace of the messages, and two of them had been
+     * rendered as if they went out. The pref key is per conversation so a restore only
+     * brings back this thread's messages.
+     */
+    private static final class OutboxEntry {
+        String id;
+        String conversationId;
+        String senderId;
+        String text;
+        String imageUrl;
+        String messageType;
+        long createdAt;
+        boolean failed;
+    }
+
+    private android.content.SharedPreferences outboxPrefs;
+
+    private android.content.SharedPreferences outbox() {
+        if (outboxPrefs == null) {
+            outboxPrefs = getApplication().getSharedPreferences(OUTBOX_PREFS, android.content.Context.MODE_PRIVATE);
+        }
+        return outboxPrefs;
+    }
+
+    private List<OutboxEntry> readOutbox() {
+        String raw = outbox().getString("conv_" + conversationId, "[]");
+        try {
+            List<OutboxEntry> list = new com.google.gson.Gson().fromJson(raw,
+                    new com.google.gson.reflect.TypeToken<List<OutboxEntry>>() { }.getType());
+            return list != null ? list : new ArrayList<>();
+        } catch (RuntimeException e) {
+            Log.w(TAG, "outbox unreadable; starting empty", e);
+            return new ArrayList<>();
+        }
+    }
+
+    private void writeOutbox(List<OutboxEntry> entries) {
+        try {
+            outbox().edit().putString("conv_" + conversationId,
+                    new com.google.gson.Gson().toJson(entries)).apply();
+        } catch (RuntimeException e) {
+            Log.w(TAG, "outbox write failed", e);
+        }
+    }
+
+    private void rememberSend(Message local, String imageUrl, String type) {
+        List<OutboxEntry> entries = readOutbox();
+        OutboxEntry e = new OutboxEntry();
+        e.id = local.getId();
+        e.conversationId = conversationId;
+        e.senderId = local.getSenderId();
+        e.text = local.getText();
+        e.imageUrl = imageUrl;
+        e.messageType = type;
+        e.createdAt = local.getCreatedAt();
+        entries.add(e);
+        writeOutbox(entries);
+    }
+
+    private void markOutboxFailed(String id) {
+        List<OutboxEntry> entries = readOutbox();
+        for (OutboxEntry e : entries) if (id != null && id.equals(e.id)) e.failed = true;
+        writeOutbox(entries);
+    }
+
+    private void clearOutbox(String id) {
+        List<OutboxEntry> entries = readOutbox();
+        for (int i = entries.size() - 1; i >= 0; i--) if (id != null && id.equals(entries.get(i).id)) entries.remove(i);
+        writeOutbox(entries);
+    }
+
+    /**
+     * Brings back sends that never resolved, marked failed so the user can retry them.
+     * Called once the conversation is known.
+     */
+    private void restoreOutbox() {
+        if (conversationId == null) return;
+        List<OutboxEntry> entries = readOutbox();
+        if (entries.isEmpty()) return;
+        int restored = 0;
+        List<OutboxEntry> alive = new ArrayList<>();
+        for (OutboxEntry e : entries) {
+            if (e == null || e.id == null) continue;
+            boolean empty = (e.text == null || e.text.trim().isEmpty()) && e.imageUrl == null;
+            // Older builds queued an image send with no text and no URI, so the restore drew
+            // a blank red-error bubble that could never be retried. Drop those for good.
+            if (empty) continue;
+            alive.add(e);
+            if (byId.containsKey(e.id)) continue;
+            Message m = new Message(e.id, conversationId,
+                    e.senderId != null ? e.senderId : (myId != null ? myId : "local"),
+                    e.text != null ? e.text : "", null, false, e.createdAt);
+            if (e.imageUrl != null) {
+                m.setImageUrl(e.imageUrl);
+                m.setLocalImageUri(e.imageUrl);
+            }
+            if (e.messageType != null) m.setMessageType(e.messageType);
+            m.setPending(false);
+            m.setFailed(true);
+            byId.put(m.getId(), m);
+            restored++;
+        }
+        writeOutbox(alive);
+        if (restored > 0) {
+            Log.i(TAG, "restored " + restored + " unsent message(s) from the outbox");
+            publish();
+        }
+    }
+
     public void sendText(String raw) {
         String text = raw == null ? "" : raw.trim();
         if (text.isEmpty() || conversationId == null) return;
@@ -409,6 +603,7 @@ public class ChatViewModel extends AndroidViewModel {
                 text, null, false, System.currentTimeMillis());
         local.setPending(true);
         byId.put(local.getId(), local);
+        rememberSend(local, null, "text");
         publish();
 
         // Prompt K: text is server-only. Writing it into LocalChatStore made the
@@ -418,16 +613,36 @@ public class ChatViewModel extends AndroidViewModel {
         postText(local);
     }
 
+    /**
+     * A send that never answers is worse than one that fails: with the network gone the bubble sat
+     * in the "sending" style forever, with no error icon and nothing to tap, while the row never
+     * reached the server. The watchdog turns an unanswered send into a retryable failure.
+     */
+    private void armSendWatchdog(Message local) {
+        handler.postDelayed(() -> {
+            Message still = byId.get(local.getId());
+            if (still == null || !still.isPending()) return;
+            still.setPending(false);
+            still.setFailed(true);
+            markOutboxFailed(still.getId());
+            publish();
+            toast.setValue("Couldn't send. Tap the icon to retry.");
+        }, SEND_WATCHDOG_MS);
+    }
+
     private void postText(Message local) {
+        armSendWatchdog(local);
         String text = local.getText();
         once(chatRepository.sendMessage(conversationId, text, null), res -> {
             if (res != null && res.status == Resource.Status.SUCCESS && res.data != null) {
                 byId.remove(local.getId());
                 byId.put(res.data.getId(), res.data);
+                clearOutbox(local.getId());
                 publish();
             } else {
                 local.setPending(false);
                 local.setFailed(true);
+                markOutboxFailed(local.getId());
                 publish();
                 toast.setValue("Couldn't send. Tap the icon to retry.");
             }
@@ -444,14 +659,13 @@ public class ChatViewModel extends AndroidViewModel {
         local.setMessageType("image");
         local.setPending(true);
         byId.put(local.getId(), local);
+        rememberSend(local, uri.toString(), "image");
         publish();
 
-        LocalChatStore.ChatMessage cm = new LocalChatStore.ChatMessage(
-                local.getId(), conversationId, sender, "Photo", local.getCreatedAt(), true);
-        cm.messageType = "image";
-        cm.mediaUrl = uri.toString();
-        localChatStore.appendMessage(cm);
-
+        // Images are server-backed. Writing a local overlay row here made
+        // mergeLocalMessages() rebuild the same photo as a SECOND bubble once the
+        // server echo arrived — picking 4 photos produced 8 rows, and the overlay
+        // copy kept a dead picker URI that could never render again.
         upload(local, uri);
     }
 
@@ -476,6 +690,7 @@ public class ChatViewModel extends AndroidViewModel {
                             if (msg != null && msg.status == Resource.Status.SUCCESS && msg.data != null) {
                                 byId.remove(local.getId());
                                 byId.put(msg.data.getId(), msg.data);
+                                clearOutbox(local.getId());
                                 publish();
                             } else {
                                 failImage(local);
@@ -667,6 +882,10 @@ public class ChatViewModel extends AndroidViewModel {
             // text (including the old simulated replies), so they are skipped
             // rather than allowed to reappear in a real thread.
             if (stored.messageType == null || stored.messageType.isEmpty()) continue;
+            // Legacy image overlays (written by older builds) duplicate the server row and
+            // point at a picker URI that has already expired, so they only ever render as a
+            // broken placeholder. The server message is the one that must survive.
+            if ("image".equals(stored.messageType) && stored.id.startsWith("local-")) continue;
             if (removedIds.contains(stored.id) || settings.isDeleted(stored.id)) continue;
             Message existing = byId.get(stored.id);
             if (existing != null) {
@@ -723,6 +942,9 @@ public class ChatViewModel extends AndroidViewModel {
 
     private void markReadIfNeeded() {
         if (!visible || conversationId == null || unreadPatchInFlight > 0) return;
+        // Read receipts off: never PATCH is_read, so the other side keeps seeing
+        // "Delivered" instead of "Seen".
+        if (!new com.insta.nova.data.local.AppSettingsStore(getApplication()).readReceipts()) return;
         boolean hasUnread = false;
         for (Message m : byId.values()) {
             if (m.getSenderId() != null && !m.getSenderId().equals(myId)

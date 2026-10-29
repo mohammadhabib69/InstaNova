@@ -11,40 +11,50 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.insta.nova.BuildConfig;
 import com.insta.nova.R;
+import com.insta.nova.data.local.AppSettingsStore;
+import com.insta.nova.data.local.ChatSettingsStore;
+import com.insta.nova.data.local.RelationshipStore;
 import com.insta.nova.data.local.SessionManager;
 import com.insta.nova.data.repository.ChatRepository;
+import com.insta.nova.data.repository.RelationshipRepository;
 import com.insta.nova.data.repository.SettingsRepository;
 import com.insta.nova.databinding.ActivitySettingsBinding;
 import com.insta.nova.databinding.ItemSettingsGapBinding;
 import com.insta.nova.databinding.ItemSettingsHeaderBinding;
 import com.insta.nova.databinding.ItemSettingsRowBinding;
 import com.insta.nova.ui.auth.AuthActivity;
-import com.insta.nova.util.Constants;
+import com.insta.nova.ui.chat.ChatTheme;
 import com.insta.nova.util.Resource;
-import com.insta.nova.util.ToastUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * PAGE 13 — Settings and activity.
+ * Prompt N — Settings and activity.
  *
- * One scrolling, searchable list. Every section/row from the reference is here;
- * rows that exist only in the design follow the shared decorative contract and
- * the functional ones perform real Supabase work (see the click switch below).
+ * <p>One searchable list in the Instagram order: Your account, Notifications,
+ * Privacy and safety, Messages and calls, App preferences, Your activity, Creator
+ * tools, Help and about, Login. Values on the right are read live from the stores
+ * (and from Supabase for account type/privacy), refreshed every time the page is
+ * resumed.
  */
 public class SettingsActivity extends AppCompatActivity {
 
@@ -53,34 +63,45 @@ public class SettingsActivity extends AppCompatActivity {
 
     private enum Kind { HEADER, ROW, GAP }
 
+    private static final int STYLE_NORMAL = 0;
+    private static final int STYLE_BLUE = 1;
+    private static final int STYLE_RED = 2;
+
     private static final class Item {
         final Kind kind;
         final String section;
-        final int labelRes;
+        final String label;
         final int iconRes;
         final String key;
         final boolean twoLine;
+        final String description;
+        final int style;
 
-        Item(Kind kind, String section, int labelRes, int iconRes, String key, boolean twoLine) {
+        Item(Kind kind, String section, String label, int iconRes, String key,
+             boolean twoLine, String description, int style) {
             this.kind = kind;
             this.section = section;
-            this.labelRes = labelRes;
+            this.label = label;
             this.iconRes = iconRes;
             this.key = key;
             this.twoLine = twoLine;
+            this.description = description;
+            this.style = style;
         }
     }
 
     private ActivitySettingsBinding binding;
     private SettingsRepository repository;
+    private RelationshipRepository relationshipRepository;
     private SessionManager sessionManager;
+    private AppSettingsStore settings;
+    private RelationshipStore relationships;
     private SettingsAdapter adapter;
 
     private final List<Item> allItems = new ArrayList<>();
-    private String privacyValue = "";
-    private String themeValue = "";
-    private String archiveValue = "";
-    private String scheduledValue = "";
+    private boolean privacyPrivate;
+    private String accountType = "personal";
+    private boolean primedRelationships;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +110,10 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         repository = new SettingsRepository(this);
+        relationshipRepository = new RelationshipRepository(this);
         sessionManager = SessionManager.getInstance(this);
+        settings = new AppSettingsStore(this);
+        relationships = new RelationshipStore(this);
 
         binding.btnBack.setOnClickListener(v -> finish());
         binding.rvSettings.setLayoutManager(new LinearLayoutManager(this));
@@ -104,81 +128,244 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        themeValue = themeLabel(readThemeMode());
-        archiveValue = "";
-        scheduledValue = getString(R.string.settings_value_zero);
-
         buildItems();
         adapter.submit(allItems);
-        loadPrivacyValue();
-        loadArchiveCount();
+        loadAccountState();
+        primeRelationshipCounts();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        themeValue = themeLabel(readThemeMode());
-        loadPrivacyValue();
+        loadAccountState();
+        adapter.notifyDataSetChanged();
     }
 
     /* ------------------------------------------------------------------ */
-    /* Item model                                                          */
+    /* Items                                                               */
     /* ------------------------------------------------------------------ */
 
     private void buildItems() {
         allItems.clear();
-        String sectionAccount = getString(R.string.settings_section_account);
-        String sectionHow = getString(R.string.settings_section_how_you_use, com.insta.nova.util.Constants.WORDMARK);
-        String sectionWho = getString(R.string.settings_section_who_can_see);
-        String sectionPro = getString(R.string.settings_section_professionals);
-        String sectionMore = getString(R.string.settings_section_more_info);
-        String sectionLogin = getString(R.string.settings_section_login);
+
+        String account = getString(R.string.st_sec_account);
+        String notifications = getString(R.string.st_sec_notifications);
+        String privacy = getString(R.string.st_sec_privacy);
+        String messages = getString(R.string.st_sec_messages);
+        String app = getString(R.string.st_sec_app);
+        String activity = getString(R.string.st_sec_activity);
+        String creator = getString(R.string.st_sec_creator);
+        String help = getString(R.string.st_sec_help);
+        String login = getString(R.string.st_sec_login);
 
         // Your account
-        allItems.add(new Item(Kind.HEADER, sectionAccount, 0, 0, null, false));
-        allItems.add(new Item(Kind.ROW, sectionAccount, R.string.settings_accounts_center,
-                R.drawable.ic_accounts_center, "accounts_center", true));
-        allItems.add(new Item(Kind.GAP, sectionAccount, 0, 0, null, false));
+        header(account);
+        allItems.add(new Item(Kind.ROW, account, getString(R.string.st_velkyn_account),
+                R.drawable.ic_velkyn_v, "accounts_centre", true,
+                getString(R.string.st_velkyn_account_desc), STYLE_NORMAL));
+        gap();
 
-        // How you use Instagram
-        allItems.add(new Item(Kind.HEADER, sectionHow, 0, 0, null, false));
-        allItems.add(new Item(Kind.ROW, sectionHow, R.string.settings_saved, R.drawable.ic_bookmark, "saved", false));
-        allItems.add(new Item(Kind.ROW, sectionHow, R.string.settings_archive, R.drawable.ic_archive, "archive", false));
-        allItems.add(new Item(Kind.ROW, sectionHow, R.string.settings_your_activity, R.drawable.ic_activity, "your_activity", false));
-        allItems.add(new Item(Kind.ROW, sectionHow, R.string.settings_notifications, R.drawable.ic_bell, "notifications", false));
-        allItems.add(new Item(Kind.ROW, sectionHow, R.string.settings_time_management, R.drawable.ic_clock, "time_management", false));
-        allItems.add(new Item(Kind.GAP, sectionHow, 0, 0, null, false));
+        // Notifications
+        header(notifications);
+        row(notifications, R.string.st_notifications_title, R.drawable.ic_bell, "notifications", "");
+        gap();
 
-        // Who can see your content
-        allItems.add(new Item(Kind.HEADER, sectionWho, 0, 0, null, false));
-        allItems.add(new Item(Kind.ROW, sectionWho, R.string.settings_account_privacy, R.drawable.ic_lock, "account_privacy", false));
-        allItems.add(new Item(Kind.ROW, sectionWho, R.string.settings_close_friends, R.drawable.ic_star_circle, "close_friends", false));
-        allItems.add(new Item(Kind.GAP, sectionWho, 0, 0, null, false));
+        // Privacy and safety
+        header(privacy);
+        row(privacy, R.string.st_blocked_accounts, R.drawable.ic_block, "blocked", "");
+        row(privacy, R.string.st_restricted_accounts, R.drawable.ic_person_circle, "restricted", "");
+        row(privacy, R.string.st_hidden_words, R.drawable.ic_comment, "hidden_words", "");
+        row(privacy, R.string.st_story_audience, R.drawable.ic_eye_off, "story_audience", "");
+        row(privacy, R.string.st_close_friends, R.drawable.ic_star_circle, "close_friends", "");
+        row(privacy, R.string.st_tags_mentions, R.drawable.ic_tag_person, "tags_mentions", "");
+        row(privacy, R.string.st_comment_controls, R.drawable.ic_comment, "comment_controls", "");
+        row(privacy, R.string.st_message_request_controls, R.drawable.ic_send, "request_controls", "");
+        gap();
 
-        // For professionals
-        allItems.add(new Item(Kind.HEADER, sectionPro, 0, 0, null, false));
-        allItems.add(new Item(Kind.ROW, sectionPro, R.string.settings_insights, R.drawable.ic_insights, "insights", false));
-        allItems.add(new Item(Kind.ROW, sectionPro, R.string.settings_verified, R.drawable.ic_verified_outline, "verified", false));
-        allItems.add(new Item(Kind.ROW, sectionPro, R.string.settings_scheduled_content, R.drawable.ic_schedule, "scheduled", false));
-        allItems.add(new Item(Kind.GAP, sectionPro, 0, 0, null, false));
+        // Messages and calls
+        header(messages);
+        row(messages, R.string.st_chat_theme, R.drawable.ic_palette, "chat_theme", "");
+        // Read receipts and Online status drove the same presence flag, so only the one
+        // switch remains. Call history already lives inside DM, so it is not repeated here.
+        row(messages, R.string.st_online_status, R.drawable.ic_activity, "online_status", "");
+        row(messages, R.string.st_call_preferences, R.drawable.ic_phone, "call_prefs", "");
+        row(messages, R.string.st_mic_camera, R.drawable.ic_mic, "permissions", "");
+        gap();
 
-        // More info and support
-        allItems.add(new Item(Kind.HEADER, sectionMore, 0, 0, null, false));
-        allItems.add(new Item(Kind.ROW, sectionMore, R.string.settings_theme, R.drawable.ic_moon, "theme", false));
-        allItems.add(new Item(Kind.ROW, sectionMore, R.string.settings_help, R.drawable.ic_help, "help", false));
-        allItems.add(new Item(Kind.ROW, sectionMore, R.string.settings_about, R.drawable.ic_info, "about", false));
-        if (BuildConfig.DEBUG) {
-            allItems.add(new Item(Kind.ROW, sectionMore, R.string.settings_diagnostics, R.drawable.ic_bug, "diagnostics", false));
-        }
-        allItems.add(new Item(Kind.GAP, sectionMore, 0, 0, null, false));
+        // App preferences
+        header(app);
+        row(app, R.string.st_theme, R.drawable.ic_moon, "theme", "");
+        row(app, R.string.st_language, R.drawable.ic_internet, "language", "");
+        row(app, R.string.st_data_saver, R.drawable.ic_download, "data_saver", "");
+        row(app, R.string.st_video_autoplay, R.drawable.ic_play, "autoplay", "");
+        row(app, R.string.st_upload_quality, R.drawable.ic_image, "upload_quality", "");
+        row(app, R.string.st_cache, R.drawable.ic_archive, "cache", "");
+        row(app, R.string.st_accessibility, R.drawable.ic_person_circle, "accessibility", "");
+        gap();
+
+        // Your activity
+        header(activity);
+        row(activity, R.string.st_saved_posts, R.drawable.ic_bookmark, "saved", "");
+        row(activity, R.string.st_archive, R.drawable.ic_archive, "archive", "");
+        row(activity, R.string.st_your_likes_comments, R.drawable.ic_favorite_outline, "likes_comments", "");
+        row(activity, R.string.st_search_history, R.drawable.ic_search, "search_history", "");
+        row(activity, R.string.st_download_data, R.drawable.ic_copy, "download_data", "");
+        gap();
+
+        // Creator
+        header(creator);
+        row(creator, R.string.st_account_type, R.drawable.ic_person_circle, "account_type", "");
+        row(creator, R.string.st_insights, R.drawable.ic_insights, "insights", "");
+        row(creator, R.string.st_audience, R.drawable.ic_audience, "audience", "");
+        gap();
+
+        // Help
+        header(help);
+        row(help, R.string.st_help_center, R.drawable.ic_help, "help", "");
+        row(help, R.string.st_report_problem, R.drawable.ic_report, "report", "");
+        row(help, R.string.st_contact_support, R.drawable.ic_mail, "contact", "");
+        row(help, R.string.st_community_guidelines, R.drawable.ic_info, "guidelines", "");
+        row(help, R.string.st_privacy_policy, R.drawable.ic_lock, "privacy_policy", "");
+        row(help, R.string.st_terms, R.drawable.ic_info, "terms", "");
+        row(help, R.string.st_about, R.drawable.ic_info, "about", "");
+        gap();
 
         // Login
-        allItems.add(new Item(Kind.HEADER, sectionLogin, 0, 0, null, false));
-        allItems.add(new Item(Kind.ROW, sectionLogin, R.string.settings_logout, 0, "logout", false));
+        header(login);
+        allItems.add(new Item(Kind.ROW, login, getString(R.string.st_add_profile), 0,
+                "add_profile", false, null, STYLE_BLUE));
+        allItems.add(new Item(Kind.ROW, login, getString(R.string.st_log_out), 0,
+                "logout", false, null, STYLE_RED));
+    }
+
+    private void header(String title) {
+        allItems.add(new Item(Kind.HEADER, title, title, 0, null, false, null, STYLE_NORMAL));
+    }
+
+    private void gap() {
+        allItems.add(new Item(Kind.GAP, "", "", 0, null, false, null, STYLE_NORMAL));
+    }
+
+    private void row(String section, int labelRes, int icon, String key, String value) {
+        allItems.add(new Item(Kind.ROW, section, getString(labelRes), icon, key, false, null, STYLE_NORMAL));
     }
 
     /* ------------------------------------------------------------------ */
-    /* Search                                                             */
+    /* Live values                                                         */
+    /* ------------------------------------------------------------------ */
+
+    private void loadAccountState() {
+        repository.isPrivate().observe(this, resource -> {
+            if (resource == null || resource.status != Resource.Status.SUCCESS || resource.data == null) return;
+            privacyPrivate = resource.data;
+            adapter.notifyDataSetChanged();
+        });
+        repository.getMyProfileRow().observe(this, resource -> {
+            if (resource == null || resource.status != Resource.Status.SUCCESS || resource.data == null) return;
+            Object type = resource.data.get("account_type");
+            accountType = type == null ? "personal" : String.valueOf(type);
+            Object priv = resource.data.get("is_private");
+            if (priv instanceof Boolean) privacyPrivate = (Boolean) priv;
+            adapter.notifyDataSetChanged();
+        });
+    }
+
+    private void primeRelationshipCounts() {
+        if (primedRelationships) return;
+        primedRelationships = true;
+        relationshipRepository.loadBlocked().observe(this, r -> {
+            if (r != null && r.status == Resource.Status.SUCCESS) adapter.notifyDataSetChanged();
+        });
+        relationshipRepository.loadRestricted().observe(this, r -> {
+            if (r != null && r.status == Resource.Status.SUCCESS) adapter.notifyDataSetChanged();
+        });
+        relationshipRepository.loadStoryHidden().observe(this, r -> {
+            if (r != null && r.status == Resource.Status.SUCCESS) adapter.notifyDataSetChanged();
+        });
+    }
+
+    private String valueFor(String key) {
+        if (key == null) return "";
+        switch (key) {
+            case "blocked":
+                return String.valueOf(relationships.blocked().size());
+            case "restricted":
+                return String.valueOf(relationships.restricted().size());
+            case "story_audience":
+                return getString(R.string.st_hidden_count, relationships.storyHidden().size());
+            case "close_friends":
+                return String.valueOf(relationships.closeFriends().size());
+            case "tags_mentions":
+                return whoLabel(settings.tagWho());
+            case "comment_controls":
+                return whoLabel(settings.commentWho());
+            case "request_controls":
+                return whoLabel(settings.requestWho());
+            case "online_status":
+                return onOff(settings.showActivity());
+            case "call_prefs":
+                return whoLabel(settings.whoCanCall());
+            case "chat_theme":
+                return ChatTheme.findById(settings.defaultChatTheme()).name;
+            case "theme":
+                return themeLabel(readThemeMode());
+            case "language":
+                return getString("bn".equals(settings.language())
+                        ? R.string.st_bangla : R.string.st_english);
+            case "data_saver":
+                return onOff(settings.dataSaver());
+            case "autoplay":
+                return autoplayLabel(settings.autoplay());
+            case "upload_quality":
+                return getString(AppSettingsStore.QUALITY_HIGH.equals(settings.uploadQuality())
+                        ? R.string.st_high : R.string.st_standard);
+            case "account_type":
+                return accountTypeLabel(accountType);
+            case "about":
+                return BuildConfig.VERSION_NAME;
+            case "account_privacy":
+                return getString(privacyPrivate ? R.string.st_private : R.string.st_public);
+            default:
+                return "";
+        }
+    }
+
+    private String onOff(boolean value) {
+        return getString(value ? R.string.st_on : R.string.st_off);
+    }
+
+    private String whoLabel(String who) {
+        if (AppSettingsStore.WHO_FOLLOWING.equals(who)) return getString(R.string.st_people_i_follow);
+        if (AppSettingsStore.WHO_FOLLOWERS.equals(who)) return getString(R.string.st_followers);
+        if (AppSettingsStore.WHO_NOBODY.equals(who)) return getString(R.string.st_no_one);
+        return getString(R.string.st_everyone);
+    }
+
+    private String autoplayLabel(String value) {
+        if (AppSettingsStore.AUTOPLAY_ALWAYS.equals(value)) return getString(R.string.st_always);
+        if (AppSettingsStore.AUTOPLAY_NEVER.equals(value)) return getString(R.string.st_never);
+        return getString(R.string.st_wifi_only);
+    }
+
+    private String accountTypeLabel(String type) {
+        if ("creator".equals(type)) return getString(R.string.st_creator);
+        if ("business".equals(type)) return getString(R.string.st_business);
+        return getString(R.string.st_personal);
+    }
+
+    private int readThemeMode() {
+        SharedPreferences sp = getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
+        return sp.getInt(PREF_THEME, AppCompatDelegate.MODE_NIGHT_YES);
+    }
+
+    private String themeLabel(int mode) {
+        if (mode == AppCompatDelegate.MODE_NIGHT_NO) return getString(R.string.st_light);
+        if (mode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) return getString(R.string.st_system);
+        return getString(R.string.st_dark);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Search                                                              */
     /* ------------------------------------------------------------------ */
 
     private void applyFilter(String rawQuery) {
@@ -190,131 +377,142 @@ public class SettingsActivity extends AppCompatActivity {
             return;
         }
 
+        // Flattened results: every matching row, no section headers.
         List<Item> filtered = new ArrayList<>();
-        String currentSection = null;
-        List<Item> pending = new ArrayList<>();
         for (Item item : allItems) {
-            if (item.kind == Kind.HEADER) {
-                if (headerMatches(item, query) || sectionHasMatch(item.section, query)) {
-                    currentSection = item.section;
-                    pending.add(item);
-                } else {
-                    currentSection = null;
-                }
-            } else if (item.kind == Kind.ROW) {
-                if (currentSection != null && labelOf(item).toLowerCase(Locale.ROOT).contains(query)) {
-                    pending.add(item);
-                }
-            }
+            if (item.kind != Kind.ROW) continue;
+            String label = item.label == null ? "" : item.label.toLowerCase(Locale.ROOT);
+            String value = valueFor(item.key) == null ? "" : valueFor(item.key).toLowerCase(Locale.ROOT);
+            if (label.contains(query) || value.contains(query)) filtered.add(item);
         }
-        filtered.addAll(pending);
 
         binding.tvNoResults.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         binding.rvSettings.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
         adapter.submit(filtered);
     }
 
-    private boolean headerMatches(Item header, String query) {
-        return header.labelRes != 0 && getString(header.labelRes).toLowerCase(Locale.ROOT).contains(query);
-    }
-
-    private boolean sectionHasMatch(String section, String query) {
-        for (Item item : allItems) {
-            if (item.kind == Kind.ROW && section.equals(item.section)
-                    && labelOf(item).toLowerCase(Locale.ROOT).contains(query)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String labelOf(Item item) {
-        return item.labelRes == 0 ? "" : getString(item.labelRes);
-    }
-
     /* ------------------------------------------------------------------ */
-    /* Values                                                             */
+    /* Click routing                                                       */
     /* ------------------------------------------------------------------ */
-
-    private int readThemeMode() {
-        SharedPreferences sp = getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
-        return sp.getInt(PREF_THEME, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-    }
-
-    private String themeLabel(int mode) {
-        if (mode == AppCompatDelegate.MODE_NIGHT_NO) return getString(R.string.settings_theme_light);
-        if (mode == AppCompatDelegate.MODE_NIGHT_YES) return getString(R.string.settings_theme_dark);
-        return getString(R.string.settings_theme_system);
-    }
-
-    private void loadPrivacyValue() {
-        repository.isPrivate().observe(this, resource -> {
-            if (resource == null || resource.status != Resource.Status.SUCCESS || resource.data == null) return;
-            privacyValue = resource.data
-                    ? getString(R.string.settings_value_private)
-                    : getString(R.string.settings_value_public);
-            adapter.notifyDataSetChanged();
-        });
-    }
-
-    private void loadArchiveCount() {
-        repository.getArchive().observe(this, resource -> {
-            if (resource == null || resource.status != Resource.Status.SUCCESS || resource.data == null) return;
-            archiveValue = String.valueOf(resource.data.size());
-            adapter.notifyDataSetChanged();
-        });
-    }
-
-    private String valueFor(String key) {
-        if ("account_privacy".equals(key)) return privacyValue;
-        if ("theme".equals(key)) return themeValue;
-        if ("close_friends".equals(key)) return getString(R.string.settings_value_zero);
-        if ("verified".equals(key)) return getString(R.string.settings_value_not_subscribed);
-        if ("scheduled".equals(key)) return scheduledValue;
-        return "";
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* Row actions                                                        */
-    /* ------------------------------------------------------------------ */
-
-    private boolean isDecorative(String key) {
-        return "your_activity".equals(key) || "notifications".equals(key) || "time_management".equals(key)
-                || "close_friends".equals(key) || "insights".equals(key) || "verified".equals(key)
-                || "scheduled".equals(key);
-    }
 
     private void onRowClick(String key) {
         if (key == null) return;
-        if (isDecorative(key)) {
-            if (Constants.DECORATIVE_UI) ToastUtil.showNotAvailable(this);
-            return;
-        }
+        Intent intent;
         switch (key) {
-            case "accounts_center":
+            case "accounts_centre":
                 startActivity(new Intent(this, AccountCenterActivity.class));
                 break;
+            case "notifications":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_NOTIFICATIONS));
+                break;
+            case "blocked":
+                startActivity(PeopleListActivity.intent(this, PeopleListActivity.MODE_BLOCKED,
+                        getString(R.string.st_blocked_accounts)));
+                break;
+            case "restricted":
+                startActivity(PeopleListActivity.intent(this, PeopleListActivity.MODE_RESTRICTED,
+                        getString(R.string.st_restricted_accounts)));
+                break;
+            case "hidden_words":
+                startActivity(new Intent(this, HiddenWordsActivity.class));
+                break;
+            case "story_audience":
+                startActivity(PeopleListActivity.intent(this, PeopleListActivity.MODE_STORY_AUDIENCE,
+                        getString(R.string.st_story_audience)));
+                break;
+            case "close_friends":
+                startActivity(PeopleListActivity.intent(this, PeopleListActivity.MODE_CLOSE_FRIENDS,
+                        getString(R.string.st_close_friends_title)));
+                break;
+            case "tags_mentions":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_TAGS));
+                break;
+            case "comment_controls":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_COMMENT_CONTROLS));
+                break;
+            case "request_controls":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_REQUEST_CONTROLS));
+                break;
+            case "chat_theme":
+                startActivity(new Intent(this, ChatThemeAppearanceActivity.class));
+                break;
+            case "online_status":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_MESSAGES));
+                break;
+            case "call_prefs":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_CALLS));
+                break;
+            case "permissions":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_PERMISSIONS));
+                break;
+            case "theme":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_THEME));
+                break;
+            case "language":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_LANGUAGE));
+                break;
+            case "data_saver":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_DATA_SAVER));
+                break;
+            case "autoplay":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_AUTOPLAY));
+                break;
+            case "upload_quality":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_UPLOAD_QUALITY));
+                break;
+            case "cache":
+                startActivity(new Intent(this, CacheActivity.class));
+                break;
+            case "accessibility":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_ACCESSIBILITY));
+                break;
             case "saved":
-                openSaved();
+                startActivity(new Intent(this, com.insta.nova.ui.saved.SavedActivity.class));
                 break;
             case "archive":
                 startActivity(new Intent(this, ArchiveActivity.class));
                 break;
-            case "account_privacy":
-                startActivity(new Intent(this, AccountPrivacyActivity.class));
+            case "likes_comments":
+                startActivity(new Intent(this, YourActivityActivity.class));
                 break;
-            case "theme":
-                showThemeDialog();
+            case "search_history":
+                startActivity(new Intent(this, SearchHistoryActivity.class));
+                break;
+            case "download_data":
+                startActivity(new Intent(this, DownloadDataActivity.class));
+                break;
+            case "account_type":
+                startActivity(SimpleSettingsActivity.intent(this, SimpleSettingsActivity.PAGE_ACCOUNT_TYPE));
+                break;
+            case "insights":
+                startActivity(new Intent(this, InsightsActivity.class));
+                break;
+            case "audience":
+                startActivity(new Intent(this, AudienceAnalyticsActivity.class));
                 break;
             case "help":
-                showTextDialog(getString(R.string.settings_help), getString(R.string.settings_help_body));
+                startActivity(new Intent(this, HelpCenterActivity.class));
+                break;
+            case "report":
+                startActivity(new Intent(this, ReportProblemActivity.class));
+                break;
+            case "contact":
+                startActivity(LegalActivity.contactIntent(this));
+                break;
+            case "guidelines":
+                startActivity(LegalActivity.docIntent(this, LegalActivity.DOC_GUIDELINES));
+                break;
+            case "privacy_policy":
+                startActivity(LegalActivity.docIntent(this, LegalActivity.DOC_PRIVACY));
+                break;
+            case "terms":
+                startActivity(LegalActivity.docIntent(this, LegalActivity.DOC_TERMS));
                 break;
             case "about":
-                showTextDialog(getString(R.string.settings_about),
-                        getString(R.string.settings_about_body, getString(R.string.app_name), BuildConfig.VERSION_NAME));
+                startActivity(new Intent(this, AboutActivity.class));
                 break;
-            case "diagnostics":
-                openDiagnostics();
+            case "add_profile":
+                addProfile();
                 break;
             case "logout":
                 showLogoutDialog();
@@ -324,85 +522,44 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    /** The Saved destination already exists in the main navigation graph. */
-    private void openSaved() {
-        Intent intent = new Intent(this, com.insta.nova.ui.main.MainActivity.class);
-        intent.putExtra(com.insta.nova.ui.main.MainActivity.EXTRA_NAV_DESTINATION, R.id.navigation_shop);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
-    }
-
-    private void openDiagnostics() {
-        try {
-            Class<?> cls = Class.forName("com.insta.nova.ui.debug.SyncTestActivity");
-            startActivity(new Intent(this, cls));
-        } catch (ClassNotFoundException e) {
-            Toast.makeText(this, "Diagnostics unavailable in this build", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void showTextDialog(String title, String body) {
-        new AlertDialog.Builder(this)
-                .setTitle(title)
-                .setMessage(body)
-                .setPositiveButton("OK", null)
-                .show();
-    }
-
-    private void showThemeDialog() {
-        final int[] modes = {
-                AppCompatDelegate.MODE_NIGHT_NO,
-                AppCompatDelegate.MODE_NIGHT_YES,
-                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM};
-        String[] labels = {
-                getString(R.string.settings_theme_light),
-                getString(R.string.settings_theme_dark),
-                getString(R.string.settings_theme_system)};
-
-        int current = readThemeMode();
-        int checked = 2;
-        for (int i = 0; i < modes.length; i++) {
-            if (modes[i] == current) checked = i;
-        }
-
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.settings_theme_dialog_title)
-                .setSingleChoiceItems(labels, checked, (dialog, which) -> {
-                    int mode = modes[which];
-                    getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE)
-                            .edit().putInt(PREF_THEME, mode).apply();
-                    AppCompatDelegate.setDefaultNightMode(mode);
-                    themeValue = themeLabel(mode);
-                    adapter.notifyDataSetChanged();
-                    dialog.dismiss();
-                })
-                .setNegativeButton(R.string.settings_cancel, null)
-                .show();
-    }
-
-    private void showLogoutDialog() {
-        String username = sessionManager.getUsername() == null ? "" : sessionManager.getUsername();
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.settings_logout_confirm, username))
-                .setPositiveButton(R.string.settings_logout, (dialog, which) -> {
-                    // Firebase owns the credential: end that session, then clear local state.
+    /** Adding a profile opens the login flow; the saved-accounts store remembers it. */
+    private void addProfile() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle(R.string.st_add_profile)
+                .setMessage(R.string.st_add_profile_note)
+                .setPositiveButton(R.string.st_add_profile, (d, w) -> {
                     FirebaseAuth.getInstance().signOut();
                     sessionManager.clearSession();
-                    // Singleton cache: without this the next account inherits the badge
-                    // counts and freshness window of the account that just signed out.
                     ChatRepository.getInstance(getApplicationContext()).resetForAccountSwitch();
                     Intent intent = new Intent(this, AuthActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
                 })
-                .setNegativeButton(R.string.settings_cancel, null)
+                .setNegativeButton(R.string.st_cancel, null);
+        builder.show();
+    }
+
+    private void showLogoutDialog() {
+        String username = sessionManager.getUsername();
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.st_log_out_confirm)
+                .setMessage(getString(R.string.settings_logout_confirm, username))
+                .setPositiveButton(R.string.st_log_out, (dialog, which) -> {
+                    FirebaseAuth.getInstance().signOut();
+                    sessionManager.clearSession();
+                    ChatRepository.getInstance(getApplicationContext()).resetForAccountSwitch();
+                    Intent intent = new Intent(this, AuthActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton(R.string.st_cancel, null)
                 .show();
     }
 
     /* ------------------------------------------------------------------ */
-    /* Adapter                                                            */
+    /* Adapter                                                             */
     /* ------------------------------------------------------------------ */
 
     private final class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -418,11 +575,9 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public int getItemViewType(int position) {
             Item item = items.get(position);
-            switch (item.kind) {
-                case HEADER: return 0;
-                case GAP: return 2;
-                default: return 1;
-            }
+            if (item.kind == Kind.HEADER) return 0;
+            if (item.kind == Kind.GAP) return 2;
+            return 1;
         }
 
         @NonNull
@@ -450,7 +605,7 @@ public class SettingsActivity extends AppCompatActivity {
             RowHolder rowHolder = (RowHolder) holder;
             ItemSettingsRowBinding b = rowHolder.binding;
 
-            b.tvLabel.setText(item.labelRes);
+            b.tvLabel.setText(item.label);
             if (item.iconRes != 0) {
                 b.ivIcon.setImageResource(item.iconRes);
                 b.ivIcon.setVisibility(View.VISIBLE);
@@ -458,13 +613,11 @@ public class SettingsActivity extends AppCompatActivity {
                 b.ivIcon.setVisibility(View.GONE);
             }
 
-            if (item.twoLine) {
-                b.tvDescription.setText(R.string.settings_accounts_center_desc);
+            if (item.twoLine && item.description != null) {
+                b.tvDescription.setText(item.description);
                 b.tvDescription.setVisibility(View.VISIBLE);
-                ViewGroup.LayoutParams lp = b.layoutSettingsRow.getLayoutParams();
-                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-                b.layoutSettingsRow.setMinimumHeight(getResources().getDimensionPixelSize(R.dimen.settings_row_two_line_height));
-                b.layoutSettingsRow.setLayoutParams(lp);
+                b.layoutSettingsRow.setMinimumHeight(getResources()
+                        .getDimensionPixelSize(R.dimen.settings_row_two_line_height));
             } else {
                 b.tvDescription.setVisibility(View.GONE);
                 b.layoutSettingsRow.setMinimumHeight(0);
@@ -478,14 +631,14 @@ public class SettingsActivity extends AppCompatActivity {
                 b.tvValue.setVisibility(View.GONE);
             }
 
-            boolean isLogout = "logout".equals(item.key);
-            b.ivChevron.setVisibility(isLogout ? View.GONE : View.VISIBLE);
-            if (isLogout) {
-                b.tvLabel.setTextAppearance(R.style.TextAppearance_Insta_SettingsLogout);
-            } else {
-                b.tvLabel.setTextAppearance(R.style.TextAppearance_Insta_SettingsLabel);
-            }
+            boolean hideChevron = "logout".equals(item.key) || "add_profile".equals(item.key);
+            b.ivChevron.setVisibility(hideChevron ? View.GONE : View.VISIBLE);
 
+            int color = ContextCompat.getColor(SettingsActivity.this,
+                    item.style == STYLE_RED ? R.color.color_destructive
+                            : (item.style == STYLE_BLUE ? R.color.color_primary
+                            : R.color.color_text_primary));
+            b.tvLabel.setTextColor(color);
             b.layoutSettingsRow.setOnClickListener(v -> onRowClick(item.key));
         }
 

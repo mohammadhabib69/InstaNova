@@ -87,7 +87,6 @@ public class ExploreFragment extends Fragment {
     private EditText etSearch;
     private RecyclerView rvExploreGrid;
     private View layoutSearchField;
-    private View btnSearchScan;
     private View chipsScroll;
     private View searchTabsContainer;
     private View searchEmptyState;
@@ -132,7 +131,6 @@ public class ExploreFragment extends Fragment {
         etSearch = view.findViewById(R.id.et_search);
         rvExploreGrid = view.findViewById(R.id.rv_explore_grid);
         layoutSearchField = view.findViewById(R.id.layoutSearchField);
-        btnSearchScan = view.findViewById(R.id.btnSearchScan);
         chipsScroll = view.findViewById(R.id.chipsScroll);
         searchTabsContainer = view.findViewById(R.id.searchTabsContainer);
         searchEmptyState = view.findViewById(R.id.searchEmptyState);
@@ -187,7 +185,6 @@ public class ExploreFragment extends Fragment {
 
             @Override
             public void onPlaceClick() {
-                if (Constants.DECORATIVE_UI) ToastUtil.showNotAvailable(requireContext());
             }
 
             @Override
@@ -245,7 +242,6 @@ public class ExploreFragment extends Fragment {
 
     private void onChipClick(int chipIndex) {
         if (chipIndex == CHIP_SHOP) {
-            if (Constants.DECORATIVE_UI) ToastUtil.showNotAvailable(requireContext());
             return;
         }
         activeChip = (activeChip == chipIndex) ? CHIP_NONE : chipIndex;
@@ -309,7 +305,6 @@ public class ExploreFragment extends Fragment {
             public void onTabSelected(TabLayout.Tab tab) {
                 searchTab = tab.getPosition();
                 if (searchTab == TAB_AUDIO || searchTab == TAB_PLACES) {
-                    if (Constants.DECORATIVE_UI) ToastUtil.showNotAvailable(requireContext());
                     searchRows.clear();
                     rowAdapter.notifyDataSetChanged();
                     showEmptyState(true);
@@ -389,10 +384,9 @@ public class ExploreFragment extends Fragment {
                 showExploreGrid();
             }
         });
-        btnSearchScan.setOnClickListener(v -> {
-            if (Constants.DECORATIVE_UI) ToastUtil.showNotAvailable(requireContext());
-        });
-        if (!Constants.DECORATIVE_UI) btnSearchScan.setVisibility(View.GONE);
+        // The old "scan" control in this corner opened ShareProfileActivity — an
+        // unrelated screen — and there is no image-search service to back it. Removed
+        // rather than left as a button that lies about what it does.
     }
 
     private void enterSearchMode() {
@@ -451,7 +445,6 @@ public class ExploreFragment extends Fragment {
                 : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         ivSearchBack.setVisibility(searching ? View.VISIBLE : View.GONE);
-        btnSearchScan.setVisibility(searching || !Constants.DECORATIVE_UI ? View.GONE : View.VISIBLE);
         chipsScroll.setVisibility(searching ? View.GONE : View.VISIBLE);
         searchTabsContainer.setVisibility(searching ? View.VISIBLE : View.GONE);
 

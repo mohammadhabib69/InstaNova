@@ -25,6 +25,7 @@ public class UserProfileViewModel extends AndroidViewModel {
         public ProfileDto profile;
         public boolean iFollow;
         public boolean followsMe;
+        public boolean isRequested;
         public boolean hasStory;
         public boolean unseenStory;
         public String firstUnseenStoryId;
@@ -108,6 +109,7 @@ public class UserProfileViewModel extends AndroidViewModel {
                 Ui ui = copy(state.getValue());
                 ui.iFollow = res.data[0];
                 ui.followsMe = res.data[1];
+                if (res.data.length > 2) ui.isRequested = res.data[2];
                 state.setValue(ui);
             }
         });
@@ -200,23 +202,28 @@ public class UserProfileViewModel extends AndroidViewModel {
         optimistic.followersDelta += follow ? 1 : -1;
         state.setValue(optimistic);
 
-        LiveData<Resource<Boolean>> call = follow ? repository.follow(userId) : repository.unfollow(userId);
+        LiveData<Resource<String>> call = follow ? repository.follow(userId) : repository.unfollow(userId);
         once(call, res -> {
             followBusy = false;
-            boolean ok = res != null && res.status == Resource.Status.SUCCESS;
             Ui out = copy(state.getValue());
+            if (res != null && res.status == Resource.Status.SUCCESS && "requested".equals(res.data)) {
+                out.iFollow = false;
+                out.isRequested = true;
+                out.followersDelta += -1;
+                state.setValue(out);
+                toast.setValue("Requested");
+                return;
+            }
+            boolean ok = res != null && res.status == Resource.Status.SUCCESS;
             if (!ok) {
                 out.iFollow = !follow;
+                out.isRequested = false;
                 out.followersDelta += follow ? -1 : 1;
                 state.setValue(out);
                 toast.setValue("Couldn't update follow");
                 return;
             }
-            if (follow && out.profile != null) {
-                // Demo audience: a follow is answered by the other account.
-                NotificationCenter.get(getApplication()).onFollowed(
-                        out.profile.getId(), out.profile.getUsername(), out.profile.getAvatarUrl());
-            }
+            out.isRequested = false;
             state.setValue(out);
             once(repository.getProfile(userId), r2 -> {
                 if (r2 != null && r2.status == Resource.Status.SUCCESS && r2.data != null) {
@@ -259,6 +266,7 @@ public class UserProfileViewModel extends AndroidViewModel {
         ui.profile = in.profile;
         ui.iFollow = in.iFollow;
         ui.followsMe = in.followsMe;
+        ui.isRequested = in.isRequested;
         ui.hasStory = in.hasStory;
         ui.unseenStory = in.unseenStory;
         ui.firstUnseenStoryId = in.firstUnseenStoryId;

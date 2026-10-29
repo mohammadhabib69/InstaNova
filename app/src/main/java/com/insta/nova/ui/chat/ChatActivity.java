@@ -31,7 +31,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -100,6 +102,21 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
         }
     };
 
+    // Live presence / typing come from Firebase Realtime Database: `setTyping()` and `goOnline()`
+    // were already implemented in RealtimeChatRepository but no screen ever called them, which is
+    // why the header only ever showed a stale "Active 15h ago" from a one-shot query.
+    private com.insta.nova.data.repository.RealtimeChatRepository realtime;
+    private com.google.firebase.database.ValueEventListener typingListener;
+    private final Handler typingHandler = new Handler(Looper.getMainLooper());
+    private Runnable typingStopRunnable;
+    private boolean typingFlagSent;
+    private com.google.firebase.database.ValueEventListener presenceListener;
+    /** Non-null whenever the live channel has something more current than the polled status. */
+    private String liveStatus;
+    private boolean otherOnline;
+    private boolean otherTypingActive;
+    private String otherFirebaseUid;
+
     private String pendingPhotoPath;
     private Uri pendingPhotoUri;
     private PopupWindow activePopup;
@@ -150,10 +167,17 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
     };
 
     // Activity Result Launchers
+    // Multiple photos in one go: the system picker returns up to 10 and each is queued as its
+    // own media message, so the thread shows them as one run.
     private final ActivityResultLauncher<PickVisualMediaRequest> galleryLauncher =
-            registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
-                if (uri != null) viewModel.sendImage(uri);
-            });
+            registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(10),
+                    uris -> {
+                        if (uris == null || uris.isEmpty()) return;
+                        // Picking four sent eight: the result list can carry the same Uri more
+                        // than once, so send each distinct photo exactly once.
+                        java.util.LinkedHashSet<Uri> unique = new java.util.LinkedHashSet<>(uris);
+                        for (Uri uri : unique) viewModel.sendImage(uri);
+                    });
 
     private final ActivityResultLauncher<Uri> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
@@ -200,9 +224,36 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
                 viewModel.refresh();
             });
 
+    /**
+     * Leaves the conversation without dumping the user out of the app.
+     *
+     * <p>When a notification opens this screen the activity is the root of its own task, so
+     * {@code finish()} closed the whole app instead of returning to the inbox. Route back to Home
+     * in that case; a normal inbox opener still just finishes.
+     */
+    private void goBack() {
+        if (isTaskRoot()) {
+            startActivity(new android.content.Intent(this, com.insta.nova.ui.main.MainActivity.class)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP));
+        }
+        finish();
+    }
+
     @Override
+
+
     protected void onCreate(Bundle savedInstanceState) {
+        // This screen used to pin itself to night mode to keep a dark chat surface in one piece,
+        // which meant a light-mode app still opened every DM black. The chat surface now follows
+        // the app: the header, reply bar and sheets come from the theme, and the default
+        // wallpaper has a light variant (see applyTheme). Explicitly chosen chat themes are
+        // left as they are, since those are the user's own choice.
         super.onCreate(savedInstanceState);
+        // System back must take the same safe route as the header button.
+        getOnBackPressedDispatcher().addCallback(this,
+                new androidx.activity.OnBackPressedCallback(true) {
+                    @Override public void handleOnBackPressed() { goBack(); }
+                });
         binding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -243,13 +294,14 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
 
         viewModel = new ViewModelProvider(this).get(ChatViewModel.class);
         viewModel.init(conversationId, otherUserId, otherUsername, otherAvatar);
+        realtime = new com.insta.nova.data.repository.RealtimeChatRepository();
         viewModel.state().observe(this, this::renderState);
         viewModel.toast().observe(this, message -> {
             if (message != null && !message.isEmpty()) ToastUtil.showPill(this, message);
         });
 
         // Setup Header navigation & actions
-        binding.btnBack.setOnClickListener(v -> finish());
+        binding.btnBack.setOnClickListener(v -> goBack());
         binding.layoutHeaderUser.setOnClickListener(v -> openChatDetails());
         binding.btnDetails.setOnClickListener(v -> openChatDetails());
 
@@ -262,7 +314,7 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
         binding.btnSend.setOnClickListener(v -> sendTypedText());
         binding.btnCamera.setOnClickListener(v -> launchCameraWithPermission());
         binding.btnGallery.setOnClickListener(v -> openGallery());
-        binding.btnAddCircle.setOnClickListener(v -> showMoreActionsSheet());
+
         binding.btnEmojiPicker.setOnClickListener(v -> toggleEmojiPicker());
         setupVoiceRecording();
 
@@ -279,7 +331,9 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override public void afterTextChanged(Editable s) {
-                updateInputMode(s != null && s.toString().trim().length() > 0);
+                boolean hasText = s != null && s.toString().trim().length() > 0;
+                updateInputMode(hasText);
+                if (hasText) noteTyping();
             }
         });
         binding.etMessage.setOnEditorActionListener((v, actionId, event) -> {
@@ -323,6 +377,8 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
     protected void onResume() {
         super.onResume();
         viewModel.setVisible(true);
+        startLiveStatus();
+        touchLastActive();
         pollHandler.removeCallbacks(pollRunnable);
         pollHandler.postDelayed(pollRunnable, POLL_MS);
         String themeId = ChatSettingsStore.getInstance(this).getConversationTheme(conversationId);
@@ -333,9 +389,149 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
     protected void onPause() {
         super.onPause();
         viewModel.setVisible(false);
+        stopLiveStatus();
         pollHandler.removeCallbacks(pollRunnable);
         dismissPopup();
         stopVoicePlayback();
+    }
+
+    /**
+     * Subscribes to presence and typing, and announces this client as online.
+     *
+     * <p>Both writes are already permitted by {@code database.rules.json}: {@code presence/$uid}
+     * is owner-write and readable by any signed-in user, {@code typing/$cid/$uid} requires chat
+     * membership. Nothing here polls — the values arrive as they change.
+     */
+    private void startLiveStatus() {
+        if (realtime == null || conversationId == null) return;
+        SessionManager session = SessionManager.getInstance(this);
+        // RTDB authorises on auth.uid (the Firebase uid); every screen speaks profile uuids.
+        // profiles.firebase_uid is that bridge, so no rules deploy is needed.
+        final String myId = session.getFirebaseUid();
+        if (myId == null || myId.isEmpty()) return;
+
+        realtime.goOnline(myId);
+        realtime.addMember(conversationId, myId);
+
+        if (otherUserId == null || otherUserId.isEmpty()) return;
+        if (typingListener != null) return;
+
+        new com.insta.nova.data.repository.ChatRepository(this)
+                .fetchFirebaseUid(otherUserId, otherId -> {
+                    if (otherId == null || otherId.isEmpty() || isFinishing()) return;
+                    otherFirebaseUid = otherId;
+                    // Both members must exist before either may read typing/reactions.
+                    realtime.addMember(conversationId, otherId);
+
+                    typingListener = new com.google.firebase.database.ValueEventListener() {
+                        @Override public void onDataChange(
+                                @NonNull com.google.firebase.database.DataSnapshot s) {
+                            Boolean b = s.getValue(Boolean.class);
+                            otherTypingActive = b != null && b;
+                            applyStatus(otherTypingActive ? "typing…" : liveStatus);
+                        }
+
+                        @Override public void onCancelled(
+                                @NonNull com.google.firebase.database.DatabaseError e) {
+                            otherTypingActive = false;
+                        }
+                    };
+                    realtime.listenTypingFor(conversationId, otherId, typingListener);
+
+                    presenceListener = new com.google.firebase.database.ValueEventListener() {
+                        @Override public void onDataChange(
+                                @NonNull com.google.firebase.database.DataSnapshot s) {
+                            String state = s.child("state").getValue(String.class);
+                            liveStatus = com.insta.nova.data.repository.RealtimeChatRepository.STATE_ONLINE
+                                    .equals(state) ? "Active now" : null;
+                            applyStatus(otherTypingActive ? "typing…" : liveStatus);
+                        }
+
+                        @Override public void onCancelled(
+                                @NonNull com.google.firebase.database.DatabaseError e) {}
+                    };
+                    realtime.listenPresence(otherId, presenceListener);
+                });
+    }
+
+    /**
+     * Records "this account is active now" so the other side's header can say "Active now".
+     *
+     * <p>{@code profiles.last_active_at} was read everywhere and written nowhere.
+     */
+    private void touchLastActive() {
+        String myId = SessionManager.getInstance(this).getUserId();
+        if (myId == null || myId.isEmpty()) return;
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("last_active_at", new java.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", java.util.Locale.US)
+                .format(new java.util.Date()));
+        com.insta.nova.data.remote.RetrofitClient.getInstance(this).getRestApi()
+                .touchLastActive("eq." + myId, body)
+                .enqueue(new retrofit2.Callback<Void>() {
+                    @Override public void onResponse(retrofit2.Call<Void> c,
+                                                     retrofit2.Response<Void> r) {
+                        android.util.Log.d("ChatPresence", "heartbeat HTTP " + r.code());
+                    }
+
+                    @Override public void onFailure(retrofit2.Call<Void> c, Throwable t) {
+                        android.util.Log.w("ChatPresence", "heartbeat failed: " + t.getMessage());
+                    }
+                });
+    }
+
+    private void stopLiveStatus() {
+        if (typingStopRunnable != null) typingHandler.removeCallbacks(typingStopRunnable);
+        String myId = SessionManager.getInstance(this).getFirebaseUid();
+        if (realtime != null && conversationId != null && myId != null) {
+            realtime.setTyping(conversationId, myId, false);
+            realtime.goOffline(myId);
+        }
+        typingFlagSent = false;
+        otherTypingActive = false;
+        liveStatus = null;
+        if (otherFirebaseUid != null && conversationId != null && realtime != null) {
+            if (typingListener != null) {
+                realtime.stopListeningTypingFor(conversationId, otherFirebaseUid, typingListener);
+                typingListener = null;
+            }
+            if (presenceListener != null) {
+                realtime.stopListeningPresence(otherFirebaseUid, presenceListener);
+                presenceListener = null;
+            }
+            otherFirebaseUid = null;
+        }
+    }
+
+    private void applyStatus(@Nullable String status) {
+        if (binding == null) return;
+        // The dot means "recently active", so it follows the same value the subtitle shows.
+        boolean online = "Active now".equals(status);
+        binding.ivPresenceDot.setVisibility(online ? View.VISIBLE : View.GONE);
+        if (status == null || status.isEmpty()) {
+            binding.tvHeaderStatus.setVisibility(View.GONE);
+            return;
+        }
+        binding.tvHeaderStatus.setVisibility(View.VISIBLE);
+        binding.tvHeaderStatus.setText(status);
+    }
+
+    /** Debounced typing flag: written once per burst, cleared 3 s after the last keystroke. */
+    private void noteTyping() {
+        if (realtime == null || conversationId == null) return;
+        // Same trap as presence: the rules compare auth.uid, so the profile uuid is refused.
+        String myId = SessionManager.getInstance(this).getFirebaseUid();
+        if (myId == null || myId.isEmpty()) return;
+        if (!typingFlagSent) {
+            typingFlagSent = true;
+            realtime.setTyping(conversationId, myId, true);
+        }
+        if (typingStopRunnable != null) typingHandler.removeCallbacks(typingStopRunnable);
+        typingStopRunnable = () -> {
+            typingFlagSent = false;
+            realtime.setTyping(conversationId, myId, false);
+        };
+        typingHandler.postDelayed(typingStopRunnable, 3000L);
     }
 
     /* ------------------------------------------------------------------ */
@@ -375,9 +571,21 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
 
     private void applyTheme(ChatTheme theme) {
         if (theme == null) return;
-        binding.chatRoot.setBackgroundColor(theme.backgroundColor);
-        binding.rvMessages.setBackgroundColor(theme.backgroundColor);
-        adapter.setChatTheme(theme);
+        // "Default" is not a colour choice, so it follows the app: black in dark mode, white in
+        // light mode. Named themes (Berry, Ocean, …) stay exactly as picked.
+        ChatTheme effective = theme;
+        if ("default".equals(theme.id) && !isNightMode()) {
+            effective = ChatTheme.lightDefault();
+        }
+        binding.chatRoot.setBackgroundColor(effective.backgroundColor);
+        binding.rvMessages.setBackgroundColor(effective.backgroundColor);
+        adapter.setChatTheme(effective);
+    }
+
+    private boolean isNightMode() {
+        int mask = getResources().getConfiguration().uiMode
+                & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        return mask == android.content.res.Configuration.UI_MODE_NIGHT_YES;
     }
 
     private void showThemePicker() {
@@ -724,13 +932,10 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
 
         String name = state.intro != null ? state.intro.displayName() : otherUsername;
         binding.tvHeaderName.setText(name == null ? "" : name);
-        String status = state.statusText;
-        if (status == null || status.isEmpty()) {
-            binding.tvHeaderStatus.setVisibility(View.GONE);
-        } else {
-            binding.tvHeaderStatus.setVisibility(View.VISIBLE);
-            binding.tvHeaderStatus.setText(status);
-        }
+        // The polled status is a fallback: the Realtime Database value wins whenever it has
+        // something to say, and "typing…" outranks both.
+        applyStatus(otherTypingActive ? "typing…"
+                : liveStatus != null ? liveStatus : state.statusText);
 
         String avatar = state.intro != null && state.intro.avatarUrl != null
                 && !state.intro.avatarUrl.isEmpty() ? state.intro.avatarUrl : otherAvatar;
@@ -803,7 +1008,7 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
         binding.btnMic.setVisibility(icons);
         binding.btnGallery.setVisibility(icons);
         binding.btnEmojiPicker.setVisibility(icons);
-        binding.btnAddCircle.setVisibility(icons);
+        // The "+" more-actions control is gone; its entries live elsewhere in the app.
         binding.btnSend.setVisibility(hasText ? View.VISIBLE : View.GONE);
     }
 
@@ -864,9 +1069,25 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
     /* Adapter Callbacks & Message Long Press (Part 5)                     */
     /* ------------------------------------------------------------------ */
 
+    /**
+     * "View profile" on the conversation intro card.
+     *
+     * <p>This used to open {@code ChatDetailsActivity} — the chat's own settings sheet —
+     * which is not what the label promises: the tap is on the person's card, under their
+     * picture and follower counts, so it has to land on that person's profile. The details
+     * sheet stays reachable from the header and the ⓘ button.
+     */
     @Override
     public void onViewProfile() {
-        openChatDetails();
+        if (otherUserId == null || otherUserId.isEmpty()) {
+            // Identity not resolved yet; the details sheet is the only safe destination.
+            openChatDetails();
+            return;
+        }
+        Intent intent = new Intent(this, UserProfileActivity.class);
+        intent.putExtra(UserProfileActivity.EXTRA_USER_ID, otherUserId);
+        intent.putExtra(UserProfileActivity.EXTRA_USERNAME, otherUsername);
+        startActivity(intent);
     }
 
     @Override
@@ -947,6 +1168,10 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
     }
 
     @Override
+    public void onCallEntryClick(boolean video) {
+        if (video) startVideoCall(); else startAudioCall();
+    }
+
     public void onReactionClick(Message message) {
         if (message == null) return;
         String mine = viewModel.myReaction(message);
@@ -962,6 +1187,25 @@ public class ChatActivity extends AppCompatActivity implements ChatAdapter.Liste
     @Override
     public void onImageClick(Message message) {
         if (message == null) return;
+        // A share opens the thing that was shared, not a lone picture.
+        String kind = message.getShareKind();
+        String ref = message.getShareId();
+        if (kind != null && ref != null && !ref.isEmpty()) {
+            if ("story".equals(kind)) {
+                Intent story = new Intent(this,
+                        com.insta.nova.ui.story.StoryViewerActivity.class);
+                story.putExtra("story_id", ref);
+                story.putExtra("user_id", message.getSenderId());
+                startActivity(story);
+                return;
+            }
+            if ("post".equals(kind) || "reel".equals(kind)) {
+                Intent post = new Intent(this, com.insta.nova.ui.post.PostDetailActivity.class);
+                post.putExtra("post_id", ref);
+                startActivity(post);
+                return;
+            }
+        }
         String url = message.getLocalImageUri() != null ? message.getLocalImageUri() : message.getImageUrl();
         if (url == null || url.isEmpty()) return;
         Intent intent = new Intent(this, ImageViewerActivity.class);

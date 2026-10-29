@@ -213,7 +213,13 @@ public class UserProfileActivity extends AppCompatActivity implements ProfileScr
         com.insta.nova.data.repository.ChatRepository.getInstance(this)
                 .getOrCreateConversation(userId)
                 .observe(this, res -> {
-                    if (res == null || res.status != com.insta.nova.util.Resource.Status.SUCCESS
+                    // observe() replays the current value, and this LiveData starts in LOADING.
+                    // Treating anything that is not SUCCESS as a failure therefore flashed
+                    // "Couldn't open chat" on every tap while the request was still running —
+                    // the conversation did open a moment later, behind the error toast.
+                    if (res == null) return;
+                    if (res.status == com.insta.nova.util.Resource.Status.LOADING) return;
+                    if (res.status != com.insta.nova.util.Resource.Status.SUCCESS
                             || res.data == null) {
                         ToastUtil.showPill(this, "Couldn't open chat");
                         return;
@@ -279,7 +285,7 @@ public class UserProfileActivity extends AppCompatActivity implements ProfileScr
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(normalize(url))));
         } catch (Exception e) {
-            ToastUtil.showNotAvailable(this);
+            android.widget.Toast.makeText(this, "Could not open link", android.widget.Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -315,12 +321,46 @@ public class UserProfileActivity extends AppCompatActivity implements ProfileScr
             dialog.dismiss();
             ToastUtil.showPill(this, "Link copied");
         });
-        sheet.rowAbout.setOnClickListener(v -> ToastUtil.showNotAvailable(this));
+        // "About this account" has no real data source in this project; hide it
+        // rather than ship a dead row.
+        sheet.rowAbout.setVisibility(View.GONE);
         sheet.rowReport.setOnClickListener(v -> {
             dialog.dismiss();
-            ToastUtil.showPill(this, "Thanks for letting us know");
+            com.insta.nova.safe.SafeActions.report(this, "user", userId);
         });
-        sheet.rowBlock.setOnClickListener(v -> ToastUtil.showNotAvailable(this));
+        com.insta.nova.data.local.RelationshipStore relationshipStore =
+                new com.insta.nova.data.local.RelationshipStore(this);
+        com.insta.nova.data.repository.RelationshipRepository relationshipRepository =
+                new com.insta.nova.data.repository.RelationshipRepository(this);
+
+        boolean restricted = relationshipStore.isRestricted(userId);
+        sheet.rowRestrict.setText(restricted ? R.string.st_unrestrict : R.string.st_restrict);
+        sheet.rowRestrict.setOnClickListener(v -> {
+            dialog.dismiss();
+            boolean next = !relationshipStore.isRestricted(userId);
+            relationshipRepository.setRestricted(userId, next).observe(this, r -> {
+                if (r != null && r.status == com.insta.nova.util.Resource.Status.SUCCESS) {
+                    ToastUtil.showPill(this, next
+                            ? getString(R.string.st_restricted_toast, p.getUsername())
+                            : getString(R.string.st_unrestricted_toast, p.getUsername()));
+                }
+            });
+        });
+
+        // Real block: nova_block_user + BlockMuteCache refresh, same sheet as every other surface.
+        // The label used to say "Block" even when the account was already blocked, which left the
+        // action one-way: the feed filtered them out and no screen offered a way back.
+        final boolean alreadyBlocked =
+                com.insta.nova.data.BlockMuteCache.get(this).isBlocked(userId);
+        sheet.rowBlock.setText(alreadyBlocked ? R.string.nova_unblock : R.string.st_block);
+        sheet.rowBlock.setOnClickListener(v -> {
+            dialog.dismiss();
+            if (alreadyBlocked) {
+                com.insta.nova.safe.SafeActions.unblock(this, userId, this::finish);
+            } else {
+                com.insta.nova.safe.SafeActions.confirmBlock(this, userId, p.getUsername(), this::finish);
+            }
+        });
         dialog.setContentView(sheet.getRoot());
         dialog.show();
     }
