@@ -49,8 +49,14 @@ public class CallHistoryAdapter extends RecyclerView.Adapter<CallHistoryAdapter.
     public void onBindViewHolder(@NonNull CallViewHolder holder, int position) {
         CallHistoryStore.CallRecord record = callList.get(position);
 
-        holder.tvUsername.setText(record.otherUsername != null && !record.otherUsername.isEmpty()
-                ? record.otherUsername : (com.insta.nova.util.Constants.APP_NAME + " User"));
+        // Only fall back when the peer is genuinely unknown, and say so plainly. The old
+        // fallback ("InstaNova User") looked like a real display name and hid the fact
+        // that the row has no resolvable peer at all.
+        String displayName = record.otherUsername;
+        if (displayName == null || displayName.trim().isEmpty()) {
+            displayName = "Unknown";
+        }
+        holder.tvUsername.setText(displayName);
 
         if (record.otherAvatar != null && !record.otherAvatar.isEmpty() && !"none".equals(record.otherAvatar)) {
             GlideUtils.loadAvatar(holder.ivAvatar, record.otherAvatar);
@@ -69,31 +75,39 @@ public class CallHistoryAdapter extends RecyclerView.Adapter<CallHistoryAdapter.
         // Format Date / Time
         String timeStr = formatTimestamp(record.timestamp);
 
-        // Status Details and Icons
+        // Status Details and Icons. One branch per display status; the mapping from a
+        // `calls` row lives in CallHistoryStore.displayStatusFor and never produces
+        // "failed", which was a mapper fall-through rather than a real call outcome.
         if ("answered".equals(record.status)) {
             String dirStr = record.isOutgoing ? "Outgoing" : "Incoming";
             String durationStr = formatDuration(record.durationSeconds);
             holder.tvCallDetails.setText(dirStr + " " + typeStr + " · " + durationStr + " · " + timeStr);
             holder.tvCallDetails.setTextColor(0xFF8E8E8E);
-
             holder.ivCallDirection.setImageResource(record.isOutgoing
                     ? R.drawable.ic_call_outgoing : R.drawable.ic_call_incoming);
         } else if ("missed".equals(record.status)) {
             holder.tvCallDetails.setText("Missed " + typeStr + " · " + timeStr);
             holder.tvCallDetails.setTextColor(0xFFED4956); // Red
             holder.ivCallDirection.setImageResource(R.drawable.ic_call_missed);
+        } else if ("no_answer".equals(record.status)) {
+            holder.tvCallDetails.setText("No answer · " + typeStr + " · " + timeStr);
+            holder.tvCallDetails.setTextColor(0xFF8E8E8E);
+            holder.ivCallDirection.setImageResource(R.drawable.ic_call_outgoing);
+        } else if ("declined".equals(record.status)) {
+            holder.tvCallDetails.setText("Declined " + typeStr + " · " + timeStr);
+            holder.tvCallDetails.setTextColor(0xFF8E8E8E);
+            holder.ivCallDirection.setImageResource(R.drawable.ic_call_missed);
         } else if ("cancelled".equals(record.status)) {
             holder.tvCallDetails.setText("Cancelled " + typeStr + " · " + timeStr);
             holder.tvCallDetails.setTextColor(0xFF8E8E8E);
             holder.ivCallDirection.setImageResource(R.drawable.ic_call_outgoing);
-        } else if ("rejected".equals(record.status)) {
-            holder.tvCallDetails.setText("Declined " + typeStr + " · " + timeStr);
-            holder.tvCallDetails.setTextColor(0xFF8E8E8E);
-            holder.ivCallDirection.setImageResource(R.drawable.ic_call_missed);
         } else {
-            holder.tvCallDetails.setText("Failed " + typeStr + " · " + timeStr);
+            // A record from an older build, or a row that ended before it connected.
+            String dirStr = record.isOutgoing ? "Outgoing" : "Incoming";
+            holder.tvCallDetails.setText(dirStr + " " + typeStr + " · " + timeStr);
             holder.tvCallDetails.setTextColor(0xFF8E8E8E);
-            holder.ivCallDirection.setImageResource(R.drawable.ic_call_missed);
+            holder.ivCallDirection.setImageResource(record.isOutgoing
+                    ? R.drawable.ic_call_outgoing : R.drawable.ic_call_incoming);
         }
     }
 

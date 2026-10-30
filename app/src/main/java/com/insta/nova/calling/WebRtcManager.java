@@ -1,7 +1,12 @@
 package com.insta.nova.calling;
 
 import android.content.Context;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -68,6 +73,8 @@ public class WebRtcManager {
     private final AudioManager audioManager;
     private int originalAudioMode = AudioManager.MODE_NORMAL;
     private boolean originalSpeakerState = false;
+    private AudioFocusRequest audioFocusRequest;
+    private boolean audioFocusGranted = false;
 
     private boolean isMuted = false;
     private boolean isSpeaker = false;
@@ -389,18 +396,119 @@ public class WebRtcManager {
         return value instanceof Number ? ((Number) value).longValue() : 0L;
     }
 
-    private void setupAudioRouting() {
-        if (audioManager != null) {
-            try {
-                originalAudioMode = audioManager.getMode();
-                originalSpeakerState = audioManager.isSpeakerphoneOn();
-                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-                // Audio calls default to earpiece, video calls default to speakerphone
-                setSpeakerphoneOn(isVideoCall);
-            } catch (Exception e) {
-                Log.w(TAG, "Failed to setup audio routing: " + e.getMessage());
-            }
+    /**
+     * Samples RTC stats every two seconds for the first 40 s of a call.
+     *
+     * <p>This exists to answer one question with evidence rather than a theory: "how long
+     * after answering does inbound audio actually arrive, and over which candidate pair?"
+     * A first sample at t=0 and a second 4 s later cannot distinguish a fast call from one
+     * that spends 20 s finding a path; this trace can.
+     */
+    public void startStatsTrace() {
+        if (isDisposed) return;
+        final Handler handler = new Handler(Looper.getMainLooper());
+        for (int i = 0; i <= 20; i++) {
+            final int step = i;
+            handler.postDelayed(() -> logStatsSample("t" + (step * 2) + "s"), step * 2000L);
         }
+    }
+
+    /** The negotiated candidate pair, logged once, to tell host/srflx/relay apart. */
+    public void logSelectedCandidatePair() {
+        if (peerConnection == null || isDisposed) return;
+        peerConnection.getStats(report -> {
+            String selectedPair = null;
+            for (org.webrtc.RTCStats stat : report.getStatsMap().values()) {
+                if (!"transport".equals(stat.getType())) continue;
+                Object pairId = stat.getMembers().get("selectedCandidatePairId");
+                if (pairId instanceof String) selectedPair = (String) pairId;
+            }
+            if (selectedPair == null) return;
+            org.webrtc.RTCStats pair = report.getStatsMap().get(selectedPair);
+            if (pair == null) return;
+            Object localId = pair.getMembers().get("localCandidateId");
+            Object remoteId = pair.getMembers().get("remoteCandidateId");
+            org.webrtc.RTCStats local = localId == null ? null : report.getStatsMap().get(localId);
+            org.webrtc.RTCStats remote = remoteId == null ? null : report.getStatsMap().get(remoteId);
+            Log.i(TAG, "RTC_PAIR local=" + describeCandidate(local)
+                    + " remote=" + describeCandidate(remote));
+        });
+    }
+
+    private static String describeCandidate(@Nullable org.webrtc.RTCStats candidate) {
+        if (candidate == null) return "?";
+        java.util.Map<String, Object> m = candidate.getMembers();
+        return m.get("candidateType") + "/" + m.get("protocol") + " " + m.get("address");
+    }
+
+    /**
+     * Puts the device into a call route AND takes audio focus.
+     *
+     * <p>{@code MODE_IN_COMMUNICATION} alone only changes the routing policy. Without an
+     * audio-focus request every other app is still free to keep the output stream, and on
+     * several OEM builds (Xiaomi/vivo in particular) the call then plays silently until the
+     * other app releases the stream — which is exactly the "no voice for the first X
+     * seconds" symptom. Focus is requested as
+     * {@code GAIN_TRANSIENT_EXCLUSIVE} on {@code USAGE_VOICE_COMMUNICATION}, the same
+     * contract the platform telephony stack uses.
+     */
+    private void setupAudioRouting() {
+        if (audioManager == null) return;
+        try {
+            originalAudioMode = audioManager.getMode();
+            originalSpeakerState = audioManager.isSpeakerphoneOn();
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            // Audio calls default to earpiece, video calls default to speakerphone
+            setSpeakerphoneOn(isVideoCall);
+            requestAudioFocus();
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to setup audio routing: " + e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void requestAudioFocus() {
+        if (audioManager == null) return;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                AudioFocusRequest request = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                        .setAudioAttributes(new AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                .build())
+                        .setAcceptsDelayedFocusGain(false)
+                        .setWillPauseWhenDucked(true)
+                        .setOnAudioFocusChangeListener(change -> Log.i(TAG, "AUDIO_FOCUS " + change))
+                        .build();
+                audioFocusRequest = request;
+                audioFocusGranted = audioManager.requestAudioFocus(request)
+                        == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+            } else {
+                audioFocusGranted = audioManager.requestAudioFocus(
+                        change -> Log.i(TAG, "AUDIO_FOCUS " + change),
+                        AudioManager.STREAM_VOICE_CALL,
+                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                        == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+            }
+            Log.i(TAG, "AUDIO_FOCUS granted=" + audioFocusGranted);
+        } catch (Exception e) {
+            Log.w(TAG, "audio focus request failed: " + e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void abandonAudioFocus() {
+        if (audioManager == null) return;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (audioFocusRequest != null) audioManager.abandonAudioFocusRequest(audioFocusRequest);
+            } else {
+                audioManager.abandonAudioFocus(null);
+            }
+        } catch (Exception ignored) {
+        }
+        audioFocusRequest = null;
+        audioFocusGranted = false;
     }
 
     private void restoreAudioRouting() {
@@ -412,6 +520,7 @@ public class WebRtcManager {
                 Log.w(TAG, "Failed to restore audio routing: " + e.getMessage());
             }
         }
+        abandonAudioFocus();
     }
 
     public void dispose() {

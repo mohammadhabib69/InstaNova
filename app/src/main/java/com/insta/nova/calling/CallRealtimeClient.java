@@ -154,10 +154,34 @@ public class CallRealtimeClient {
         }
     }
 
+    /**
+     * True only for a Supabase-issued access token.
+     *
+     * <p>Realtime verifies the bearer and, when Realtime RLS is enabled, reads its claims. A
+     * Firebase ID token is a JWT too but Realtime does not accept it: sending one made the
+     * handshake fail with 401 and the client retried every few seconds forever. The payload is
+     * checked rather than the header for the issuer ({@code /auth/v1}), and anything unrecognised
+     * is simply not sent — the socket then connects with the API key alone, as it already did for
+     * anonymous joins.
+     */
+    private static boolean isSupabaseToken(@Nullable String token) {
+        if (token == null || token.isEmpty()) return false;
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) return false;
+            String payload = new String(android.util.Base64.decode(
+                    parts[1], android.util.Base64.URL_SAFE | android.util.Base64.NO_PADDING
+                            | android.util.Base64.NO_WRAP), java.nio.charset.StandardCharsets.UTF_8);
+            return payload.contains("/auth/v1");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     /** Pushes a refreshed token into the live socket without dropping it. */
     public synchronized void updateToken(@Nullable String token) {
         this.accessToken = token;
-        if (socket == null) return;
+        if (socket == null || !isSupabaseToken(token)) return;
         // Matches RealtimeClient._performAuth: an already-joined channel gets an
         // access_token push rather than a full re-join.
         JsonObject body = json();
@@ -216,8 +240,10 @@ public class CallRealtimeClient {
         try {
             Request.Builder rb = new Request.Builder().url(wsUrl);
             rb.header("apikey", BuildConfig.SUPABASE_ANON_KEY.trim());
-            if (token != null && !token.isEmpty()) {
+            if (isSupabaseToken(token)) {
                 rb.header("Authorization", "Bearer " + token);
+            } else if (token != null && !token.isEmpty()) {
+                Log.i(TAG, "skipping non-Supabase bearer; connecting with the API key only");
             }
 
             notifyState("connecting", null);

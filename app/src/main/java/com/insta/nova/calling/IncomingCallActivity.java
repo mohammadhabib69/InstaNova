@@ -1,16 +1,12 @@
 package com.insta.nova.calling;
 
-import android.content.Context;
-import android.media.AudioAttributes;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
+import java.util.HashMap;
+import java.util.Map;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.util.Log;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
@@ -44,8 +40,6 @@ public class IncomingCallActivity extends AppCompatActivity {
     private String callerAvatar;
     private String conversationId;
 
-    private Ringtone ringtone;
-    private Vibrator vibrator;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private static final long TIMEOUT_MS = 30_000L;
 
@@ -112,10 +106,14 @@ public class IncomingCallActivity extends AppCompatActivity {
         binding.tvIncomingSubtitle.setText(isVideo ? "Incoming video call..." : "Incoming audio call...");
 
         binding.tvCallerUsername.setText(callerUsername != null && !callerUsername.isEmpty() ? callerUsername : (com.insta.nova.util.Constants.APP_NAME + " User"));
-        if (callerAvatar != null && !callerAvatar.isEmpty()) {
+        if (callerAvatar != null && !callerAvatar.isEmpty() && !"none".equalsIgnoreCase(callerAvatar)) {
             GlideUtils.loadAvatar(binding.ivCallerAvatar, callerAvatar);
         } else {
             binding.ivCallerAvatar.setImageResource(R.drawable.ic_person_placeholder);
+            // The push payload does not always carry the avatar (the polling path never
+            // does), and an incoming call is the one screen where the caller's face has to
+            // be right — resolve it from the profile row instead of leaving a placeholder.
+            resolveCallerAvatar();
         }
 
         // Pulse ring animation
@@ -206,54 +204,31 @@ public class IncomingCallActivity extends AppCompatActivity {
         return r;
     }
 
+    /**
+     * Ringing is owned by {@link CallRingtone}, not by this screen.
+     *
+     * <p>This used to create its own {@code Ringtone}, so the notification channel's
+     * ringtone and this one played at the same time and stopping one left the other
+     * going. {@code start} is idempotent per call id, so reaching this screen after the
+     * manager already started the ring is a no-op rather than a second player.
+     */
     private void startRingtoneAndVibration() {
-        try {
-            Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-            if (ringtoneUri == null) {
-                ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            }
-            if (ringtoneUri != null) {
-                ringtone = RingtoneManager.getRingtone(this, ringtoneUri);
-                if (ringtone != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        ringtone.setAudioAttributes(new AudioAttributes.Builder()
-                                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                                .build());
-                    }
-                    Log.i("CallTones", "RINGTONE_START call=" + callId);
-                    ringtone.play();
-                }
-            }
-
-            vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            if (vibrator != null && vibrator.hasVibrator()) {
-                long[] pattern = {0, 800, 800};
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(VibrationEffect.createWaveform(pattern, 0));
-                } else {
-                    vibrator.vibrate(pattern, 0);
-                }
-            }
-        } catch (Exception ignored) {}
+        CallRingtone.get().start(this, callId);
     }
 
     private void stopRingtoneAndVibration() {
-        try {
-            if (ringtone != null && ringtone.isPlaying()) {
-                Log.i("CallTones", "RINGTONE_STOP call=" + callId);
-                ringtone.stop();
-            }
-        } catch (Exception ignored) {}
-        try {
-            if (vibrator != null) {
-                vibrator.cancel();
-            }
-        } catch (Exception ignored) {}
+        if (callId != null) {
+            CallRingtone.get().stopFor(callId);
+        } else {
+            CallRingtone.get().stop();
+        }
     }
 
     private void finishWithDismiss() {
         stopRingtoneAndVibration();
+        // The notification is part of "ringing": leaving it behind is what made a
+        // dismissed call keep a live Accept/Decline card in the shade.
+        CallNotificationHelper.cancelIncomingCallNotification(this);
         finish();
     }
 
@@ -266,5 +241,39 @@ public class IncomingCallActivity extends AppCompatActivity {
         if (callId != null) {
             LocalSignalingBus.getInstance().unregisterListener(callId, signalingListener);
         }
+    }
+
+    /** Fetches the caller's avatar when the launch intent did not carry one. */
+    private void resolveCallerAvatar() {
+        if (callerId == null || callerId.isEmpty()) return;
+        Map<String, String> q = new HashMap<>();
+        q.put("id", "eq." + callerId);
+        q.put("select", "avatar_url,username");
+        q.put("limit", "1");
+
+        com.insta.nova.data.remote.RetrofitClient.getInstance(this).getRestApi()
+                .getProfiles(q)
+                .enqueue(new retrofit2.Callback<java.util.List<com.insta.nova.data.remote.dto.ProfileDto>>() {
+                    @Override
+                    public void onResponse(@NonNull retrofit2.Call<java.util.List<com.insta.nova.data.remote.dto.ProfileDto>> call,
+                                           @NonNull retrofit2.Response<java.util.List<com.insta.nova.data.remote.dto.ProfileDto>> response) {
+                        if (!response.isSuccessful() || response.body() == null || response.body().isEmpty()) return;
+                        com.insta.nova.data.remote.dto.ProfileDto p = response.body().get(0);
+                        if (p.getAvatarUrl() != null && !p.getAvatarUrl().isEmpty()) {
+                            callerAvatar = p.getAvatarUrl();
+                            GlideUtils.loadAvatar(binding.ivCallerAvatar, callerAvatar);
+                        }
+                        if ((callerUsername == null || callerUsername.isEmpty()) && p.getUsername() != null) {
+                            callerUsername = p.getUsername();
+                            binding.tvCallerUsername.setText(callerUsername);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull retrofit2.Call<java.util.List<com.insta.nova.data.remote.dto.ProfileDto>> call,
+                                          @NonNull Throwable t) {
+                        Log.d("InstaCall", "caller avatar lookup failed");
+                    }
+                });
     }
 }

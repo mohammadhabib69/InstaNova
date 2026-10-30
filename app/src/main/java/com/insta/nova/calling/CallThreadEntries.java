@@ -65,7 +65,37 @@ public final class CallThreadEntries {
         if (myId == null) return;
         final String peerId = myId.equals(record.callerId) ? record.calleeId : record.callerId;
 
+        // Persist the history entry from the same authoritative row and the same moment
+        // as the thread entry, so the call-history screen is correct offline and does not
+        // depend on a later refresh happening to succeed.
+        CallHistoryStore.getInstance(context).upsertCall(record, myId);
+
         final Context app = context.getApplicationContext();
+
+        // #65 — publish the entry server-side as well. The local overlay above only
+        // reaches this device, and `get_inbox` previews the newest row of `messages`,
+        // so a conversation whose latest activity was a call showed the older text
+        // message (or nothing). The row is what puts "Audio call · 53s" in the inbox
+        // and in the other device's thread. Idempotent on the call id, so both
+        // devices calling it — and any retry — converge on one row.
+        Map<String, Object> callBody = new HashMap<>();
+        callBody.put("p_call_id", record.id);
+        RetrofitClient.getInstance(app).getRestApi()
+                .recordCallMessage(callBody)
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                        if (!response.isSuccessful()) {
+                            Log.w(TAG, "thread row rejected: HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                        Log.w(TAG, "thread row not published: " + t.getMessage());
+                    }
+                });
+
         Map<String, Object> body = new HashMap<>();
         body.put("p_other_user_id", peerId);
 
@@ -116,7 +146,11 @@ public final class CallThreadEntries {
                     conversationId,
                     senderId,
                     kind,
-                    System.currentTimeMillis(),
+                    // The call's own time, not "now": the server row written below is
+                    // stamped with ended_at/connected_at, so using the local clock here
+                    // made the same call appear at two different positions depending on
+                    // whether the thread was showing the overlay or the fetched row.
+                    timestampOf(record),
                     true
             );
             cm.messageType = isVideo ? "video_call" : "audio_call";
@@ -137,6 +171,16 @@ public final class CallThreadEntries {
         } catch (Exception e) {
             Log.e(TAG, "failed to write thread entry: " + e.getMessage());
         }
+    }
+
+    /** When the call happened, in the same order the server row uses. */
+    private static long timestampOf(@NonNull CallRecord record) {
+        long ended = record.endedAtMillis();
+        if (ended > 0) return ended;
+        long connected = record.connectedAtMillis();
+        if (connected > 0) return connected;
+        long created = record.createdAtMillis();
+        return created > 0 ? created : System.currentTimeMillis();
     }
 
     /**

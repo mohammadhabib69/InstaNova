@@ -65,6 +65,22 @@ public class CallTones {
         }
     };
 
+    /**
+     * Hard ceiling on any tone. A call that connects while a Realtime frame is missed
+     * used to leave the caller's beep looping for the whole conversation; even with the
+     * media-connected stop in place, nothing may ring forever.
+     */
+    private static final long MAX_TONE_MS = 90_000L;
+
+    private final Runnable watchdog = new Runnable() {
+        @Override
+        public void run() {
+            if (current == Type.NONE) return;
+            Log.w(TAG, "tone ceiling reached, stopping " + current);
+            stop();
+        }
+    };
+
     private final Runnable secondBurst = new Runnable() {
         @Override
         public void run() {
@@ -114,6 +130,7 @@ public class CallTones {
         generator = new ToneGenerator(AudioManager.STREAM_VOICE_CALL, 80);
         Log.i(TAG, "START " + type);
         handler.post(loop);
+        handler.postDelayed(watchdog, MAX_TONE_MS);
     }
 
     /**
@@ -126,6 +143,7 @@ public class CallTones {
         Type previous = current;
         handler.removeCallbacks(loop);
         handler.removeCallbacks(secondBurst);
+        handler.removeCallbacks(watchdog);
         current = Type.NONE;
         release();
         if (previous != Type.NONE) Log.i(TAG, "STOP " + previous);

@@ -50,17 +50,37 @@ public class CallRecord {
                 || isTerminal(status);
     }
 
+    // PostgREST returns snake_case columns; Gson maps by exact field name unless told
+    // otherwise, and RetrofitClient's GsonConverterFactory uses the default policy.
+    // Without these annotations only `id` and `status` were populated, so every row
+    // fetched for the history screen arrived with a null caller/callee (→ "Unknown"),
+    // a null created_at (→ every row stamped with the refresh time, which is why
+    // several calls rendered as identical "4:46 PM" lines) and duration_sec 0.
+    // The Realtime path is unaffected: it goes through {@link #fromJson}, which reads
+    // the keys explicitly.
+    @com.google.gson.annotations.SerializedName("id")
     public String id;
+    @com.google.gson.annotations.SerializedName("caller_id")
     public String callerId;
+    @com.google.gson.annotations.SerializedName("callee_id")
     public String calleeId;
+    @com.google.gson.annotations.SerializedName("call_type")
     public String callType;
+    @com.google.gson.annotations.SerializedName("status")
     public String status;
+    @com.google.gson.annotations.SerializedName("created_at")
     public String createdAt;
+    @com.google.gson.annotations.SerializedName("ringing_at")
     public String ringingAt;
+    @com.google.gson.annotations.SerializedName("connected_at")
     public String connectedAt;
+    @com.google.gson.annotations.SerializedName("ended_at")
     public String endedAt;
+    @com.google.gson.annotations.SerializedName("ended_by")
     public String endedBy;
+    @com.google.gson.annotations.SerializedName("duration_sec")
     public int durationSec;
+    @com.google.gson.annotations.SerializedName("callee_surfaced_at")
     public String calleeSurfacedAt;
 
     public CallRecord() {
@@ -126,6 +146,11 @@ public class CallRecord {
     }
 
     /** Epoch millis of {@code created_at}, used for the caller's 45s budget. */
+    /** Epoch millis of {@code ended_at}, or 0 when the call has not ended yet. */
+    public long endedAtMillis() {
+        return parseIsoMillis(endedAt);
+    }
+
     public long createdAtMillis() {
         return parseIsoMillis(createdAt);
     }
@@ -140,6 +165,32 @@ public class CallRecord {
      * desugaring, which this project does not enable. The {@code X} offset
      * pattern letters used here landed in API 24.
      */
+    /**
+     * Rewrites a fractional-seconds run of any length to exactly three digits.
+     *
+     * <p>Postgres {@code timestamptz} carries microsecond precision, so PostgREST
+     * emits {@code 2026-11-01T10:49:58.15081+00:00} — six digits, or sometimes five
+     * when the value ends in zero. {@code SimpleDateFormat}'s {@code SSS} accepts
+     * exactly three and throws on the rest, so every row failed to parse and the
+     * caller fell back to "now". Truncating (never rounding up, which could push a
+     * row past a second boundary) keeps the millisecond inside the same second.
+     */
+    private static String normalizeFraction(@NonNull String v) {
+        int dot = v.indexOf('.');
+        if (dot < 0) return v;
+        int end = dot + 1;
+        while (end < v.length() && Character.isDigit(v.charAt(end))) end++;
+        int digits = end - (dot + 1);
+        if (digits == 3) return v;
+        if (digits < 3) {
+            // ".5" means 500 ms, not 5 ms.
+            StringBuilder sb = new StringBuilder(v.substring(0, end));
+            for (int i = digits; i < 3; i++) sb.append('0');
+            return sb.append(v.substring(end)).toString();
+        }
+        return v.substring(0, dot + 4) + v.substring(end);
+    }
+
     private static final String[] ISO_PATTERNS = {
             "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
             "yyyy-MM-dd'T'HH:mm:ssXXX",
@@ -149,7 +200,7 @@ public class CallRecord {
 
     private static long parseIsoMillis(@Nullable String iso) {
         if (iso == null || iso.isEmpty()) return 0L;
-        String v = iso.trim();
+        String v = normalizeFraction(iso.trim());
         // SimpleDateFormat's XXX does not accept the military "Z" suffix.
         if (v.endsWith("Z")) {
             v = v.substring(0, v.length() - 1) + "+00:00";

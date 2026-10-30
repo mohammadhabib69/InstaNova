@@ -73,6 +73,15 @@ public class CallManager {
     /** Callee gives up if the user never taps Accept after the ack. */
     public static final long RING_TIMEOUT_MS = 30_000L;
 
+    /**
+     * How old a non-terminal {@code calls} row may be and still surface as a live call.
+     *
+     * <p>Longer than the ring timeout on purpose: a call placed while this device had no
+     * signal should still ring when it comes back a moment later. Two minutes is well
+     * past {@link #NO_ANSWER_TIMEOUT_MS}, so anything older is an abandoned row.
+     */
+    private static final long LIVE_CALL_MAX_AGE_MS = 120_000L;
+
     /** Bounded wait for Firebase to restore a session at process start. */
     private static final int MAX_REALTIME_TOKEN_RETRIES = 12;
     private static final long REALTIME_TOKEN_RETRY_MS = 1_500L;
@@ -177,6 +186,8 @@ public class CallManager {
      */
     public void startRealtime() {
         surfaceMissedCalls();
+        sweepStaleCalls();
+        startIncomingPolling();
         if (realtimeRetries >= MAX_REALTIME_TOKEN_RETRIES) {
             Log.w(TAG, "no Firebase token after " + MAX_REALTIME_TOKEN_RETRIES
                     + " retries; realtime will stay unauthenticated");
@@ -189,6 +200,143 @@ public class CallManager {
                 realtime.connect(token);
             } else {
                 MAIN.postDelayed(this::startRealtime, REALTIME_TOKEN_RETRY_MS);
+            }
+        });
+    }
+
+    private static final long INCOMING_POLL_MS = 2500L;
+    private final Runnable incomingPoll = new Runnable() {
+        @Override public void run() {
+            pollIncoming();
+            MAIN.postDelayed(this, INCOMING_POLL_MS);
+        }
+    };
+    private boolean incomingPolling;
+
+    /**
+     * Discovers an incoming call without Realtime.
+     *
+     * <p>Realtime cannot authenticate with a Firebase token, so the only inbound path was dead and
+     * the callee never saw a ring. This asks the {@code calls} table for my own pending rows and
+     * feeds them through exactly the same handler Realtime used.
+     */
+    public void startIncomingPolling() {
+        if (incomingPolling) return;
+        incomingPolling = true;
+        MAIN.post(incomingPoll);
+    }
+
+    /**
+     * Closes calls that were started but never finished — mine as caller or callee.
+     *
+     * <p>Runs once per sign-in. Without it a row left at {@code calling}/{@code ringing}
+     * is immortal: the poll ignores it now (too old to ring), nothing else looks at it,
+     * and it accumulates. The statuses mirror the ring timeout — {@code no_answer} when
+     * the callee never saw it, {@code missed} when it rang and nobody picked up.
+     */
+    /**
+     * Closes one leaked row without the write-once {@code ended_by} filter.
+     *
+     * <p>Deliberately not routed through {@link #terminate}: that method must stay
+     * write-once for real hang-ups. Here the only thing being asserted is the current
+     * status, and the response tells us whether anything actually changed.
+     */
+    private void closeLeakedCall(@NonNull String callId, @NonNull String closeAs) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", closeAs);
+        body.put("ended_at", nowIso());
+        body.put("duration_sec", 0);
+        restApi.closePendingCall("eq." + callId, "in.(calling,ringing,connected)", body)
+                .enqueue(new Callback<List<CallRecord>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<CallRecord>> call,
+                                           @NonNull Response<List<CallRecord>> response) {
+                        int n = response.body() == null ? 0 : response.body().size();
+                        if (response.isSuccessful() && n > 0) {
+                            Log.i(TAG, "CLOSE-OK " + callId + " -> " + closeAs);
+                        } else if (response.isSuccessful()) {
+                            Log.i(TAG, "CLOSE-NOOP " + callId + " already closed");
+                        } else {
+                            Log.w(TAG, "CLOSE-FAIL " + callId + " HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<List<CallRecord>> call, @NonNull Throwable t) {
+                        Log.w(TAG, "CLOSE-FAIL " + callId + " " + t.getMessage());
+                    }
+                });
+    }
+
+    private void sweepStaleCalls() {
+        final String myId = me();
+        if (myId == null || myId.isEmpty()) return;
+        if (isCallActive()) return;
+
+        Map<String, String> q = new java.util.HashMap<>();
+        q.put("or", "(caller_id.eq." + myId + ",callee_id.eq." + myId + ")");
+        // `connected` is included: a call whose two devices both went away never got an
+        // ended_at, and a row that says "connected" for a day is as wrong as one that
+        // says "ringing" for a day.
+        q.put("status", "in.(calling,ringing,connected)");
+        q.put("created_at", "lt." + isoSecondsAgo(LIVE_CALL_MAX_AGE_MS));
+        q.put("select", "*");
+        q.put("limit", "20");
+        restApi.getCalls(q).enqueue(new Callback<List<CallRecord>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<CallRecord>> call,
+                                   @NonNull Response<List<CallRecord>> response) {
+                if (!response.isSuccessful() || response.body() == null) return;
+                for (CallRecord row : response.body()) {
+                    if (row == null || row.id == null) continue;
+                    String closeAs;
+                    if (CallRecord.STATUS_CONNECTED.equals(row.status)) {
+                        closeAs = CallRecord.STATUS_ENDED;
+                    } else {
+                        closeAs = row.ringingAt == null
+                                ? CallRecord.STATUS_NO_ANSWER : CallRecord.STATUS_MISSED;
+                    }
+                    Log.i(TAG, "sweeping stale " + row.status + " " + row.id + " -> " + closeAs);
+                    closeLeakedCall(row.id, closeAs);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<CallRecord>> call, @NonNull Throwable t) {
+                Log.w(TAG, "stale sweep failed: " + t.getMessage());
+            }
+        });
+    }
+
+    public void stopIncomingPolling() {
+        incomingPolling = false;
+        MAIN.removeCallbacks(incomingPoll);
+    }
+
+    private void pollIncoming() {
+        if (isCallActive()) return;
+        String me = SessionManager.getInstance(context).getUserId();
+        if (me == null || me.isEmpty()) return;
+        Map<String, String> q = new java.util.HashMap<>();
+        q.put("callee_id", "eq." + me);
+        q.put("status", "in.(calling,ringing)");
+        // Nothing older than the ring budget can still be live, but this query used to
+        // have no age filter at all: it picked up whatever `calling` row was left behind
+        // and rang for it. A row abandoned ten hours earlier rang the phone the moment
+        // the app was opened, and the ring timeout then "answered" it 30 s later.
+        q.put("created_at", "gte." + isoSecondsAgo(LIVE_CALL_MAX_AGE_MS));
+        q.put("order", "created_at.desc");
+        q.put("limit", "1");
+        restApi.getCalls(q).enqueue(new retrofit2.Callback<java.util.List<CallRecord>>() {
+            @Override public void onResponse(@NonNull retrofit2.Call<java.util.List<CallRecord>> call,
+                                             @NonNull retrofit2.Response<java.util.List<CallRecord>> response) {
+                if (!response.isSuccessful() || response.body() == null || response.body().isEmpty()) return;
+                handleRealtimeRow(response.body().get(0));
+            }
+
+            @Override public void onFailure(@NonNull retrofit2.Call<java.util.List<CallRecord>> call,
+                                            @NonNull Throwable t) {
+                Log.w(TAG, "incoming poll failed: " + t.getMessage());
             }
         });
     }
@@ -226,6 +374,27 @@ public class CallManager {
     @Nullable
     public String getPeerAvatar() {
         return peerAvatar;
+    }
+
+    /**
+     * True when a still-pending row was created longer ago than any live call can be.
+     *
+     * <p>Unknown creation time is treated as fresh: a row that cannot be dated should
+     * not be silently swallowed, and the ring timeout will close it either way.
+     */
+    private static boolean isStalePending(@NonNull CallRecord record) {
+        long created = record.createdAtMillis();
+        if (created <= 0) return false;
+        return System.currentTimeMillis() - created > LIVE_CALL_MAX_AGE_MS;
+    }
+
+    /** PostgREST timestamptz filter value, e.g. {@code gte.2026-11-01T11:02:03+00:00}. */
+    @NonNull
+    private static String isoSecondsAgo(long millis) {
+        java.text.SimpleDateFormat f = new java.text.SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ssXXX", java.util.Locale.US);
+        f.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        return f.format(new java.util.Date(System.currentTimeMillis() - millis));
     }
 
     private String me() {
@@ -279,6 +448,19 @@ public class CallManager {
         setActive(optimistic, true, calleeId, calleeName, calleeAvatar);
         CallTones.getInstance().start(CallTones.Type.CALLING);
         MAIN.postDelayed(noAnswerTimeout, NO_ANSWER_TIMEOUT_MS);
+
+        // The call screens must show the person being called. Callers reach here from a
+        // chat header (which knows the name but not always the avatar), from the call
+        // history and from a call bubble, so resolve the missing half from the row that
+        // owns it instead of drawing a grey placeholder for the whole call.
+        if (calleeId != null && (isEmpty(calleeName) || isEmpty(calleeAvatar))) {
+            resolveProfile(calleeId, (name, avatar) -> {
+                if (isEmpty(peerName) && name != null) peerName = name;
+                if (isEmpty(peerAvatar) && avatar != null) peerAvatar = avatar;
+                CallRecord current = activeCall;
+                if (current != null && callId.equals(current.id)) notifyState(current);
+            });
+        }
 
         restApi.createCall(body).enqueue(new Callback<List<CallRecord>>() {
             @Override
@@ -406,12 +588,36 @@ public class CallManager {
      * is what keeps the two timers in step.
      */
     public void accept(@NonNull String callId) {
+        CallRecord current = activeCall;
+        if (current != null && callId.equals(current.id) && CallRecord.isTerminal(current.status)) {
+            Log.i(TAG, "accept ignored: call " + callId + " is already terminal (" + current.status + ")");
+            return;
+        }
+
         Map<String, Object> body = new HashMap<>();
         body.put("status", CallRecord.STATUS_CONNECTED);
         body.put("connected_at", nowIso());
-        patch(callId, body);
+        restApi.acceptCall("eq." + callId, "in.(calling,ringing)", body).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.i(TAG, "ACCEPT-OK " + callId);
+                } else {
+                    Log.e(TAG, "accept " + callId + " failed: HTTP " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                Log.e(TAG, "accept " + callId + " failed: " + t.getMessage());
+            }
+        });
 
         CallTones.getInstance().stop();
+        // Accepting ends the ring everywhere: the player, the vibration and the
+        // Accept/Decline card in the shade.
+        CallRingtone.get().stopFor(callId);
+        CallNotificationHelper.cancelIncomingCallNotification(context);
         MAIN.removeCallbacks(noAnswerTimeout);
 
         CallRecord call = activeCall;
@@ -447,30 +653,66 @@ public class CallManager {
     }
 
     /**
-     * Writes a terminal status. Terminal states are written by whichever side
-     * owns the timer, and every screen on both devices closes on seeing it.
+     * Prompt M: Writes a terminal status. Terminal state is WRITE-ONCE.
+     * The first terminal transition wins. Once a call is in a terminal status,
+     * no later write may change its status, ended_by, ended_at, or duration_sec.
      */
     private void terminate(@NonNull String callId, @NonNull String status,
                           @Nullable String endedBy, int durationSec) {
+        CallRecord current = activeCall;
+        if (current != null && callId.equals(current.id) && CallRecord.isTerminal(current.status)) {
+            Log.i(TAG, "terminate ignored: call " + callId + " is already locally terminal (" + current.status + ")");
+            return;
+        }
+
         Map<String, Object> body = new HashMap<>();
         body.put("status", status);
         body.put("ended_at", nowIso());
         body.put("duration_sec", durationSec);
         if (endedBy != null) body.put("ended_by", endedBy);
-        patch(callId, body);
+
+        // Prompt M: conditional terminal write — only matches rows in calling, ringing, or connected,
+        // and with ended_by IS NULL. Any subsequent write matches 0 rows and changes nothing.
+        restApi.terminateCall("eq." + callId, "in.(calling,ringing,connected)", "is.null", body)
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            Log.i(TAG, "TERMINATE-OK " + status + " " + callId + " endedBy=" + endedBy
+                                    + " t=" + System.currentTimeMillis());
+                        } else {
+                            Log.e(TAG, "terminate " + callId + " failed: HTTP " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                        Log.e(TAG, "terminate " + callId + " failed: " + t.getMessage());
+                    }
+                });
 
         // Local effects are applied immediately rather than waiting for the
         // Realtime echo, so the user who acted never sees a stale screen.
         CallTones.getInstance().stop();
+        CallRingtone.get().stopFor(callId);
+        CallNotificationHelper.cancelAllCallNotifications(context);
         MAIN.removeCallbacks(noAnswerTimeout);
 
-        CallRecord call = activeCall;
-        if (call != null && callId.equals(call.id)) {
-            call.status = status;
-            call.endedAt = nowIso();
-            call.endedBy = endedBy;
-            call.durationSec = durationSec;
-            notifyTerminal(call);
+        if (current != null && callId.equals(current.id)) {
+            current.status = status;
+            current.endedAt = nowIso();
+            current.endedBy = endedBy;
+            current.durationSec = durationSec;
+            notifyTerminal(current);
+            // Persist the finished row locally. Without this the history entry kept the
+            // status it had when the call started (often "answered" with duration 0, or a
+            // pre-answer state), which is why answered calls could still read "Missed".
+            try {
+                com.insta.nova.calling.CallHistoryStore.getInstance(context)
+                        .upsertCall(current, SessionManager.getInstance(context).getUserId());
+            } catch (Exception e) {
+                Log.w(TAG, "history upsert failed: " + e.getMessage());
+            }
             clearActive(callId);
         }
     }
@@ -519,10 +761,44 @@ public class CallManager {
         CallRecord current = activeCall;
         boolean isActive = current != null && record.id.equals(current.id);
 
+        // A pending row that is already older than the ring budget is not a call to
+        // raise; it is a row nobody closed. Checked here rather than only in the poll
+        // query so every entry point inherits it — Realtime, the poll, and any future
+        // catch-up query.
+        if (!CallRecord.isTerminal(record.status) && !isActive && isStalePending(record)) {
+            // Close it instead of only ignoring it. A pending row nobody finished stays
+            // pending forever otherwise, and the next launch finds it again: the row
+            // that rang this phone today had been sitting there since the previous day.
+            // ended_by stays null, which is accurate — no participant ended it, it aged
+            // out. no_answer when the callee never even saw it, missed when it did ring.
+            String closeAs;
+            if (CallRecord.STATUS_CONNECTED.equals(record.status)) {
+                closeAs = CallRecord.STATUS_ENDED;
+            } else {
+                closeAs = record.ringingAt == null
+                        ? CallRecord.STATUS_NO_ANSWER : CallRecord.STATUS_MISSED;
+            }
+            Log.i(TAG, "stale " + record.status + " row " + record.id + " -> " + closeAs);
+            closeLeakedCall(record.id, closeAs);
+            return;
+        }
+
         if (CallRecord.isTerminal(record.status)) {
+            // History first, and regardless of whether this call is still "active" here.
+            // The terminal row is the only record that carries duration_sec and
+            // connected_at, and by the time it arrives the local call is often already
+            // finished - which is why history kept the ring-time status and showed
+            // answered calls as missed with 0s.
+            try {
+                CallHistoryStore.getInstance(context).upsertCall(record, myId);
+            } catch (Exception e) {
+                Log.w(TAG, "history upsert (terminal) failed: " + e.getMessage());
+            }
             if (isActive) {
                 Log.i(TAG, "remote terminal " + record.status + " for " + record.id);
                 CallTones.getInstance().stop();
+                CallRingtone.get().stopFor(record.id);
+                CallNotificationHelper.cancelAllCallNotifications(context);
                 MAIN.removeCallbacks(noAnswerTimeout);
 
                 // If this device is the one showing the incoming screen, that
@@ -546,6 +822,7 @@ public class CallManager {
                 // An incoming call that ended before this device ever saw it —
                 // e.g. the caller cancelled while we were backgrounded. Close
                 // any incoming UI and leave a missed entry.
+                CallRingtone.get().stopFor(record.id);
                 CallActivityBridge.closeIncomingUi(context, record);
                 CallThreadEntries.recordTerminatedCall(context, record, true);
             }
@@ -578,10 +855,71 @@ public class CallManager {
         }
     }
 
+    /**
+     * The callee never had a ring timeout. The caller's own 30 s timer carried a comment
+     * claiming "their own 30 s ring timeout owns the outcome" - it did not exist, so an
+     * unanswered call stayed at status=ringing forever and nothing ever became a missed
+     * call. This is that timer.
+     */
+    private void scheduleRingTimeout(@NonNull final CallRecord ringing) {
+        final String callId = ringing.id;
+        MAIN.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                CallRecord current = activeCall;
+                if (current == null || !callId.equals(current.id)) return;
+                // Only a call that moved past ringing (connected, or already terminal)
+                // is out of this timer's hands. "ringing" is exactly the state we are
+                // waiting to expire - isAcked() counts it as acked, which is why the
+                // first version of this timer never fired.
+                if (!CallRecord.STATUS_RINGING.equals(current.status)
+                        && !CallRecord.STATUS_CALLING.equals(current.status)) {
+                    Log.i(TAG, "ring timer: " + callId + " already " + current.status + "; ignoring");
+                    return;
+                }
+                Log.i(TAG, "ring timer fired: " + callId + " unanswered, marking missed");
+                // Order matters: terminate() refuses a call that is already locally
+                // terminal, so setting the status here first made the server write a
+                // no-op and left the row at "ringing" forever. Let terminate() own the
+                // transition; it updates the in-memory record and clearActive() as well.
+                ringTimedOut(callId);
+                // Write the local thread entry too: terminate() only updates state, and the
+                // realtime echo that normally writes the bubble never arrives when the call
+                // simply times out.
+                CallThreadEntries.recordTerminatedCall(context, current, true);
+            }
+        }, RING_TIMEOUT_MS);
+    }
+
     private void onIncomingCallDetected(@NonNull CallRecord record) {
+        scheduleRingTimeout(record);
+        com.insta.nova.data.local.AppSettingsStore callSettings =
+                new com.insta.nova.data.local.AppSettingsStore(context);
+        if (!callSettings.allowsNotificationType("call")) {
+            Log.i(TAG, "call notifications off; ignoring incoming " + record.id);
+            return;
+        }
+        if (record.callerId != null
+                && new com.insta.nova.data.local.RelationshipStore(context)
+                .isBlocked(record.callerId)) {
+            Log.i(TAG, "blocked caller; ignoring incoming " + record.id);
+            return;
+        }
+        if (com.insta.nova.data.local.AppSettingsStore.WHO_NOBODY.equals(
+                callSettings.whoCanCall())) {
+            Log.i(TAG, "who_can_call=nobody; ignoring incoming " + record.id);
+            return;
+        }
+
         if (!claimIncomingCall(record.id)) return;
 
         setActive(record, false, record.callerId, null, null);
+
+        // Ring here, at the decision point, not only in the incoming screen. Android 10+
+        // refuses background activity starts, so a callee whose phone is locked or whose
+        // app is backgrounded may never get the screen — but it must still ring. This is
+        // idempotent per call id, so the screen starting it again is a no-op.
+        CallRingtone.get().start(context, record.id);
 
         // ACK here, not only in the Activity. When this device is backgrounded,
         // Android refuses the activity start and we fall back to a notification;
@@ -594,11 +932,23 @@ public class CallManager {
         fetchCallerIdentity(record);
     }
 
-    /** Resolves the caller's display name/avatar for the incoming UI. */
-    private void fetchCallerIdentity(@NonNull CallRecord record) {
-        if (record.callerId == null) return;
+    /** Receives a resolved display name/avatar pair; either may be null. */
+    private interface ProfileCallback {
+        void onResolved(@Nullable String name, @Nullable String avatar);
+    }
+
+    private static boolean isEmpty(@Nullable String s) {
+        return s == null || s.trim().isEmpty() || "none".equalsIgnoreCase(s.trim());
+    }
+
+    /** Looks up a profile's username and avatar and always calls back, once. */
+    private void resolveProfile(@Nullable String profileId, @NonNull ProfileCallback callback) {
+        if (isEmpty(profileId)) {
+            callback.onResolved(null, null);
+            return;
+        }
         Map<String, String> q = new HashMap<>();
-        q.put("id", "eq." + record.callerId);
+        q.put("id", "eq." + profileId);
         q.put("select", "username,avatar_url");
         q.put("limit", "1");
 
@@ -615,18 +965,29 @@ public class CallManager {
                         avatar = p.getAvatarUrl();
                     }
                 }
-                peerName = name;
-                peerAvatar = avatar;
-                notifyIncoming(record, name, avatar);
-                launchIncomingUi(record, name, avatar);
+                callback.onResolved(name, avatar);
             }
 
             @Override
             public void onFailure(@NonNull Call<List<com.insta.nova.data.remote.dto.ProfileDto>> call,
                                   @NonNull Throwable t) {
-                notifyIncoming(record, null, null);
-                launchIncomingUi(record, null, null);
+                callback.onResolved(null, null);
             }
+        });
+    }
+
+    /** Resolves the caller's display name/avatar for the incoming UI. */
+    private void fetchCallerIdentity(@NonNull CallRecord record) {
+        if (record.callerId == null) {
+            notifyIncoming(record, null, null);
+            launchIncomingUi(record, null, null);
+            return;
+        }
+        resolveProfile(record.callerId, (name, avatar) -> {
+            if (name != null) peerName = name;
+            if (avatar != null) peerAvatar = avatar;
+            notifyIncoming(record, name, avatar);
+            launchIncomingUi(record, name, avatar);
         });
     }
 
@@ -761,6 +1122,8 @@ public class CallManager {
                     if (CallRecord.isTerminal(fresh.status)) {
                         Log.i(TAG, "reconcile: call already " + fresh.status);
                         CallTones.getInstance().stop();
+                        CallRingtone.get().stopFor(fresh.id);
+                        CallNotificationHelper.cancelAllCallNotifications(context);
                         notifyTerminal(fresh);
                         clearActive(fresh.id);
                     } else if (!fresh.status.equals(current.status)) {
@@ -793,7 +1156,45 @@ public class CallManager {
         }
     }
 
+
+    /** True when one of this app's processes is actually on screen. */
+    private boolean isAppVisible() {
+        try {
+            android.app.ActivityManager am = (android.app.ActivityManager)
+                    context.getSystemService(android.content.Context.ACTIVITY_SERVICE);
+            if (am == null) return false;
+            java.util.List<android.app.ActivityManager.RunningAppProcessInfo> procs =
+                    am.getRunningAppProcesses();
+            if (procs == null) return false;
+            String pkg = context.getPackageName();
+            for (android.app.ActivityManager.RunningAppProcessInfo p : procs) {
+                if (p.processName == null || !p.processName.startsWith(pkg)) continue;
+                return p.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                        || p.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE;
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "isAppVisible failed: " + e.getMessage());
+        }
+        return false;
+    }
+
     private void notifyIncoming(CallRecord r, String name, String avatar) {
+        // Post the system card here, unconditionally. launchIncomingUi() only falls back
+        // to a notification when startActivity() throws, but Android 10+ does not throw
+        // for a background activity start - it accepts the call and drops the activity
+        // later. That left a callee sitting on the home screen hearing the ringtone with
+        // no card and no way to answer. The card is what makes the call reachable; the
+        // full-screen intent still raises the screen whenever the platform allows it.
+        // Only when the app is not visible. In the foreground the incoming screen is the
+        // announcement, and posting a card as well produced two competing call UIs for the
+        // same call.
+        if (!isAppVisible()) {
+            try {
+                CallNotificationHelper.showIncomingCallNotification(context, r, name, avatar);
+            } catch (Exception e) {
+                Log.w(TAG, "incoming call notification failed: " + e.getMessage());
+            }
+        }
         for (CallObserver o : observers) o.onIncomingCall(r, name, avatar);
     }
 
@@ -845,6 +1246,35 @@ public class CallManager {
         // signalling has no remote counterpart even though call *state* works.
         signalingClient.createRemoteSession(session);
         return session;
+    }
+
+    /**
+     * Re-opens the incoming screen for a call that rang while the app was in the
+     * background.
+     *
+     * <p>Android 10+ refuses a background activity start, so a call that arrives while
+     * the app is behind the launcher can only post a notification. If the user then
+     * opens the app from its icon rather than from that notification, nothing brought
+     * the screen back: {@link #handleRealtimeRow} only surfaces
+     * {@code STATUS_CALLING}, and by that point this device has acknowledged the row and
+     * it reads {@code ringing}. The call was then unanswerable until it timed out.
+     *
+     * <p>Called from the main screen's {@code onStart}. Deliberately narrow: only an
+     * incoming call this device has not answered, only while the app is visible, and
+     * only when no incoming screen is already showing.
+     */
+    public void onAppForegrounded() {
+        CallRecord c = activeCall;
+        if (c == null || c.id == null) return;
+        if (activeIsOutgoing) return;
+        if (CallRecord.isTerminal(c.status)) return;
+        if (CallRecord.STATUS_CONNECTED.equals(c.status)) return;
+        if (!CallRecord.STATUS_RINGING.equals(c.status)
+                && !CallRecord.STATUS_CALLING.equals(c.status)) return;
+        if (CallActivityBridge.isIncomingShownFor(c.id)) return;
+        if (!isAppVisible()) return;
+        Log.i(TAG, "app foregrounded with live incoming " + c.id + " (" + c.status + ")");
+        launchIncomingUi(c, peerName, peerAvatar);
     }
 
     public boolean isInCall() {
@@ -948,6 +1378,26 @@ public class CallManager {
     public void onIncomingCallReceived(@NonNull CallSession session) {
         if (session.callId == null) return;
 
+        // Prompt Q: the same preference gate as the FCM path, so a Realtime
+        // delivery cannot bypass "Who can call me" or the call switch.
+        com.insta.nova.data.local.AppSettingsStore callSettings =
+                new com.insta.nova.data.local.AppSettingsStore(context);
+        if (!callSettings.allowsNotificationType("call")) {
+            Log.i(TAG, "call notifications off; ignoring incoming " + session.callId);
+            return;
+        }
+        if (session.callerId != null
+                && new com.insta.nova.data.local.RelationshipStore(context)
+                .isBlocked(session.callerId)) {
+            Log.i(TAG, "blocked caller; ignoring incoming " + session.callId);
+            return;
+        }
+        if (com.insta.nova.data.local.AppSettingsStore.WHO_NOBODY.equals(
+                callSettings.whoCanCall())) {
+            Log.i(TAG, "who_can_call=nobody; ignoring incoming " + session.callId);
+            return;
+        }
+
         // Defence in depth against the same self-delivery that the FCM handler
         // guards against: a push for a call this device placed must never open
         // an incoming screen over the live call screen.
@@ -964,6 +1414,9 @@ public class CallManager {
         record.callType = session.callType;
         record.status = CallRecord.STATUS_CALLING;
         setIncomingCall(record, session.callerUsername, session.callerAvatar);
+        // A push can arrive with the process cold and the screen blocked; the ring must
+        // not depend on the activity winning that race.
+        CallRingtone.get().start(context, session.callId);
         notifyIncoming(record, session.callerUsername, session.callerAvatar);
 
         // The push path must raise the incoming screen itself. The Realtime

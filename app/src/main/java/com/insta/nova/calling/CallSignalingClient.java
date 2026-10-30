@@ -11,6 +11,17 @@ import com.google.gson.JsonObject;
 import com.insta.nova.data.local.SessionManager;
 import com.insta.nova.data.remote.RetrofitClient;
 import com.insta.nova.data.remote.api.RestApi;
+import com.insta.nova.data.remote.dto.CallSignalDto;
+import android.os.Handler;
+import android.os.Looper;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
+import org.webrtc.IceCandidate;
+import org.webrtc.SessionDescription;
 import com.insta.nova.data.remote.dto.CallSessionDto;
 import com.insta.nova.data.remote.dto.CallSignalDto;
 import org.webrtc.IceCandidate;
@@ -124,6 +135,7 @@ public class CallSignalingClient {
     }
 
     public void stopListening(@NonNull String callId) {
+        stopSignalPolling();
         isPolling = false;
         handler.removeCallbacksAndMessages(null);
         LocalSignalingBus.getInstance().removeSession(callId);
@@ -205,6 +217,110 @@ public class CallSignalingClient {
                 Log.e(TAG, "Parked signal replay failed: " + e.getMessage());
             }
         }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Signal polling                                                      */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Reads {@code call_signals} instead of waiting for Realtime.
+     *
+     * <p>Realtime rejects the Firebase ID token, so the channel joined but never delivered a
+     * signal — the offer/answer/ICE exchange silently went nowhere and a call could only ever
+     * reach "Calling…". Polling the same rows over PostgREST uses the identity the REST layer
+     * already accepts.
+     */
+    private static final long SIGNAL_POLL_MS = 1200L;
+    private final Handler pollHandler = new Handler(Looper.getMainLooper());
+    private Runnable pollTask;
+    private String pollCallId;
+    private String pollUserId;
+    private String pollSeenAt;
+
+    public void startSignalPolling(@NonNull String callId, @NonNull String myUserId) {
+        stopSignalPolling();
+        this.pollCallId = callId;
+        this.pollUserId = myUserId;
+        this.pollSeenAt = isoNow(-5);
+        pollTask = new Runnable() {
+            @Override public void run() {
+                if (pollCallId == null) return;
+                fetchNewSignals();
+                pollHandler.postDelayed(this, SIGNAL_POLL_MS);
+            }
+        };
+        pollHandler.post(pollTask);
+    }
+
+    public void stopSignalPolling() {
+        if (pollTask != null) pollHandler.removeCallbacks(pollTask);
+        pollTask = null;
+        pollCallId = null;
+    }
+
+    private void fetchNewSignals() {
+        Map<String, String> q = new HashMap<>();
+        q.put("call_id", "eq." + pollCallId);
+        q.put("recipient_id", "eq." + pollUserId);
+        q.put("created_at", "gt." + pollSeenAt);
+        q.put("order", "created_at.asc");
+        q.put("limit", "50");
+        restApi.getCallSignals(q).enqueue(new retrofit2.Callback<List<CallSignalDto>>() {
+            @Override public void onResponse(@NonNull retrofit2.Call<List<CallSignalDto>> call,
+                                             @NonNull retrofit2.Response<List<CallSignalDto>> response) {
+                if (!response.isSuccessful() || response.body() == null) return;
+                for (CallSignalDto dto : response.body()) {
+                    if (dto.createdAt != null) pollSeenAt = dto.createdAt;
+                    dispatch(dto);
+                }
+            }
+
+            @Override public void onFailure(@NonNull retrofit2.Call<List<CallSignalDto>> call,
+                                            @NonNull Throwable t) {
+                Log.w(TAG, "signal poll failed: " + t.getMessage());
+            }
+        });
+    }
+
+    private void dispatch(@NonNull CallSignalDto dto) {
+        if (activeListener == null || dto.signalType == null) return;
+        switch (dto.signalType) {
+            case "offer":
+                activeListener.onOfferReceived(
+                        new SessionDescription(SessionDescription.Type.OFFER, dto.payload));
+                break;
+            case "answer":
+                activeListener.onAnswerReceived(
+                        new SessionDescription(SessionDescription.Type.ANSWER, dto.payload));
+                break;
+            case "ice_candidate":
+                try {
+                    com.google.gson.JsonObject json =
+                            com.google.gson.JsonParser.parseString(dto.payload).getAsJsonObject();
+                    activeListener.onIceCandidateReceived(new IceCandidate(
+                            json.has("sdpMid") && !json.get("sdpMid").isJsonNull()
+                                    ? json.get("sdpMid").getAsString() : null,
+                            json.get("sdpMLineIndex").getAsInt(),
+                            json.get("sdp").getAsString()));
+                } catch (Exception e) {
+                    Log.w(TAG, "bad ice_candidate payload: " + e.getMessage());
+                }
+                break;
+            case "end":
+            case "reject":
+                activeListener.onCallEnded(dto.payload != null ? dto.payload : "ended");
+                break;
+            default:
+                break;
+        }
+    }
+
+    @NonNull
+    private static String isoNow(int offsetSeconds) {
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+        f.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return f.format(new Date(System.currentTimeMillis() + offsetSeconds * 1000L));
     }
 
     public void sendOffer(@NonNull String callId, @NonNull String recipientId, @NonNull SessionDescription sdp) {

@@ -48,6 +48,24 @@ public final class CallActivityBridge {
         }
     }
 
+    /**
+     * True when a live incoming screen is already showing {@code callId}.
+     *
+     * <p>Used before re-surfacing a call that arrived while the app was in the
+     * background, so returning to the foreground twice does not stack two screens.
+     */
+    public static boolean isIncomingShownFor(@NonNull String callId) {
+        synchronized (INCOMING) {
+            prune();
+            for (WeakReference<IncomingCallActivity> ref : INCOMING) {
+                IncomingCallActivity a = ref.get();
+                if (a == null || a.isFinishing()) continue;
+                if (callId.equals(a.getShowingCallId())) return true;
+            }
+        }
+        return false;
+    }
+
     public static void unregisterIncoming(@NonNull IncomingCallActivity activity) {
         synchronized (INCOMING) {
             Iterator<WeakReference<IncomingCallActivity>> it = INCOMING.iterator();
