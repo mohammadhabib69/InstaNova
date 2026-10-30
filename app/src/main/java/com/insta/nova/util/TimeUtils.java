@@ -40,6 +40,15 @@ public final class TimeUtils {
             }
         }
 
+        // Postgres returns six fractional digits ("...46.910801+00") while the patterns below
+        // expect milliseconds; without this trim every profiles.last_active_at value parsed to 0
+        // and the chat header could never say "Active now".
+        int dot = normalized.indexOf('.');
+        int tz = Math.max(normalized.lastIndexOf('+'), normalized.lastIndexOf('-'));
+        if (dot > 0 && tz > dot && tz - dot - 1 > 3) {
+            normalized = normalized.substring(0, dot + 4) + normalized.substring(tz);
+        }
+
         String[] patterns = {
                 "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
                 "yyyy-MM-dd'T'HH:mm:ssZ",

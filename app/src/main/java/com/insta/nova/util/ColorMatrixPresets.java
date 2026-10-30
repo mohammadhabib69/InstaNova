@@ -100,6 +100,46 @@ public final class ColorMatrixPresets {
                 0f, 0f, 0f, 1f, 0f
         }));
 
+
+        // Crema (soft warm highlights, lifted shadows)
+        list.add(new FilterPreset("Crema", new float[]{
+                1.10f, 0.02f, 0f, 0f, 18f,
+                0.02f, 1.04f, 0f, 0f, 12f,
+                0f, 0f, 0.96f, 0f, 8f,
+                0f, 0f, 0f, 1f, 0f
+        }));
+
+        // Ludwig (desaturated, cool, raised blacks)
+        list.add(new FilterPreset("Ludwig", new float[]{
+                1.02f, 0f, 0f, 0f, 6f,
+                0f, 1.0f, 0f, 0f, 4f,
+                0f, 0f, 1.06f, 0f, 2f,
+                0f, 0f, 0f, 1f, 0f
+        }));
+
+        // Perpetua (fresh teal-green cast)
+        list.add(new FilterPreset("Perpetua", new float[]{
+                0.96f, 0.04f, 0f, 0f, 4f,
+                0f, 1.12f, 0.04f, 0f, 8f,
+                0.04f, 0f, 1.10f, 0f, 10f,
+                0f, 0f, 0f, 1f, 0f
+        }));
+
+        // Valencia (warm yellow cast, punchy)
+        list.add(new FilterPreset("Valencia", new float[]{
+                1.22f, 0.10f, 0f, 0f, 10f,
+                0.04f, 1.10f, 0f, 0f, 6f,
+                0f, 0f, 0.92f, 0f, -4f,
+                0f, 0f, 0f, 1f, 0f
+        }));
+
+        // Lo-Fi (heavy saturation and contrast, crushed shadows)
+        list.add(new FilterPreset("Lo-Fi", new float[]{
+                1.35f, 0.10f, 0.10f, 0f, -18f,
+                0.10f, 1.30f, 0.10f, 0f, -14f,
+                0.10f, 0.10f, 1.35f, 0f, -10f,
+                0f, 0f, 0f, 1f, 0f
+        }));
         return list;
     }
 }

@@ -11,7 +11,93 @@ public final class MediaUrl {
 
     private static final String TAG = "InstaGlide";
 
+    /** URL marker for the RLS-checked object endpoint. */
+    private static final String AUTH_MARKER = "/storage/v1/object/authenticated/";
+    private static final String PUBLIC_MARKER = "/storage/v1/object/public/";
+
+    /**
+     * Buckets with {@code public = false}. Their objects are only reachable through the
+     * authenticated endpoint, where the storage RLS policy on the owning table decides who
+     * may fetch the bytes.
+     *
+     * <p>Every bucket is on this list: media is readable by a signed-in user under a policy,
+     * never by anyone who happens to hold the URL. A URL that still says {@code /public/}
+     * (rows written before the flip, or an upload helper that builds one) is rewritten by
+     * {@link com.insta.nova.data.remote.StoragePrivacyInterceptor} on the way out, so the
+     * stored strings did not have to be migrated.
+     */
+    public static final java.util.Set<String> PRIVATE_BUCKETS =
+            java.util.Collections.unmodifiableSet(new java.util.LinkedHashSet<>(java.util.Arrays.asList(
+                    "stories", "posts", "reels", "nova", "chat", "avatars")));
+
     private MediaUrl() {}
+
+    public static boolean isPrivate(String bucket) {
+        return bucket != null && PRIVATE_BUCKETS.contains(bucket.toLowerCase(java.util.Locale.US));
+    }
+
+    /**
+     * Rewrites a storage URL from the public endpoint to the authenticated one when its
+     * bucket is private. Anything else — another host, an already-authenticated URL, a
+     * local content:// URI — is returned unchanged.
+     */
+    public static String toAuthenticated(String url) {
+        if (url == null) return null;
+        int marker = url.indexOf(PUBLIC_MARKER);
+        if (marker < 0) return url;
+        String rest = url.substring(marker + PUBLIC_MARKER.length());
+        int slash = rest.indexOf('/');
+        if (slash <= 0) return url;
+        if (!isPrivate(rest.substring(0, slash))) return url;
+        return url.substring(0, marker) + AUTH_MARKER + rest;
+    }
+
+    /**
+     * The headers Supabase Storage needs on a private object: the project key identifies the
+     * project, the bearer token is what the RLS policy reads. Used where the request does not
+     * go through the shared OkHttp client (ExoPlayer's own data source).
+     */
+    /**
+     * Data source factory for a private-bucket video.
+     *
+     * <p>The bearer token is resolved inside {@code createDataSource()}, which ExoPlayer calls
+     * on its own loading thread. Doing it eagerly at the call site would run
+     * {@code Tasks.await} on the main thread — that throws, the token silently comes back
+     * null, and the request goes out with the anon key as the bearer, which the storage API
+     * answers with HTTP 400.
+     */
+    public static androidx.media3.datasource.DataSource.Factory streamFactory() {
+        return () -> new androidx.media3.datasource.DefaultHttpDataSource.Factory()
+                .setDefaultRequestProperties(streamHeaders())
+                .setAllowCrossProtocolRedirects(true)
+                .setConnectTimeoutMs(15000)
+                .setReadTimeoutMs(20000)
+                .createDataSource();
+    }
+
+    public static java.util.Map<String, String> streamHeaders() {
+        java.util.Map<String, String> headers = new java.util.HashMap<>();
+        String key = com.insta.nova.BuildConfig.SUPABASE_ANON_KEY;
+        key = key == null ? "" : key.trim();
+        headers.put("apikey", key);
+        String token = com.insta.nova.data.remote.FirebaseTokens.current(false);
+        headers.put("Authorization", "Bearer " + (token == null || token.isEmpty() ? key : token));
+        return headers;
+    }
+
+    /**
+     * The same object addressed through the authenticated endpoint instead of the public
+     * one, for buckets that are not public.
+     *
+     * <p>A private bucket rejects {@code /object/public/...} outright, and the
+     * authenticated path is subject to the storage RLS policy — so the row-level rule on
+     * {@code stories} decides who may fetch the bytes, not just who may see the row.
+     */
+    public static String authenticated(String bucket, String valueFromDb) {
+        String normalized = normalize(bucket, valueFromDb);
+        if (normalized.isEmpty()) return normalized;
+        return toAuthenticated(normalized);
+    }
 
     /**
      * Normalizes a media URL or path from the database.

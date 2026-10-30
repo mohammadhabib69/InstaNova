@@ -19,19 +19,27 @@ public final class ImageUtils {
 
     private static final int MAX_LONG_EDGE_PX = 1080;
     private static final int JPEG_QUALITY = 85;
+    /** High quality keeps more of the original: 2160px long edge, JPEG 95. */
+    private static final int HIGH_MAX_LONG_EDGE_PX = 2160;
+    private static final int HIGH_JPEG_QUALITY = 95;
 
     public static byte[] compressImage(Bitmap bitmap) {
+        if (bitmap == null) return new byte[0];
+        return compressImage(bitmap, MAX_LONG_EDGE_PX, JPEG_QUALITY);
+    }
+
+    public static byte[] compressImage(Bitmap bitmap, int maxEdge, int quality) {
         if (bitmap == null) return new byte[0];
 
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
         float scale = 1.0f;
 
-        if (width > MAX_LONG_EDGE_PX || height > MAX_LONG_EDGE_PX) {
+        if (width > maxEdge || height > maxEdge) {
             if (width > height) {
-                scale = (float) MAX_LONG_EDGE_PX / width;
+                scale = (float) maxEdge / width;
             } else {
-                scale = (float) MAX_LONG_EDGE_PX / height;
+                scale = (float) maxEdge / height;
             }
         }
 
@@ -48,7 +56,7 @@ public final class ImageUtils {
         }
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        scaled.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, stream);
+        scaled.compress(Bitmap.CompressFormat.JPEG, quality, stream);
         return stream.toByteArray();
     }
 
@@ -127,7 +135,11 @@ public final class ImageUtils {
             }
         } catch (Exception ignored) {}
 
-        byte[] result = compressImage(bitmap);
+        boolean high = com.insta.nova.data.local.AppSettingsStore.QUALITY_HIGH.equals(
+                new com.insta.nova.data.local.AppSettingsStore(context).uploadQuality());
+        byte[] result = high
+                ? compressImage(bitmap, HIGH_MAX_LONG_EDGE_PX, HIGH_JPEG_QUALITY)
+                : compressImage(bitmap);
         bitmap.recycle();
         return result;
     }

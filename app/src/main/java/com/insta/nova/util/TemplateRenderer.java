@@ -23,7 +23,10 @@ import com.insta.nova.data.local.TemplateCatalog;
 public final class TemplateRenderer {
 
     private static final int POST_WIDTH = 1080;
-    private static final int POST_HEIGHT = 1350;
+    // The feed renders every post inside DoubleTapHeartLayout, which enforces 1:1. A 4:5 card
+    // lost 20% of its height to centre-crop (the badge at y=96 and the caption tail), so the
+    // card is rendered at the shape it will actually be seen in.
+    private static final int POST_HEIGHT = 1080;
     private static final int STORY_WIDTH = 1080;
     private static final int STORY_HEIGHT = 1920;
 

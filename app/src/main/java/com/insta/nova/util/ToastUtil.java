@@ -11,28 +11,34 @@ import com.insta.nova.R;
 
 /**
  * Presentation helper for the shared toast pill (black rounded pill, white
- * 14sp text). Centralizes the "Not available" message used by decorative UI.
+ * 14sp text).
  */
 public final class ToastUtil {
 
     private ToastUtil() {}
 
-    /** Shows the standard black pill toast with the given message. */
+    /**
+     * Shows the standard black pill toast with the given message.
+     *
+     * <p>Transport failures arrive here as the raw OkHttp sentence — {@code Unable to
+     * resolve host "poqdemxiuoocbzkwbyhy.supabase.co": No address associated with
+     * hostname} — because several call sites forward {@code Throwable.getMessage()}
+     * straight from a repository callback. Sanitising in this one place is what makes the
+     * promise hold for every pill in the app, including the ones added later, instead of
+     * depending on each caller remembering to map its own errors.
+     */
     public static void showPill(@NonNull Context context, @NonNull CharSequence message) {
+        CharSequence shown = NetworkErrors.sanitize(
+                message == null ? null : message.toString(), "Something went wrong. Try again.");
         View view = LayoutInflater.from(context).inflate(R.layout.view_toast_pill, null);
         TextView text = view.findViewById(R.id.toastText);
-        text.setText(message);
+        text.setText(shown);
 
         Toast toast = new Toast(context.getApplicationContext());
         toast.setDuration(Toast.LENGTH_SHORT);
         toast.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, dp(context, 96));
         toast.setView(view);
         toast.show();
-    }
-
-    /** Convenience for the decorative-only "Not available" message. */
-    public static void showNotAvailable(@NonNull Context context) {
-        showPill(context, context.getString(R.string.not_available));
     }
 
     private static int dp(Context context, int value) {
