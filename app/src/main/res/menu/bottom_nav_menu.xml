@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    PAGE 0 — Bottom navigation (unlabeled, no indicator, no ripple).
-    Order: Home, Search, Create, Reels, Profile. Shop tab removed.
-    Create (navigation_create) is intercepted in MainActivity to open the
-    New post picker and never stays selected. Profile icon is swapped to the
-    user's avatar at runtime when available.
+    NOVA — the centre tab is now Nova (was Create). Create stays on the Home
+    top-left '+' and on Profile, so no functionality is lost.
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
@@ -18,9 +15,9 @@
         android:title="@string/nav_search" />
 
     <item
-        android:id="@+id/navigation_create"
-        android:icon="@drawable/ic_add_square"
-        android:title="@string/nav_create" />
+        android:id="@+id/navigation_nova"
+        android:icon="@drawable/ic_nova_nav"
+        android:title="@string/nova_tab" />
 
     <item
         android:id="@+id/navigation_reels"

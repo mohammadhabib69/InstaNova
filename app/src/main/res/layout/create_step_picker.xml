@@ -33,7 +33,7 @@
                 android:id="@+id/btn_picker_close"
                 android:layout_width="@dimen/picker_close_icon"
                 android:layout_height="@dimen/picker_close_icon"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_close"
                 app:tint="@color/white" />
 
@@ -73,7 +73,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/black"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:scaleType="centerCrop" />
 
             <!-- 3x3 rule-of-thirds guides, shown while dragging / zooming -->
@@ -246,7 +246,8 @@
             android:overScrollMode="never" />
     </LinearLayout>
 
-    <!-- Floating POST / STORY / REEL switch -->
+    <!-- The single POST label. Story and Reel are reached from their own
+         entries in the Home sheet, so they are not offered again here. -->
     <LinearLayout
         android:id="@+id/layout_picker_mode"
         android:layout_width="wrap_content"
@@ -268,23 +269,6 @@
             android:text="@string/picker_mode_post"
             android:textColor="@color/white" />
 
-        <TextView
-            android:id="@+id/tv_mode_story"
-            style="@style/TextAppearance.Insta.PickerMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/picker_mode_pill_gap"
-            android:letterSpacing="0.1"
-            android:text="@string/picker_mode_story" />
-
-        <TextView
-            android:id="@+id/tv_mode_reel"
-            style="@style/TextAppearance.Insta.PickerMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/picker_mode_pill_gap"
-            android:letterSpacing="0.1"
-            android:text="@string/picker_mode_reel" />
     </LinearLayout>
 
 </FrameLayout>

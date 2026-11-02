@@ -172,6 +172,14 @@
             android:visibility="gone"
             android:contentDescription="Toggle sound" />
 
+
+        <!-- Tap-to-see tags: markers are placed from the 0..1 coords the composer stored. -->
+        <FrameLayout
+            android:id="@+id/layoutTags"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
     </com.insta.nova.ui.widget.DoubleTapHeartLayout>
 
     <!-- Carousel dots -->
@@ -248,7 +256,6 @@
                 android:layout_width="@dimen/post_action_icon"
                 android:layout_height="@dimen/post_action_icon"
                 android:layout_marginStart="@dimen/post_action_gap"
-                android:rotation="-20"
                 android:src="@drawable/ic_send"
                 app:tint="?attr/themeTextPrimary"
                 android:contentDescription="Share" />
@@ -277,6 +284,24 @@
         android:paddingEnd="@dimen/post_padding_horizontal"
         android:textColor="?attr/themeTextPrimary"
         android:textSize="@dimen/text_body"
+        android:visibility="gone" />
+
+    <!-- The post's track: "♫ title", tap to play or pause. -->
+    <TextView
+        android:id="@+id/tvMusic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/post_padding_horizontal"
+        android:layout_marginTop="@dimen/post_line_gap_tight"
+        android:background="@drawable/bg_picker_mode_pill"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingStart="10dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="4dp"
+        android:textColor="@color/white"
+        android:textSize="12sp"
         android:visibility="gone" />
 
     <!-- Caption — bold username + text, 2 lines + "more" -->

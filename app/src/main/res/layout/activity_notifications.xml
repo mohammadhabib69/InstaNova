@@ -44,6 +44,56 @@
         android:layout_height="@dimen/divider_hairline"
         android:background="?attr/themeDivider" />
 
+    <TextView
+        android:id="@+id/tvFollowRequests"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/settings_row_pad_h"
+        android:paddingEnd="@dimen/settings_row_pad_h"
+        android:text="@string/st_follow_requests"
+        android:textColor="@color/color_primary"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- Shown when the OS is blocking this app's notifications. Without it the
+         screen looks healthy while every push is dropped silently. -->
+    <LinearLayout
+        android:id="@+id/boxNotificationsOff"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/themeSurfaceVariant"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/settings_row_pad_h"
+        android:paddingTop="12dp"
+        android:paddingEnd="@dimen/settings_row_pad_h"
+        android:paddingBottom="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/notifications_off_body"
+            android:textColor="?attr/themeTextSecondary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/btnEnableNotifications"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="6dp"
+            android:text="@string/notifications_off_action"
+            android:textColor="@color/color_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

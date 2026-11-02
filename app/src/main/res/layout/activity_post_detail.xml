@@ -39,16 +39,32 @@
         android:layout_height="0.5dp"
         android:background="?attr/themeDivider" />
 
-    <ScrollView
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:overScrollMode="never">
+        android:layout_height="match_parent">
 
-        <FrameLayout
-            android:id="@+id/postContainer"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent"
+            android:overScrollMode="never">
 
-    </ScrollView>
+            <FrameLayout
+                android:id="@+id/postContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </ScrollView>
+
+        <!-- Media is fetched from a private bucket, so a large photo can take a moment
+             on mobile data. This keeps the screen from looking empty while it lands. -->
+        <ProgressBar
+            android:id="@+id/mediaProgress"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
 </LinearLayout>

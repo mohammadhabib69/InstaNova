@@ -261,7 +261,7 @@
                 android:contentDescription="Following options"
                 android:src="@drawable/ic_chevron_down"
                 android:visibility="gone"
-                app:tint="@color/white" />
+                app:tint="?attr/themeTextPrimary" />
         </LinearLayout>
 
         <TextView
@@ -274,7 +274,7 @@
             android:background="@drawable/bg_p18_button"
             android:gravity="center"
             android:text="Message"
-            android:textColor="@color/white"
+            android:textColor="?attr/themeTextPrimary"
             android:textSize="14sp"
             android:textStyle="bold" />
 

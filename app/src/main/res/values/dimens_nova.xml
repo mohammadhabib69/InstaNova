@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nova metrics — matched to the PAGE 0 Instagram rhythm (8/12dp radii). -->
+<resources>
+    <dimen name="nova_radius_card">12dp</dimen>
+    <dimen name="nova_radius_sheet">16dp</dimen>
+    <dimen name="nova_radius_chip">8dp</dimen>
+    <dimen name="nova_button_height">44dp</dimen>
+    <dimen name="nova_gap">12dp</dimen>
+    <dimen name="nova_screen_pad">16dp</dimen>
+    <dimen name="nova_hero_height">240dp</dimen>
+    <dimen name="nova_card_pad">16dp</dimen>
+    <dimen name="nova_icon_circle">40dp</dimen>
+    <dimen name="nova_title">24sp</dimen>
+    <dimen name="nova_section">16sp</dimen>
+    <dimen name="nova_body">15sp</dimen>
+    <dimen name="nova_meta">12sp</dimen>
+    <dimen name="nova_number">32sp</dimen>
+    <dimen name="nova_touch">48dp</dimen>
+</resources>

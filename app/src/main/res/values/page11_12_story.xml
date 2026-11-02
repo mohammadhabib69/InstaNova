@@ -126,6 +126,26 @@
     <string name="story_vw_no_viewers">No viewers yet</string>
     <string name="story_vw_heart">❤️</string>
     <string name="story_vw_open_failed">Story unavailable</string>
+    <string name="story_vw_audience">Who can see this story</string>
+    <string name="story_vw_audience_public">Everyone</string>
+    <string name="story_vw_audience_close">Close friends</string>
+    <string name="story_vw_audience_public_row">Audience: Everyone</string>
+    <string name="story_vw_audience_close_row">Audience: Close friends</string>
+    <string name="story_vw_audience_saved">Audience updated</string>
+    <string name="story_vw_audience_failed">Couldn\'t change the audience</string>
+
+    <!-- Story 3-dot: Story privacy with three choices, plus Archive -->
+    <string name="story_vw_privacy">Story privacy</string>
+    <string name="story_vw_privacy_row">Story privacy: %1$s</string>
+    <string name="story_vw_privacy_everyone">Everyone</string>
+    <string name="story_vw_privacy_close">Close friends</string>
+    <string name="story_vw_privacy_except">Everyone except my hidden list</string>
+    <string name="story_vw_privacy_except_none">Everyone except my hidden list (nobody hidden yet)</string>
+    <string name="story_vw_privacy_saved">Story privacy updated</string>
+    <string name="story_vw_privacy_failed">Couldn\'t change story privacy</string>
+    <string name="story_vw_archive">Archive</string>
+    <string name="story_vw_archived">Story archived</string>
+    <string name="story_vw_archive_failed">Couldn\'t archive this story</string>
 
     <!-- PAGE 11 — styles -->
     <style name="ShapeAppearance.Insta.StoryCard" parent="">

@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A Nova post card.
+
+    Reddit-style: the author row, the body, the media, then the vote row.
+    A post with an expiry moment fades with the time that is left and shows
+    an "Expires in 3h" badge; an anonymous post shows an Anonymous badge and
+    the placeholder avatar instead of the author.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/novaPostCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="12dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginEnd="12dp"
+    android:background="@drawable/bg_nova_card"
+    android:orientation="vertical"
+    android:paddingStart="14dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="14dp"
+    android:paddingBottom="6dp">
+
+    <!-- ============================== Author ============================== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="34dp"
+            android:layout_height="34dp">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/imgNovaAvatar"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop" />
+
+            <ImageView
+                android:id="@+id/imgNovaAnonAvatar"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:background="@drawable/bg_nova_circle"
+                android:contentDescription="@null"
+                android:padding="5dp"
+                android:src="@drawable/ic_nova_anon_avatar"
+                android:visibility="gone"
+                app:tint="?attr/themeTextSecondary" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvNovaAlias"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:maxWidth="180dp"
+                    android:singleLine="true"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvNovaAnonBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_nova_pill"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:paddingStart="7dp"
+                    android:paddingEnd="7dp"
+                    android:text="@string/nova_badge_anonymous"
+                    android:textColor="?attr/themeTextSecondary"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvNovaFlair"
+                    android:layout_width="wrap_content"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_nova_pill"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:maxWidth="110dp"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:paddingStart="7dp"
+                    android:paddingEnd="7dp"
+                    android:textColor="@color/color_primary"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvNovaMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textColor="?attr/themeTextSecondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvNovaExpiry"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_nova_pill_notice"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:textColor="@color/color_primary"
+            android:textSize="10sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- =============================== Body =============================== -->
+    <TextView
+        android:id="@+id/tvNovaBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/imgNovaMedia"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        android:adjustViewBounds="true"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <!-- Poll options are built at bind time; the count is variable and each row needs
+         its own fill bar, so this stays an empty container rather than fixed children. -->
+    <LinearLayout
+        android:id="@+id/pollBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:visibility="gone" />
+
+    <!-- ============================== Actions ============================= -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/btnNovaUpvote"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/nova_cd_upvote"
+            android:padding="6dp"
+            android:src="@drawable/ic_nova_upvote"
+            app:tint="?attr/themeTextSecondary" />
+
+        <TextView
+            android:id="@+id/tvNovaScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:minWidth="26dp"
+            android:gravity="center"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/btnNovaDownvote"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/nova_cd_downvote"
+            android:padding="6dp"
+            android:src="@drawable/ic_nova_downvote"
+            app:tint="?attr/themeTextSecondary" />
+
+        <ImageView
+            android:id="@+id/btnNovaComments"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="14dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/nova_cd_comments"
+            android:padding="6dp"
+            android:src="@drawable/ic_comment"
+            app:tint="?attr/themeTextSecondary" />
+
+        <TextView
+            android:id="@+id/tvNovaCommentCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textColor="?attr/themeTextSecondary"
+            android:textSize="13sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/btnNovaSave"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/nova_cd_save"
+            android:padding="6dp"
+            android:src="@drawable/ic_bookmark_outline"
+            app:tint="?attr/themeTextSecondary" />
+    </LinearLayout>
+</LinearLayout>

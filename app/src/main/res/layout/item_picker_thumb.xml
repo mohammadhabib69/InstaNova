@@ -14,7 +14,7 @@
         android:id="@+id/iv_thumb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/not_available"
+        android:contentDescription="@null"
         android:scaleType="centerCrop" />
 
     <!-- 50% dim while this tile is the single selection -->

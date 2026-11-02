@@ -189,9 +189,11 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/layoutFollowers"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="start"
                     android:orientation="vertical">
 
@@ -213,9 +215,11 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/layoutFollowing"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="start"
                     android:orientation="vertical">
 
@@ -339,85 +343,62 @@
     <!-- ============================================================= -->
     <!-- Highlights — own list starts with "New" (decorative)           -->
     <!-- ============================================================= -->
-    <LinearLayout
-        android:id="@+id/highlightsRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/profile_highlights_margin_top"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/profile_header_padding"
-        android:paddingEnd="@dimen/profile_header_padding">
-
-        <LinearLayout
-            android:id="@+id/layoutHighlightNew"
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:id="@+id/highlightsScroll"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:layout_marginTop="@dimen/profile_highlights_margin_top"
+            android:scrollbars="none"
+            android:overScrollMode="never"
+            android:fillViewport="true">
+        <LinearLayout
+            android:id="@+id/highlightsRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/profile_header_padding"
+            android:paddingEnd="@dimen/profile_header_padding">
 
-            <FrameLayout
-                android:layout_width="@dimen/profile_highlight_size"
-                android:layout_height="@dimen/profile_highlight_size"
-                android:background="@drawable/bg_highlight_ring">
-
-                <ImageView
-                    android:id="@+id/ivHighlightIcon"
-                    android:layout_width="@dimen/profile_highlight_icon"
-                    android:layout_height="@dimen/profile_highlight_icon"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_add"
-                    app:tint="?attr/themeTextPrimary"
-                    android:contentDescription="@null" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/tvHighlightTitle"
+            <!-- "New" is built exactly like a saved highlight (69dp circle, 16dp end margin,
+                 same title rules), so the gap to the first album equals the gap between two
+                 albums and all labels sit on one baseline. -->
+            <LinearLayout
+                android:id="@+id/layoutHighlightNew"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/profile_highlight_title_margin_top"
-                android:text="@string/profile_highlight_new"
-                android:textColor="?attr/themeTextPrimary"
-                android:textSize="@dimen/profile_highlight_title_size" />
+                android:layout_marginEnd="16dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="@dimen/p18_highlight_outer"
+                    android:layout_height="@dimen/p18_highlight_outer"
+                    android:background="@drawable/bg_highlight_ring">
+
+                    <ImageView
+                        android:id="@+id/ivHighlightIcon"
+                        android:layout_width="@dimen/profile_highlight_icon"
+                        android:layout_height="@dimen/profile_highlight_icon"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_add"
+                        app:tint="?attr/themeTextPrimary"
+                        android:contentDescription="@null" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvHighlightTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="@string/profile_highlight_new"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="@dimen/profile_highlight_title_size" />
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
-
-    <!-- ============================================================= -->
-    <!-- Saved — entry into the existing SavedFragment grid             -->
-    <!-- ============================================================= -->
-    <LinearLayout
-        android:id="@+id/rowSaved"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:background="?attr/selectableItemBackground"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/profile_header_padding"
-        android:paddingEnd="@dimen/profile_header_padding">
-
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_bookmark_outline"
-            app:tint="?attr/themeTextPrimary" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:text="@string/saved_entry"
-            android:textColor="?attr/themeTextPrimary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_chevron_right"
-            app:tint="?attr/themeTextSecondary" />
-    </LinearLayout>
+        </HorizontalScrollView>
 
     <!-- ============================================================= -->
     <!-- Tabs — 48dp, icons only, 4 equal columns                       -->

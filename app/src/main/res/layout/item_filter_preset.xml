@@ -20,7 +20,7 @@
             android:layout_height="match_parent"
             android:background="@drawable/bg_filter_thumb"
             android:clipToOutline="true"
-            android:contentDescription="@string/not_available"
+            android:contentDescription="@null"
             android:scaleType="centerCrop" />
 
         <View

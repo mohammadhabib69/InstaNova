@@ -13,6 +13,12 @@
     </plurals>
 
     <!-- Comments: "View 1 comment" / "View all N comments" -->
+    <!-- Inbox DM preview for a media tail: "4 photos" -->
+    <plurals name="inbox_photos">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
+
     <plurals name="comments_view">
         <item quantity="one">View %d comment</item>
         <item quantity="other">View all %d comments</item>

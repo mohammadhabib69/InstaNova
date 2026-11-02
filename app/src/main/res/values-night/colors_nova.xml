@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nova design tokens — DARK. Mirrors values/colors_nova.xml on the Instagram
+    night palette: black canvas, #121212 cards, #262626 dividers.
+-->
+<resources>
+    <!-- Surfaces -->
+    <color name="nova_bg">#000000</color>
+    <color name="nova_surface">#000000</color>
+    <color name="nova_card">#121212</color>
+    <color name="nova_card_high">#1C1C1C</color>
+    <color name="nova_stroke">#262626</color>
+    <color name="nova_text">#FFFFFF</color>
+    <color name="nova_text_2">#A8A8A8</color>
+    <color name="nova_text_3">#737373</color>
+    <color name="nova_glass">#00000000</color>
+    <color name="nova_scrim">#99000000</color>
+
+    <!-- Legacy "space" names resolve to night surfaces. -->
+    <color name="nova_space">#000000</color>
+    <color name="nova_space_surface">#121212</color>
+    <color name="nova_space_card">#121212</color>
+    <color name="nova_space_card_high">#262626</color>
+    <color name="nova_text_on_space">#FFFFFF</color>
+    <color name="nova_text_on_space_2">#A8A8A8</color>
+
+    <!-- Brand gradient -->
+    <color name="nova_cyan">#5B6BF0</color>
+    <color name="nova_violet">#D946A0</color>
+    <color name="nova_magenta">#F59E42</color>
+
+    <!-- States -->
+    <color name="nova_success">#58C322</color>
+    <color name="nova_warning">#F2B33D</color>
+    <color name="nova_danger">#FF5C6C</color>
+
+    <!-- Module accents (brightened for black) -->
+    <color name="nova_safe">#4DA3FF</color>
+    <color name="nova_sos">#FF6B7A</color>
+    <color name="nova_campus">#F2A03D</color>
+    <color name="nova_lite">#58C322</color>
+    <color name="nova_study">#A78BFA</color>
+    <color name="nova_insights">#38BDF8</color>
+
+    <!-- Soft accent washes -->
+    <color name="nova_safe_soft">#334DA3FF</color>
+    <color name="nova_sos_soft">#33FF6B7A</color>
+    <color name="nova_campus_soft">#33F2A03D</color>
+    <color name="nova_lite_soft">#3358C322</color>
+    <color name="nova_study_soft">#33A78BFA</color>
+    <color name="nova_insights_soft">#3338BDF8</color>
+
+    <color name="nova_star">#FFFFFF</color>
+    <color name="nova_skeleton">#1FFFFFFF</color>
+    <color name="nova_white_08">#1FFFFFFF</color>
+    <color name="nova_white_12">#33FFFFFF</color>
+    <color name="nova_white_64">#A3FFFFFF</color>
+    <color name="nova_on_gradient">#FFFFFF</color>
+</resources>

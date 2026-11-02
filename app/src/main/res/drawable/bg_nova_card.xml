@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Card: flat surface + hairline border. No glass overlay, no elevation. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/themeBackground" />
+            <corners android:radius="@dimen/nova_radius_card" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke android:width="@dimen/divider_hairline" android:color="@color/nova_stroke" />
+            <corners android:radius="@dimen/nova_radius_card" />
+        </shape>
+    </item>
+</layer-list>

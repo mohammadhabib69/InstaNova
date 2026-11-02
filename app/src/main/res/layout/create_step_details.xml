@@ -164,6 +164,7 @@
                     app:tint="?attr/themeTextPrimary" />
 
                 <TextView
+                    android:id="@+id/tvTagPeopleLabel"
                     style="@style/TextAppearance.Insta.DetailsRow"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -174,7 +175,7 @@
                 <ImageView
                     android:layout_width="@dimen/details_row_chevron"
                     android:layout_height="@dimen/details_row_chevron"
-                    android:contentDescription="@string/not_available"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
                     app:tint="?attr/themeTextSecondary" />
             </LinearLayout>
@@ -219,7 +220,7 @@
                 <ImageView
                     android:layout_width="@dimen/details_row_chevron"
                     android:layout_height="@dimen/details_row_chevron"
-                    android:contentDescription="@string/not_available"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
                     app:tint="?attr/themeTextSecondary" />
             </LinearLayout>
@@ -250,10 +251,21 @@
                     android:layout_weight="1"
                     android:text="@string/details_add_music" />
 
+                <TextView
+                    android:id="@+id/tv_music_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/picker_row_gap"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="?attr/themeTextSecondary"
+                    android:textSize="@dimen/details_row_value_size"
+                    android:visibility="gone" />
+
                 <ImageView
                     android:layout_width="@dimen/details_row_chevron"
                     android:layout_height="@dimen/details_row_chevron"
-                    android:contentDescription="@string/not_available"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
                     app:tint="?attr/themeTextSecondary" />
             </LinearLayout>
@@ -350,7 +362,7 @@
                 <ImageView
                     android:layout_width="@dimen/details_row_chevron"
                     android:layout_height="@dimen/details_row_chevron"
-                    android:contentDescription="@string/not_available"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
                     app:tint="?attr/themeTextSecondary" />
             </LinearLayout>
@@ -392,7 +404,7 @@
                 <ImageView
                     android:layout_width="@dimen/details_row_chevron"
                     android:layout_height="@dimen/details_row_chevron"
-                    android:contentDescription="@string/not_available"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
                     app:tint="?attr/themeTextSecondary" />
             </LinearLayout>
@@ -426,7 +438,7 @@
                 <ImageView
                     android:layout_width="@dimen/details_row_chevron"
                     android:layout_height="@dimen/details_row_chevron"
-                    android:contentDescription="@string/not_available"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_chevron_right"
                     app:tint="?attr/themeTextSecondary" />
             </LinearLayout>

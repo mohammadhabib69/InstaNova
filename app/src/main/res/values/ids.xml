@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Reel editor share button, looked up by id so setBusy() can disable it. -->
+    <item name="btn_reel_share" type="id" />
+</resources>

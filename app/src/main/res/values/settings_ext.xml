@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Prompt N — Settings and activity + Profile strings. -->
+<resources>
+
+    <!-- Main page sections -->
+    <string name="st_sec_account">Your account</string>
+    <string name="st_sec_notifications">Notifications</string>
+    <string name="st_sec_privacy">Privacy and safety</string>
+    <string name="st_sec_messages">Messages and calls</string>
+    <string name="st_sec_app">App preferences</string>
+    <string name="st_sec_activity">Your activity</string>
+    <string name="st_sec_creator">Creator and professional tools</string>
+    <string name="st_sec_help">Help and about</string>
+    <string name="st_sec_login">Login</string>
+
+    <string name="st_velkyn_account">Velkyn Account</string>
+    <string name="st_velkyn_account_desc">Password, security, personal details</string>
+    <string name="st_account_information">Account information</string>
+    <string name="st_change_password">Change password</string>
+    <string name="st_login_activity">Login activity</string>
+    <string name="st_login_activity_desc">See where you\'re logged in</string>
+    <string name="st_account_privacy">Account privacy</string>
+    <string name="st_deactivate_delete">Deactivate or delete account</string>
+
+    <string name="st_notifications_title">Notifications</string>
+    <string name="st_push_notifications">Push notifications</string>
+    <string name="st_push_notifications_desc">Pause all notifications from InstaNova</string>
+    <string name="st_notif_likes">Likes and comments</string>
+    <string name="st_notif_follows">New followers and follow requests</string>
+    <string name="st_notif_dms">Direct messages and message requests</string>
+    <string name="st_notif_stories">Stories, mentions and tags</string>
+    <string name="st_notif_calls">Audio and video call notifications</string>
+    <string name="st_notif_os_blocked">Notifications are turned off for InstaNova in Android settings.</string>
+    <string name="st_notif_os_open">Open system notification settings</string>
+
+    <string name="st_blocked_accounts">Blocked accounts</string>
+    <string name="st_restricted_accounts">Restricted accounts</string>
+    <string name="st_hidden_words">Hidden words</string>
+    <string name="st_story_audience">Story hide</string>
+    <string name="st_close_friends">Close Friends</string>
+    <string name="st_tags_mentions">Tags and mentions</string>
+    <string name="st_comment_controls">Comment controls</string>
+    <string name="st_message_request_controls">Message request controls</string>
+
+    <string name="st_chat_theme">Chat theme and appearance</string>
+    <string name="st_read_receipts">Read receipts</string>
+    <string name="st_read_receipts_desc">Let people see when you\'ve read their messages</string>
+    <string name="st_online_status">Online status</string>
+    <string name="st_online_status_desc">Show when you\'re active</string>
+    <string name="st_call_preferences">Voice and video call preferences</string>
+    <string name="st_mic_camera">Microphone and camera permissions</string>
+    <string name="st_call_history">Call history</string>
+
+    <string name="st_theme">Theme</string>
+    <string name="st_language">Language</string>
+    <string name="st_data_saver">Data Saver</string>
+    <string name="st_data_saver_desc">Load lower-quality media and stop videos from autoplaying on mobile data</string>
+    <string name="st_video_autoplay">Video autoplay</string>
+    <string name="st_upload_quality">Media upload quality</string>
+    <string name="st_cache">Cache management</string>
+    <string name="st_accessibility">Accessibility</string>
+
+    <string name="st_saved_posts">Saved posts</string>
+    <string name="st_archive">Archive</string>
+    <string name="st_your_likes_comments">Your likes and comments</string>
+    <string name="st_search_history">Search history</string>
+    <string name="st_download_data">Download your data</string>
+
+    <string name="st_account_type">Account type</string>
+    <string name="st_insights">Post and Reel insights</string>
+    <string name="st_audience">Audience analytics</string>
+
+    <string name="st_help_center">Help Center</string>
+    <string name="st_report_problem">Report a problem</string>
+    <string name="st_contact_support">Contact support</string>
+    <string name="st_community_guidelines">Community Guidelines</string>
+    <string name="st_privacy_policy">Privacy Policy</string>
+    <string name="st_terms">Terms of Service</string>
+    <string name="st_about">About</string>
+
+    <string name="st_add_profile">Add profile</string>
+    <string name="st_log_out">Log out</string>
+    <string name="st_log_out_confirm">Log out of InstaNova?</string>
+    <string name="st_log_out_body">You\'ll need to log in again to use this account.</string>
+    <string name="st_cancel">Cancel</string>
+    <string name="st_save">Save</string>
+    <string name="st_done">Done</string>
+    <string name="st_ok">OK</string>
+    <string name="st_remove">Remove</string>
+    <string name="st_add">Add</string>
+    <string name="st_unblock">Unblock</string>
+    <string name="st_search">Search</string>
+    <string name="st_retry">Retry</string>
+
+    <!-- Values -->
+    <string name="st_public">Public</string>
+    <string name="st_private">Private</string>
+    <string name="st_on">On</string>
+    <string name="st_off">Off</string>
+    <string name="st_everyone">Everyone</string>
+    <string name="st_people_i_follow">People I follow</string>
+    <string name="st_people_you_follow">People you follow</string>
+    <string name="st_followers">Followers</string>
+    <string name="st_no_one">No one</string>
+    <string name="st_always">Always</string>
+    <string name="st_wifi_only">Wi-Fi only</string>
+    <string name="st_never">Never</string>
+    <string name="st_standard">Standard</string>
+    <string name="st_high">High</string>
+    <string name="st_dark">Dark</string>
+    <string name="st_light">Light</string>
+    <string name="st_system">System default</string>
+    <string name="st_personal">Personal</string>
+    <string name="st_creator">Creator</string>
+    <string name="st_business">Business</string>
+    <string name="st_english">English</string>
+    <string name="st_bangla">বাংলা</string>
+    <string name="st_count">%1$d</string>
+
+    <!-- Accounts centre -->
+    <string name="st_accounts_centre_title">Velkyn Account</string>
+    <string name="st_edit_profile">Edit profile</string>
+    <string name="st_account_info_title">Account information</string>
+    <string name="st_name">Name</string>
+    <string name="st_username">Username</string>
+    <string name="st_email">Email</string>
+    <string name="st_phone">Phone</string>
+    <string name="st_account_type_label">Account type</string>
+    <string name="st_date_joined">Date joined</string>
+    <string name="st_not_set">Not set</string>
+    <string name="st_website">Website</string>
+    <string name="st_bio">Bio</string>
+
+    <string name="st_change_password_title">Change password</string>
+    <string name="st_send_reset_email">Send password reset email</string>
+    <string name="st_reset_email_sent">Password reset email sent to %1$s</string>
+    <string name="st_current_password">Current password</string>
+    <string name="st_new_password">New password</string>
+    <string name="st_confirm_new_password">Confirm new password</string>
+    <string name="st_update_password">Update password</string>
+    <string name="st_password_updated">Password updated</string>
+    <string name="st_password_too_short">Password must be at least 6 characters</string>
+    <string name="st_password_mismatch">Passwords do not match</string>
+    <string name="st_current_password_required">Enter your current password</string>
+    <string name="st_reauth_failed">Current password is incorrect</string>
+
+    <string name="st_login_activity_title">Login activity</string>
+    <string name="st_this_device">This device · Active now</string>
+    <string name="st_current_session">Current session</string>
+    <string name="st_log_out_device">Log out of this device</string>
+    <string name="st_device">Device</string>
+    <string name="st_signed_in_since">Signed in</string>
+
+    <string name="st_deactivate">Deactivate account</string>
+    <string name="st_delete">Delete account</string>
+    <string name="st_deactivate_title">Deactivate account?</string>
+    <string name="st_deactivate_body">Your profile, posts and stories will be hidden until you log in again.</string>
+    <string name="st_deactivate_confirm">Deactivate</string>
+    <string name="st_deactivated">Your account is deactivated</string>
+    <string name="st_delete_title">Delete account?</string>
+    <string name="st_delete_body">This permanently deletes your profile, posts, stories, messages and settings. This cannot be undone.</string>
+    <string name="st_delete_type_hint">Type DELETE to confirm</string>
+    <string name="st_delete_confirm">Delete forever</string>
+    <string name="st_delete_wrong">Type DELETE exactly to confirm</string>
+    <string name="st_delete_failed">Could not delete the account</string>
+
+    <!-- Privacy -->
+    <string name="st_blocked_title">Blocked accounts</string>
+    <string name="st_blocked_empty">You haven\'t blocked anyone.</string>
+    <string name="st_blocked_desc">People you block can\'t find your profile or message you on InstaNova.</string>
+    <string name="st_restricted_title">Restricted accounts</string>
+    <string name="st_restricted_empty">You haven\'t restricted anyone.</string>
+    <string name="st_restricted_desc">Restricted people can still comment on your posts, but their comments and messages are only visible to them unless you choose to see them.</string>
+    <string name="st_restrict">Restrict</string>
+    <string name="st_block">Block</string>
+    <string name="st_unrestrict">Unrestrict</string>
+    <string name="st_restricted_toast">Restricted @%1$s</string>
+    <string name="st_unrestricted_toast">Unrestricted @%1$s</string>
+
+    <string name="st_hidden_words_title">Hidden words</string>
+    <string name="st_hide_offensive">Hide offensive comments</string>
+    <string name="st_hide_offensive_desc">Hide comments that may be offensive from your posts and reels</string>
+    <string name="st_custom_words">Custom words</string>
+    <string name="st_custom_words_desc">Comments containing these words won\'t be shown to you</string>
+    <string name="st_add_word">Add word</string>
+    <string name="st_word_hint">Word or phrase</string>
+    <string name="st_no_hidden_words">No custom words yet</string>
+
+    <string name="st_story_audience_title">Story hide</string>
+    <string name="st_hide_story_from">Hide story from</string>
+    <string name="st_hide_story_desc">Selected people won\'t see your stories.</string>
+    <string name="st_hidden_count">%1$d hidden</string>
+    <string name="st_select_people">Select people</string>
+    <string name="st_save_changes">Save changes</string>
+    <string name="st_no_followers">No followers yet</string>
+
+    <string name="st_close_friends_title">Close Friends</string>
+    <string name="st_close_friends_desc">Only people on your Close Friends list can see stories you share with them.</string>
+    <string name="st_close_friends_empty">No one on your Close Friends list yet.</string>
+    <string name="st_add_close_friends">Add people</string>
+    <string name="st_none_hidden">Nobody is hidden from your stories.</string>
+    <string name="st_close_friends_added">Added to Close Friends</string>
+
+    <string name="st_tags_mentions_title">Tags and mentions</string>
+    <string name="st_who_can_tag">Who can tag you</string>
+    <string name="st_who_can_mention">Who can @mention you</string>
+    <string name="st_tags_note">These preferences apply to new posts. Photos you\'re already tagged in stay as they are.</string>
+
+    <string name="st_comment_controls_title">Comment controls</string>
+    <string name="st_who_can_comment">Who can comment on my posts</string>
+    <string name="st_comment_note">InstaNova enforces this when someone opens the comments on your posts from this app. Comments already written stay visible.</string>
+
+    <string name="st_request_controls_title">Message request controls</string>
+    <string name="st_who_can_request">Who can send you message requests</string>
+    <string name="st_request_note">People you don\'t follow go to Message Requests instead of your inbox.</string>
+
+    <!-- Messages -->
+    <string name="st_chat_theme_title">Chat theme and appearance</string>
+    <string name="st_default_chat_theme">Default chat theme</string>
+    <string name="st_chat_theme_note">Themes apply to one conversation at a time. Your default is used for new conversations.</string>
+    <string name="st_theme_saved">Default chat theme updated</string>
+    <string name="st_call_prefs_title">Voice and video call preferences</string>
+    <string name="st_who_can_call">Who can call me</string>
+    <string name="st_vibrate_calls">Vibrate for calls</string>
+    <string name="st_call_blocked">This person can\'t receive calls from you right now.</string>
+    <string name="st_permissions_title">Microphone and camera permissions</string>
+    <string name="st_permissions_body">InstaNova asks Android for microphone and camera access when you start a call or record a story. You can change both in the system app settings.</string>
+    <string name="st_open_app_settings">Open app settings</string>
+
+    <!-- App preferences -->
+    <string name="st_theme_title">Theme</string>
+    <string name="st_theme_note">Dark is the reference design. Light follows the same layouts through the app\'s theme attributes.</string>
+    <string name="st_language_title">Language</string>
+    <string name="st_language_note">Applies to InstaNova\'s own interface where translated text exists.</string>
+    <string name="st_language_saved">Language updated</string>
+    <string name="st_autoplay_title">Video autoplay</string>
+    <string name="st_upload_quality_title">Media upload quality</string>
+    <string name="st_upload_high_desc">Uploads keep the original resolution.</string>
+    <string name="st_upload_standard_desc">Uploads are compressed to save data and storage.</string>
+    <string name="st_cache_title">Cache management</string>
+    <string name="st_cache_size">Cache size</string>
+    <string name="st_clear_cache">Clear cache</string>
+    <string name="st_cache_cleared">Cache cleared</string>
+    <string name="st_calculating">Calculating…</string>
+    <string name="st_accessibility_title">Accessibility</string>
+    <string name="st_captions">Captions for videos</string>
+    <string name="st_captions_desc">Show captions where a video provides them</string>
+    <string name="st_larger_text">Larger text</string>
+    <string name="st_larger_text_desc">Increase text size across InstaNova</string>
+    <string name="st_accessibility_note">Larger text applies immediately to Settings and the app shell; screens that use fixed-size media overlays keep their layout.</string>
+
+    <!-- Activity -->
+    <string name="st_archive_title">Archive</string>
+    <string name="st_archive_posts">Posts</string>
+    <string name="st_archive_stories">Stories</string>
+    <string name="st_archive_posts_empty">No archived posts yet</string>
+    <string name="st_archive_stories_empty">No archived stories yet</string>
+    <string name="st_show_on_profile">Show on profile</string>
+    <string name="st_unarchive">Unarchive</string>
+    <!-- Row-level delete. st_delete is the account-deletion label ("Delete account"), so
+         reusing it on archive rows and post dialogs read as if it deleted the account. -->
+    <string name="st_delete_item">Delete</string>
+    <string name="st_archived_toast">Post archived</string>
+    <string name="st_unarchived_toast">Post restored to profile</string>
+    <string name="st_delete_post_title">Delete post?</string>
+    <string name="st_delete_post_body">This can\'t be undone.</string>
+    <string name="st_deleted_toast">Post deleted</string>
+    <string name="st_liked_tab">Liked</string>
+    <string name="st_comments_tab">Comments</string>
+    <string name="st_no_liked">Posts you like will appear here</string>
+    <string name="st_no_comments">Comments you write will appear here</string>
+    <string name="st_search_history_title">Search history</string>
+    <string name="st_search_history_empty">No recent searches</string>
+    <string name="st_clear_all">Clear all</string>
+    <string name="st_download_data_title">Download your data</string>
+    <string name="st_download_data_body">Get a copy of your InstaNova information: profile, posts, saved posts and a call history summary, as a JSON file.</string>
+    <string name="st_download">Download</string>
+    <string name="st_preparing">Preparing your file…</string>
+    <string name="st_download_ready">Your data file is ready</string>
+    <string name="st_download_failed">Could not create the export</string>
+
+    <!-- Creator -->
+    <string name="st_account_type_title">Account type</string>
+    <string name="st_account_type_note">Creator and Business accounts get professional tools. Switching types doesn\'t change your posts or followers.</string>
+    <string name="st_insights_title">Post and Reel insights</string>
+    <string name="st_total_posts">Posts</string>
+    <string name="st_total_reels">Reels</string>
+    <string name="st_total_likes">Likes received</string>
+    <string name="st_total_comments">Comments received</string>
+    <string name="st_total_saved">Times saved</string>
+    <string name="st_total_reposts">Reposts</string>
+    <string name="st_insights_note">Counts are computed from your own Supabase rows. Nothing here is estimated. This app has no view or reach counters, so interactions (likes + comments) stand in for them rather than a made-up number.</string>
+    <string name="st_insights_trend">Interactions</string>
+    <string name="st_insights_top_content">Interactions by post</string>
+    <string name="st_insights_split">Likes and comments</string>
+    <string name="st_insights_interactions">interactions</string>
+    <string name="st_insights_no_activity">No interactions in this range</string>
+    <string name="st_insights_no_content">Nothing posted in this range</string>
+    <string name="st_audience_title">Audience analytics</string>
+    <string name="st_followers_count">Followers</string>
+    <string name="st_following_count">Following</string>
+    <string name="st_most_engaged">Most engaged followers</string>
+    <string name="st_no_engagement">No engagement data yet. When people like or comment on your posts, your most engaged followers appear here.</string>
+    <string name="st_engagement_count">%1$d interactions</string>
+    <string name="st_audience_engagement_chart">Interactions from your audience</string>
+    <string name="st_audience_split">How your audience interacts</string>
+    <string name="st_audience_no_chart">No interactions to chart yet</string>
+    <string name="st_audience_top_five">Top 5</string>
+    <string name="st_audience_others">Everyone else</string>
+    <string name="st_audience_demographics_note">Age, city and gender breakdowns need interaction data this app does not collect, so none are shown rather than filled with placeholders.</string>
+    <string name="st_audience_note">Followers, following, likes and comments are read from your account rows. The ranks below count every like and comment left on your posts.</string>
+
+    <!-- Help -->
+    <string name="st_help_title">Help Center</string>
+    <string name="st_report_title">Report a problem</string>
+    <string name="st_report_category">Category</string>
+    <string name="st_report_message">What happened?</string>
+    <string name="st_report_hint">Describe the problem</string>
+    <string name="st_report_submit">Submit</string>
+    <string name="st_report_thanks">Thanks, your report was sent</string>
+    <string name="st_report_required">Please describe the problem</string>
+    <string name="st_report_failed">Could not send your report. Please try again.</string>
+    <string name="st_contact_title">Contact support</string>
+    <string name="st_contact_body">Email InstaNova support and we\'ll get back to you.</string>
+    <string name="st_contact_email">support.instanova@velkyn.me</string>
+    <string name="st_contact_open">Open mail app</string>
+    <string name="st_no_mail_app">No mail app is installed</string>
+    <string name="st_about_title">About</string>
+    <string name="st_from_velkyn">From Velkyn</string>
+    <string name="st_version">Version</string>
+
+    <!-- Profile -->
+    <string name="st_switch_account">Switch account</string>
+    <string name="st_add_account">Add account</string>
+    <string name="st_current">Current</string>
+    <string name="st_view_profile_picture">View profile picture</string>
+    <string name="st_change_profile_picture">Change profile picture</string>
+    <string name="st_choose_from_gallery">Choose from gallery</string>
+    <string name="st_take_photo">Take photo</string>
+    <string name="st_profile_link">Profile link</string>
+    <string name="st_copy_link">Copy link</string>
+    <string name="st_link_copied">Link copied</string>
+    <string name="st_share">Share</string>
+    <string name="st_discover_people">Discover people</string>
+    <string name="st_discover_empty">You\'re following everyone we could find.</string>
+    <string name="st_follow">Follow</string>
+    <string name="st_following">Following</string>
+    <string name="st_follow_back">Follow back</string>
+    <string name="st_requested">Requested</string>
+    <string name="st_followers_title">Followers</string>
+    <string name="st_following_title">Following</string>
+    <string name="st_no_following">Not following anyone yet</string>
+    <string name="st_post_options">Post options</string>
+    <string name="st_edit_caption">Edit caption</string>
+    <string name="st_caption_hint">Write a caption…</string>
+    <string name="st_caption_saved">Caption updated</string>
+    <string name="st_caption_failed">Could not update the caption</string>
+    <string name="st_no_tagged">No photos of you yet</string>
+    <string name="st_reposts_empty">Posts you repost will appear here</string>
+    <string name="st_follow_requests">Follow requests</string>
+    <string name="st_confirm">Confirm</string>
+    <string name="st_delete_request">Delete</string>
+    <string name="st_request_approved">Follow request approved</string>
+    <string name="st_request_declined">Follow request deleted</string>
+    <string name="st_follow_requested">Follow request sent</string>
+    <string name="st_blocked_user">Blocked @%1$s</string>
+    <string name="st_unblocked_user">Unblocked @%1$s</string>
+    <string name="st_block_confirm_title">Block @%1$s?</string>
+    <string name="st_block_confirm_body">They won\'t be able to message you or find your profile, posts or story on InstaNova. They won\'t know you blocked them.</string>
+    <string name="st_profile_unavailable">Profile unavailable</string>
+    <string name="st_follow_to_see">Follow this account to see their photos and videos.</string>
+
+    <!-- Misc -->
+    <string name="st_no_results">No results</string>
+    <string name="st_something_went_wrong">Something went wrong</string>
+    <string name="st_network_error">Network error. Please try again.</string>
+    <string name="st_selected_count">%1$d selected</string>
+    <string name="st_add_profile_note">Accounts you sign in with on this device are remembered here. Switching accounts always asks for that account\'s password.</string>
+
+
+    <string name="st_message_requests">Message requests</string>
+    <string name="st_no_message_requests">No message requests</string>
+    <string name="st_audience_close_friends">Close Friends</string>
+    <string name="st_audience_everyone">Everyone</string>
+
+    <string name="st_reposted">Reposted</string>
+    <string name="st_unreposted">Removed repost</string>
+</resources>

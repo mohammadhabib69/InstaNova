@@ -112,8 +112,8 @@
     <!-- Header subtitle, intro secondary lines, separators, 'Seen'. -->
     <color name="chat_text_secondary">#65676B</color>
     <!-- Long-press popup is dark in both themes by design. -->
-    <color name="chat_popup_bg">#262626</color>
-    <color name="chat_popup_divider">#3A3A3A</color>
+    <color name="chat_popup_bg">#F2F2F2</color>
+    <color name="chat_popup_divider">#E3E3E3</color>
     <!-- PAGE 18 — another user's profile -->
     <color name="profile_bg">#FFFFFF</color>
     <color name="profile_button_bg">#EFEFEF</color>

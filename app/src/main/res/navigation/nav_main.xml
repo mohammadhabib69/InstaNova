@@ -17,6 +17,12 @@
         android:label="Search" />
 
     <fragment
+        android:id="@+id/navigation_nova"
+        android:name="com.insta.nova.hub.NovaHubFragment"
+        android:label="Nova"
+        tools:layout="@layout/fragment_nova_hub" />
+
+    <fragment
         android:id="@+id/navigation_shop"
         android:name="com.insta.nova.ui.saved.SavedFragment"
         android:label="Saved" />

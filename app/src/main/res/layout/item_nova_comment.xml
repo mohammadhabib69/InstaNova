@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One Nova comment. A reply is indented and carries its own vote row. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/novaCommentRow"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="4dp">
+
+    <LinearLayout
+        android:id="@+id/novaCommentHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="28dp"
+            android:layout_height="28dp">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/imgNovaCommentAvatar"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop" />
+
+            <ImageView
+                android:id="@+id/imgNovaCommentAnonAvatar"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/bg_nova_circle"
+                android:contentDescription="@null"
+                android:padding="4dp"
+                android:src="@drawable/ic_nova_anon_avatar"
+                android:visibility="gone"
+                app:tint="?attr/themeTextSecondary" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvNovaCommentAlias"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:maxWidth="150dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvNovaCommentAnonBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="17dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_nova_pill"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:text="@string/nova_badge_anonymous"
+            android:textColor="?attr/themeTextSecondary"
+            android:textSize="9sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvNovaCommentTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textColor="?attr/themeTextSecondary"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvNovaCommentBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_marginTop="2dp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:id="@+id/novaCommentActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/btnNovaCommentUpvote"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/nova_cd_upvote"
+            android:padding="5dp"
+            android:src="@drawable/ic_nova_upvote"
+            app:tint="?attr/themeTextSecondary" />
+
+        <TextView
+            android:id="@+id/tvNovaCommentScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp"
+            android:fontFamily="sans-serif-medium"
+            android:minWidth="24dp"
+            android:gravity="center"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/btnNovaCommentDownvote"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/nova_cd_downvote"
+            android:padding="5dp"
+            android:src="@drawable/ic_nova_downvote"
+            app:tint="?attr/themeTextSecondary" />
+
+        <TextView
+            android:id="@+id/btnNovaCommentReply"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:layout_marginStart="12dp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="@string/nova_comments_reply"
+            android:textColor="@color/color_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- "Show 3 replies" / "Collapse thread" -->
+    <TextView
+        android:id="@+id/btnNovaCommentToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:layout_marginStart="28dp"
+        android:gravity="center"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:textColor="@color/color_primary"
+        android:textSize="12sp"
+        android:visibility="gone" />
+</LinearLayout>

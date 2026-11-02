@@ -15,6 +15,26 @@
         android:background="@drawable/bg_drag_handle" />
 
     <TextView
+        android:id="@+id/btnEditCaption"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="24dp"
+        android:text="@string/st_edit_caption"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/text_body" />
+
+    <TextView
+        android:id="@+id/btnArchivePost"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="24dp"
+        android:text="@string/st_archive"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="@dimen/text_body" />
+
+    <TextView
         android:id="@+id/btnDeletePost"
         android:layout_width="match_parent"
         android:layout_height="52dp"

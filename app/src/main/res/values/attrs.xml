@@ -33,4 +33,9 @@
             <enum name="welcome" value="2" />
         </attr>
     </declare-styleable>
+
+    <!-- DM photo album: gap between the tiles of one burst. -->
+    <declare-styleable name="ChatAlbumGrid">
+        <attr name="albumGap" format="dimension" />
+    </declare-styleable>
 </resources>

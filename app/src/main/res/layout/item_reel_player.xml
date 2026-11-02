@@ -72,7 +72,7 @@
                 android:id="@+id/iv_reel_like"
                 android:layout_width="@dimen/reel_action_icon_size"
                 android:layout_height="@dimen/reel_action_icon_size"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_heart" />
 
             <TextView
@@ -95,7 +95,7 @@
                 android:id="@+id/iv_reel_comment"
                 android:layout_width="@dimen/reel_action_icon_size"
                 android:layout_height="@dimen/reel_action_icon_size"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_comment"
                 app:tint="@color/white" />
 
@@ -112,7 +112,7 @@
             android:id="@+id/iv_reel_mute"
             android:layout_width="@dimen/reel_action_icon_more_size"
             android:layout_height="@dimen/reel_action_icon_more_size"
-            android:contentDescription="@string/not_available"
+            android:contentDescription="@null"
             android:src="@drawable/ic_volume_up"
             android:visibility="gone"
             app:tint="@color/white" />
@@ -130,7 +130,7 @@
                 android:id="@+id/iv_reel_send"
                 android:layout_width="@dimen/reel_action_icon_size"
                 android:layout_height="@dimen/reel_action_icon_size"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_send"
                 app:tint="@color/white" />
 
@@ -176,7 +176,7 @@
                 android:layout_height="@dimen/reel_audio_badge_size"
                 android:layout_gravity="bottom|end"
                 android:background="@drawable/bg_reel_audio_badge"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:padding="@dimen/reel_audio_badge_padding"
                 android:src="@drawable/ic_music"
                 app:tint="@color/black" />
@@ -263,7 +263,7 @@
         android:layout_width="@dimen/reel_play_indicator_size"
         android:layout_height="@dimen/reel_play_indicator_size"
         android:layout_gravity="center"
-        android:contentDescription="@string/not_available"
+        android:contentDescription="@null"
         android:src="@drawable/ic_play"
         android:visibility="gone"
         app:tint="@color/white" />

@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nova sheet (opened by the '+' on the Nova top bar).
+
+    Grouped like a professional launcher: CREATE, COMMUNITY, YOU, SETTINGS.
+    Alerts is not here any more: it is the bell in the top bar.
+-->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="20dp">
+
+        <View
+            android:layout_width="36dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_sheet_drag_handle" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:paddingTop="14dp"
+            android:paddingBottom="8dp"
+            android:text="@string/nova_sheet_title"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- ============================== CREATE ============================= -->
+        <TextView
+            android:id="@+id/hdr_nova_create"
+            style="@style/NovaSheetSection"
+            android:text="@string/nova_sheet_section_create" />
+
+        <LinearLayout
+            android:id="@+id/row_new_nova_post"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_nova_tile">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_camera"
+                    app:tint="?attr/themeTextPrimary" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nova_sheet_new_post"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nova_sheet_new_post_hint"
+                    android:textColor="?attr/themeTextSecondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_chevron_right" />
+        </LinearLayout>
+
+        <!-- ============================ COMMUNITY =========================== -->
+        <TextView
+            android:id="@+id/hdr_nova_community"
+            style="@style/NovaSheetSection"
+            android:text="@string/nova_sheet_section_community" />
+
+        <LinearLayout
+            android:id="@+id/row_nova_campus"
+            style="@style/NovaSheetRow">
+
+            <ImageView
+                style="@style/NovaSheetIcon"
+                android:src="@drawable/ic_nova_campus" />
+
+            <LinearLayout
+                style="@style/NovaSheetRowText">
+
+                <TextView
+                    style="@style/NovaSheetRowTitle"
+                    android:text="@string/nova_module_campus" />
+
+                <TextView
+                    android:id="@+id/sub_nova_campus"
+                    style="@style/NovaSheetRowSubtitle" />
+            </LinearLayout>
+
+            <ImageView
+                style="@style/NovaSheetChevron"
+                android:src="@drawable/ic_chevron_right" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/row_nova_study"
+            style="@style/NovaSheetRow">
+
+            <ImageView
+                style="@style/NovaSheetIcon"
+                android:src="@drawable/ic_nova_study" />
+
+            <LinearLayout
+                style="@style/NovaSheetRowText">
+
+                <TextView
+                    style="@style/NovaSheetRowTitle"
+                    android:text="@string/nova_module_study" />
+
+                <TextView
+                    android:id="@+id/sub_nova_study"
+                    style="@style/NovaSheetRowSubtitle" />
+            </LinearLayout>
+
+            <ImageView
+                style="@style/NovaSheetChevron"
+                android:src="@drawable/ic_chevron_right" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/row_nova_sos"
+            style="@style/NovaSheetRow">
+
+            <ImageView
+                style="@style/NovaSheetIcon"
+                android:src="@drawable/ic_nova_sos" />
+
+            <LinearLayout
+                style="@style/NovaSheetRowText">
+
+                <TextView
+                    style="@style/NovaSheetRowTitle"
+                    android:text="@string/nova_module_sos" />
+
+                <TextView
+                    android:id="@+id/sub_nova_sos"
+                    style="@style/NovaSheetRowSubtitle" />
+            </LinearLayout>
+
+            <ImageView
+                style="@style/NovaSheetChevron"
+                android:src="@drawable/ic_chevron_right" />
+        </LinearLayout>
+
+        <!-- ================================ YOU ============================= -->
+        <TextView
+            android:id="@+id/hdr_nova_you"
+            style="@style/NovaSheetSection"
+            android:text="@string/nova_sheet_section_you" />
+
+        <LinearLayout
+            android:id="@+id/row_nova_insights"
+            style="@style/NovaSheetRow">
+
+            <ImageView
+                style="@style/NovaSheetIcon"
+                android:src="@drawable/ic_nova_insights" />
+
+            <LinearLayout
+                style="@style/NovaSheetRowText">
+
+                <TextView
+                    style="@style/NovaSheetRowTitle"
+                    android:text="@string/nova_module_insights" />
+
+                <TextView
+                    android:id="@+id/sub_nova_insights"
+                    style="@style/NovaSheetRowSubtitle" />
+            </LinearLayout>
+
+            <ImageView
+                style="@style/NovaSheetChevron"
+                android:src="@drawable/ic_chevron_right" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/row_nova_safe"
+            style="@style/NovaSheetRow">
+
+            <ImageView
+                style="@style/NovaSheetIcon"
+                android:src="@drawable/ic_nova_safe" />
+
+            <LinearLayout
+                style="@style/NovaSheetRowText">
+
+                <TextView
+                    style="@style/NovaSheetRowTitle"
+                    android:text="@string/nova_module_safe" />
+
+                <TextView
+                    android:id="@+id/sub_nova_safe"
+                    style="@style/NovaSheetRowSubtitle" />
+            </LinearLayout>
+
+            <ImageView
+                style="@style/NovaSheetChevron"
+                android:src="@drawable/ic_chevron_right" />
+        </LinearLayout>
+
+        <!-- ============================== SETTINGS =========================== -->
+        <TextView
+            android:id="@+id/hdr_nova_settings"
+            style="@style/NovaSheetSection"
+            android:text="@string/nova_sheet_section_settings" />
+
+        <LinearLayout
+            android:id="@+id/row_nova_lite"
+            style="@style/NovaSheetRow">
+
+            <ImageView
+                style="@style/NovaSheetIcon"
+                android:src="@drawable/ic_nova_lite" />
+
+            <LinearLayout
+                style="@style/NovaSheetRowText">
+
+                <TextView
+                    style="@style/NovaSheetRowTitle"
+                    android:text="@string/nova_module_lite" />
+
+                <TextView
+                    android:id="@+id/sub_nova_lite"
+                    style="@style/NovaSheetRowSubtitle" />
+            </LinearLayout>
+
+            <ImageView
+                style="@style/NovaSheetChevron"
+                android:src="@drawable/ic_chevron_right" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

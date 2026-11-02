@@ -65,10 +65,81 @@
             android:layout_height="@dimen/caption_action_button"
             android:layout_marginStart="@dimen/details_chip_gap"
             android:background="@drawable/bg_picker_circle_surface"
-            android:contentDescription="@string/not_available"
+            android:contentDescription="@null"
             android:padding="@dimen/picker_overlay_padding"
             android:src="@drawable/ic_edit"
             app:tint="?attr/themeTextPrimary" />
+    </LinearLayout>
+
+    <!-- Post options (the shared module, Instagram surface) -->
+    <LinearLayout
+        android:id="@+id/row_caption_post_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/details_padding_horizontal"
+        android:paddingTop="@dimen/details_caption_margin_top"
+        android:paddingEnd="@dimen/details_padding_horizontal"
+        android:paddingBottom="@dimen/details_caption_margin_top">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/post_options_ig_row"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="@dimen/details_caption_size" />
+
+        <TextView
+            android:id="@+id/tv_caption_post_options_summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/filter_name_gap"
+            android:textColor="?attr/themeTextSecondary"
+            android:textSize="@dimen/details_row_desc_size"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Optional Nova copy, off by default -->
+    <LinearLayout
+        android:id="@+id/row_caption_share_to_nova"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/details_padding_horizontal"
+        android:paddingTop="@dimen/details_caption_margin_top"
+        android:paddingEnd="@dimen/details_padding_horizontal"
+        android:paddingBottom="@dimen/details_caption_margin_top">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/share_to_nova_row"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="@dimen/details_caption_size" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/filter_name_gap"
+                android:text="@string/share_to_nova_hint"
+                android:textColor="?attr/themeTextSecondary"
+                android:textSize="@dimen/details_row_desc_size" />
+        </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_caption_share_to_nova"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/details_chip_gap" />
     </LinearLayout>
 
     <!-- Poll / Prompt chips (decorative) -->

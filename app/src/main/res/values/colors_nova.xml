@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nova design tokens — LIGHT.
+
+    Nova is no longer a separate universe: it shares the PAGE 0 Instagram palette
+    (white surfaces, hairline dividers, #0095F6 primary, black type). The names are
+    kept so every existing module screen re-skins from this file, and the gradient
+    triple is re-pointed at the brand camera gradient instead of cyan/violet.
+-->
+<resources>
+    <!-- Surfaces -->
+    <color name="nova_bg">#FFFFFF</color>
+    <color name="nova_surface">#FFFFFF</color>
+    <color name="nova_card">#FFFFFF</color>
+    <color name="nova_card_high">#FAFAFA</color>
+    <color name="nova_stroke">#DBDBDB</color>
+    <color name="nova_text">#000000</color>
+    <color name="nova_text_2">#737373</color>
+    <color name="nova_text_3">#A8A8A8</color>
+    <color name="nova_glass">#00FFFFFF</color>
+    <color name="nova_scrim">#66000000</color>
+
+    <!-- Legacy "space" names: Nova's dark hero no longer exists, so these now
+         resolve to ordinary surfaces. Kept so older layouts stay valid. -->
+    <color name="nova_space">#FFFFFF</color>
+    <color name="nova_space_surface">#FAFAFA</color>
+    <color name="nova_space_card">#FFFFFF</color>
+    <color name="nova_space_card_high">#F0F0F0</color>
+    <color name="nova_text_on_space">#000000</color>
+    <color name="nova_text_on_space_2">#737373</color>
+
+    <!-- Brand gradient (sampled from the camera mark) -->
+    <color name="nova_cyan">#4B5BE8</color>
+    <color name="nova_violet">#C13584</color>
+    <color name="nova_magenta">#F5871F</color>
+
+    <!-- States -->
+    <color name="nova_success">#1A7F37</color>
+    <color name="nova_warning">#B45309</color>
+    <color name="nova_danger">#ED4956</color>
+
+    <!-- Module accents (>=4.5:1 on white for the 12sp stat labels) -->
+    <color name="nova_safe">#0B6BCB</color>
+    <color name="nova_sos">#D32F3F</color>
+    <color name="nova_campus">#B45309</color>
+    <color name="nova_lite">#1A7F37</color>
+    <color name="nova_study">#6B46C1</color>
+    <color name="nova_insights">#0E7490</color>
+
+    <!-- Soft accent washes -->
+    <color name="nova_safe_soft">#1A0B6BCB</color>
+    <color name="nova_sos_soft">#1AD32F3F</color>
+    <color name="nova_campus_soft">#1AB45309</color>
+    <color name="nova_lite_soft">#1A1A7F37</color>
+    <color name="nova_study_soft">#1A6B46C1</color>
+    <color name="nova_insights_soft">#1A0E7490</color>
+
+    <color name="nova_star">#FFFFFF</color>
+    <color name="nova_skeleton">#14000000</color>
+    <color name="nova_white_08">#14000000</color>
+    <color name="nova_white_12">#1F000000</color>
+    <color name="nova_white_64">#A3000000</color>
+    <!-- Text and icons drawn on a filled primary button -->
+    <color name="nova_on_gradient">#FFFFFF</color>
+</resources>

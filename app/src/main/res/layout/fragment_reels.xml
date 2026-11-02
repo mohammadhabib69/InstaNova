@@ -53,7 +53,7 @@
                 android:layout_width="@dimen/reel_chevron_size"
                 android:layout_height="@dimen/reel_chevron_size"
                 android:layout_marginStart="@dimen/reel_chevron_gap"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_chevron_down"
                 app:tint="@color/white" />
         </LinearLayout>
@@ -85,7 +85,7 @@
         <ImageView
             android:layout_width="@dimen/caught_up_icon_size"
             android:layout_height="@dimen/caught_up_icon_size"
-            android:contentDescription="@string/not_available"
+            android:contentDescription="@null"
             android:src="@drawable/ic_movie"
             app:tint="@color/white" />
 

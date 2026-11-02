@@ -43,7 +43,7 @@
     </style>
 
     <style name="Theme.InstaClone.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#05060F</item>
+        <item name="windowSplashScreenBackground">@color/color_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/avd_logo_mark_splash</item>
         <item name="windowSplashScreenAnimationDuration">500</item>
         <item name="postSplashScreenTheme">@style/Theme.InstaClone</item>

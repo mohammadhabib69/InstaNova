@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome camera glyph for notification small icons (system tints it). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M8.4,4.4 H15.6 A4.4,4.4 0 0 1 20,8.8 V15.2 A4.4,4.4 0 0 1 15.6,19.6 H8.4 A4.4,4.4 0 0 1 4,15.2 V8.8 A4.4,4.4 0 0 1 8.4,4.4 Z" />
+
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M15.3,12 A3.3,3.3 0 1,0 8.7,12 A3.3,3.3 0 1,0 15.3,12 Z" />
+
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M12 2 C12.6 7.4 16.6 11.4 22 12 C16.6 12.6 12.6 16.6 12 22 C11.4 16.6 7.4 12.6 2 12 C7.4 11.4 11.4 7.4 12 2 Z" />
+        android:pathData="M16.8,7.2 A0.8,0.8 0 1,0 16.8,8.8 A0.8,0.8 0 1,0 16.8,7.2 Z" />
 </vector>

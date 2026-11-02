@@ -51,4 +51,6 @@
     <color name="profile_mention">#E0E0FF</color>
     <!-- Notifications: neutral Follow/Following pill -->
     <color name="notification_following_bg">#262626</color>
+    <color name="chat_popup_bg">#262626</color>
+    <color name="chat_popup_divider">#3A3A3A</color>
 </resources>

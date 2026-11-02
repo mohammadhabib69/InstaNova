@@ -61,16 +61,33 @@
                     android:textColor="?attr/themeTextPrimary"
                     android:textSize="@dimen/chat_header_name_size" />
 
-                <TextView
-                    android:id="@+id/tvHeaderStatus"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="@color/chat_text_secondary"
-                    android:textSize="@dimen/chat_header_status_size"
-                    android:visibility="gone" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Live presence from Realtime Database; hidden whenever the state is not
+                         "online" so a stale timestamp is never dressed up as a green dot. -->
+                    <View
+                        android:id="@+id/ivPresenceDot"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_marginEnd="5dp"
+                        android:background="@drawable/bg_presence_dot"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvHeaderStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="@color/chat_text_secondary"
+                        android:textSize="@dimen/chat_header_status_size"
+                        android:visibility="gone" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
@@ -369,17 +386,6 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Emoji"
                 android:src="@drawable/ic_smiley"
-                app:tint="?attr/themeTextPrimary" />
-
-            <!-- '+' Expand/More Actions button -->
-            <ImageView
-                android:id="@+id/btnAddCircle"
-                android:layout_width="@dimen/chat_input_icon"
-                android:layout_height="@dimen/chat_input_icon"
-                android:layout_marginEnd="@dimen/chat_input_icon_end"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="More"
-                android:src="@drawable/ic_add_circle"
                 app:tint="?attr/themeTextPrimary" />
 
             <TextView

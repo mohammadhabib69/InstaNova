@@ -15,6 +15,11 @@
     <string name="view_all_comments">View all %1$d comments</string>
     <string name="reply">Reply</string>
     <string name="delete">Delete</string>
+    <string name="st_request_failed">Couldn\'t update the request</string>
+    <string name="st_accept_request">Accept</string>
+    <string name="st_decline_request">Decline</string>
+    <string name="st_decline_request_body">Move this conversation out of requests? The other person will not be told.</string>
+    <string name="st_request_accepted">Moved to your inbox</string>
     <string name="unfollow">Unfollow</string>
     <string name="copy_link">Copy link</string>
     <string name="your_story">Your story</string>
@@ -76,7 +81,7 @@
     <string name="profile_following">Following</string>
     <string name="profile_message">Message</string>
     <string name="profile_highlight_new">New</string>
-    <string name="profile_no_reposts">No reposts yet</string>
+    <string name="profile_no_reposts">Posts you repost will appear here</string>
     <string name="profile_no_photos_of_you">No photos of you yet</string>
     <string name="profile_identity_unavailable">Sign in again to load this profile</string>
 
@@ -108,9 +113,6 @@
     <string name="nav_reels">Reels</string>
     <string name="nav_profile">Profile</string>
 
-    <!-- Decorative UI (Constants.DECORATIVE_UI) -->
-    <string name="not_available">Not available</string>
-
     <!-- Reels (PAGE 5) -->
     <string name="reel_camera">Camera</string>
     <string name="reel_audio_thumbnail">Audio</string>
@@ -127,13 +129,24 @@
     <string name="inbox_send_message">Send Message</string>
     <string name="inbox_back">Back</string>
     <string name="inbox_video_call">Video call</string>
+    <string name="inbox_call_history">Call history</string>
     <string name="inbox_new_message">New message</string>
     <string name="inbox_camera">Camera</string>
     <string name="inbox_sent_a_photo">Sent a photo</string>
+    <string name="inbox_action_mute">Mute</string>
+    <string name="inbox_action_unmute">Unmute</string>
+    <string name="inbox_action_delete">Delete conversation</string>
+    <string name="inbox_muted">Muted</string>
+    <string name="inbox_unmuted">Unmuted</string>
+    <string name="inbox_deleted">Conversation deleted</string>
 
     <!-- Create sheet + picker (PAGE 8) -->
     <string name="create_title">Create</string>
     <string name="create_reel">Reel</string>
+    <string name="create_tab_post">POST</string>
+    <string name="create_tab_reel">REEL</string>
+    <string name="create_tab_story">STORY</string>
+
     <string name="create_post">Post</string>
     <string name="create_story">Story</string>
     <string name="create_story_highlight">Story highlight</string>
@@ -215,7 +228,28 @@
     <string name="comments_empty_subtitle">Start the conversation.</string>
     <string name="comments_like">Like comment</string>
 
+    <string name="notification_reacted_story">reacted to your story</string>
+    <string name="notifications_off_body">Notifications are off for InstaNova, so reactions and follows will not reach you.</string>
+    <string name="notifications_off_action">Turn on</string>
+    <string name="tag_people_title">Tag people</string>
+    <string name="tag_people_search">Search people</string>
+    <string name="tag_people_done_empty">Done</string>
+    <string name="tag_people_done">Done (%1$d)</string>
+    <string name="tag_people_none">No one tagged</string>
+    <string name="tag_people_count">%1$d tagged</string>
+    <string name="tag_placement_title">Tap the photo to place each tag</string>
+    <string name="tag_placement_done">Done</string>
+    <string name="tag_placement_hint">Tap a marker again to remove it</string>
+    <string name="tag_placement_clear">Clear all</string>
+    <string name="tag_people_row_desc">Tag people</string>
+    <string name="tag_people_failed">Could not add those tags: %1$s</string>
+    <string name="post_tagged_with">with %1$s</string>
     <string name="comments_time_now">now</string>
+    <string name="comments_not_allowed">This account does not allow comments from you</string>
+    <string name="comments_held_review">Held for review</string>
+    <string name="comments_held_approve">Held · hold to approve</string>
+    <string name="comments_held_released">Comment approved</string>
+    <string name="comments_held_release_failed">Only the post owner can approve this</string>
     <string name="comments_delete_title">Delete comment?</string>
     <string name="comments_delete_message">This can\u2019t be undone.</string>
     <string name="comments_delete_action">Delete</string>
@@ -245,6 +279,7 @@
     <string name="story_pick_title">Add to your story</string>
     <string name="story_permission_needed">Allow photo and video access to add a story</string>
     <string name="story_pick_failed">Couldn\u2019t open that file</string>
+    <string name="story_media_unavailable">This photo couldn\u2019t be loaded. It may not have finished saving.</string>
     <string name="story_viewer">Story</string>
     <!-- Create: reel -->
     <string name="new_reel_title">New Reel</string>
@@ -253,6 +288,57 @@
     <string name="reel_permission_needed">Allow video access to pick a reel</string>
     <string name="reel_pick_failed">Couldn\u2019t open that video</string>
     <string name="reel_shared">Reel shared</string>
+    <string name="reel_publish_failed">Couldn\u2019t publish this reel. Check your connection.</string>
+    <!-- Reel recorder (#47) -->
+    <string name="reel_cam_close">Close</string>
+    <string name="reel_cam_flash">Flash</string>
+    <string name="reel_cam_flip">Flip camera</string>
+    <string name="reel_cam_gallery">Pick from gallery</string>
+    <string name="reel_cam_record">Record</string>
+    <string name="reel_cam_delete">Delete last clip</string>
+    <string name="reel_cam_next">Next</string>
+    <string name="reel_cam_tap">Tap to record a clip</string>
+    <string name="reel_cam_resume">Tap to add another clip</string>
+    <string name="reel_cam_recording">Recording \u2014 tap to pause</string>
+    <string name="reel_cam_remaining">%1$d s left</string>
+    <string name="reel_cam_limit">Reels are limited to 90 seconds</string>
+    <string name="reel_cam_no_clips">No clips yet</string>
+    <string name="reel_cam_need_clip">Record a clip first</string>
+    <string name="reel_cam_stop_first">Finish the current clip first</string>
+    <string name="reel_cam_delete_while_recording">Stop recording before deleting a clip</string>
+    <string name="reel_cam_joining">Joining clips\u2026</string>
+    <string name="reel_cam_join_failed">Couldn\u2019t join the clips</string>
+    <string name="reel_cam_failed">That clip could not be recorded</string>
+    <string name="reel_cam_permission">Camera and microphone are needed to record a reel</string>
+    <string name="reel_cam_no_flash">This camera has no flash</string>
+    <string name="reel_cover_action">Cover</string>
+    <string name="reel_cover_title">Choose a cover</string>
+    <string name="reel_cover_selected">Cover at %1$d s</string>
+    <string name="reel_caption_hint">Write a caption\u2026</string>
+    <string name="reel_also_share">Also share to Feed</string>
+    <string name="reel_share_action">Share</string>
+    <string name="story_st_countdown">Countdown</string>
+    <string name="story_st_countdown_dh">%1$dd %2$dh</string>
+    <string name="story_st_countdown_hm">%1$dh %2$dm</string>
+    <string name="story_st_day1">1 day</string>
+    <string name="story_st_day3">3 days</string>
+    <string name="story_st_day7">7 days</string>
+    <string name="story_st_slider">Emoji slider</string>
+    <string name="story_st_eyedropper">Eyedropper</string>
+    <string name="story_st_picked">Picked %1$s</string>
+    <string name="story_st_mention">@Mention</string>
+    <string name="story_st_mention_hint">username</string>
+    <string name="story_st_link">Link</string>
+    <string name="story_st_link_hint">example.com</string>
+    <string name="story_st_photo">Photo sticker</string>
+    <string name="story_st_photo_added">Photo added — drag to place</string>
+    <string name="story_st_photo_failed">Couldn\u2019t add that photo</string>
+    <string name="story_ed_layout">\u25A6</string>
+    <string name="story_ed_layout_failed">Pick 2 to 4 photos for a layout</string>
+    <string name="story_ed_music">\u266A</string>
+    <string name="story_ed_music_set">Music: %1$s</string>
+    <string name="story_ed_music_failed">Couldn\u2019t add that track</string>
+    <string name="story_ed_shuffle">\u21BB</string>
     <string name="reel_play">Play</string>
     <string name="reel_pause">Pause</string>
     <!-- Create: highlights -->
@@ -286,5 +372,67 @@
     <string name="templates_share_story">Share as Story</string>
     <string name="templates_photo_failed">Couldn\'t open that photo</string>
     <string name="templates_render_failed">Couldn\'t build the card</string>
+    <!-- ==================== Shared Post Options module ==================== -->
+    <string name="post_options_title">Post options</string>
+    <string name="post_options_surface_nova">Applied to your Nova post</string>
+    <string name="post_options_surface_instagram">Applied to your Instagram post</string>
+    <string name="post_options_anonymous">Post anonymously</string>
+    <string name="post_options_anonymous_hint">Your name is hidden. You still see the post under Mine.</string>
+    <string name="post_options_remove">Remove</string>
+    <string name="comments_off_hint">Comments are turned off</string>
+    <string name="upload_preparing">Uploading…</string>
+    <string name="upload_progress">Uploading %1$d of %2$d · %3$d%%</string>
+    <string name="post_options_hide_likes">Hide like and view counts</string>
+    <string name="post_options_hide_likes_hint">Only you will see the total likes and views.</string>
+    <string name="post_options_comments_off">Turn off commenting</string>
+    <string name="post_options_comments_off_hint">Nobody can comment on this post.</string>
+    <string name="post_options_expires">Expires after</string>
+    <string name="post_options_expiry_1h">1 hour</string>
+    <string name="post_options_expiry_6h">6 hours</string>
+    <string name="post_options_expiry_24h">24 hours</string>
+    <string name="post_options_expiry_7d">7 days</string>
+    <string name="post_options_expiry_never">Never</string>
+    <string name="post_options_expiry_custom">Custom…</string>
+    <string name="post_options_expiry_custom_hint">Amount</string>
+    <string name="post_options_expiry_custom_value">Custom (%1$s)</string>
+    <string name="post_options_unit_minutes">minutes</string>
+    <string name="post_options_unit_hours">hours</string>
+    <string name="post_options_unit_days">days</string>
+    <string name="post_options_apply">Apply</string>
+    <string name="post_options_expiry_invalid">Enter a number greater than 0</string>
+    <!-- Instagram caption step: the same module, opened from the caption step -->
+    <string name="post_options_ig_row">Post options</string>
+    <string name="post_options_ig_summary_anonymous">Anonymous</string>
+    <string name="post_options_ig_summary_1h">Expires in 1 hour</string>
+    <string name="post_options_ig_summary_6h">Expires in 6 hours</string>
+    <string name="post_options_ig_summary_24h">Expires in 24 hours</string>
+    <string name="post_options_ig_summary_7d">Expires in 7 days</string>
+    <string name="post_options_ig_summary_hide_likes">Like counts hidden</string>
+    <string name="post_options_ig_summary_comments_off">Comments off</string>
+    <!-- Instagram caption step: the optional Nova copy -->
+    <string name="share_to_nova_row">Also share to Nova</string>
+    <string name="share_to_nova_hint">A copy appears in the Nova feed. Instagram keeps its own post.</string>
+    <string name="share_to_nova_failed">Posted to Instagram, but the Nova copy failed: %1$s</string>
+    <string name="post_comments_turned_off">Comments are turned off</string>
+    <string name="post_music_failed">Could not play this track</string>
+
+    <!-- Single-video post composer -->
+    <string name="post_video_back">Cancel</string>
+    <string name="post_video_next">Next</string>
+    <string name="post_video_mute_off">Sound on</string>
+    <string name="post_video_mute_on">Sound off</string>
+    <string name="post_video_cover">Use this frame as cover</string>
+    <string name="post_video_cover_picked">Cover set to %1$s</string>
+    <string name="post_video_too_big">This clip is over 120 MB and may fail to upload.</string>
+    <string name="story_st_gif">GIF</string>
+
+    <!-- Reel editor: timed text + volume mixer -->
+    <string name="reel_text_action">Aa</string>
+    <string name="reel_text_hint">Text for this moment</string>
+    <string name="reel_music_action">Add music</string>
+    <string name="reel_music_hint">Track: %1$s</string>
+    <string name="reel_original_volume">Original</string>
+    <string name="reel_music_volume">Music</string>
 </resources>
+
 

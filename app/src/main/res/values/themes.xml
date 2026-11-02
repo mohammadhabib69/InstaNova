@@ -47,7 +47,7 @@
 
     <!-- Splash Screen Theme -->
     <style name="Theme.InstaClone.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#05060F</item>
+        <item name="windowSplashScreenBackground">@color/color_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/avd_logo_mark_splash</item>
         <item name="windowSplashScreenAnimationDuration">500</item>
         <item name="postSplashScreenTheme">@style/Theme.InstaClone</item>
@@ -334,6 +334,12 @@
         <item name="cornerSize">@dimen/chat_image_radius</item>
     </style>
 
+    <!-- One tile of a DM photo album: Instagram keeps album corners tighter than a single photo. -->
+    <style name="ShapeAppearance.Nova.AlbumTile" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">4dp</item>
+    </style>
+
     <style name="ChatPopupEmoji">
         <item name="android:layout_width">44dp</item>
         <item name="android:layout_height">44dp</item>
@@ -365,5 +371,15 @@
         <item name="android:background">?attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
+    </style>
+    <style name="CreateTab">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:gravity">center</item>
     </style>
 </resources>

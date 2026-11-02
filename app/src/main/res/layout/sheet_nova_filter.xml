@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nova filter sheet (opened by the top-bar filter glyph).
+
+    Sort, content type, "hide anonymous" and "hide expiring soon". The sort
+    the sheet shows is the same value the sort selector in the chip rail shows.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet"
+    android:orientation="vertical"
+    android:paddingBottom="16dp">
+
+    <View
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_sheet_drag_handle" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
+        android:paddingTop="14dp"
+        android:paddingBottom="10dp"
+        android:text="@string/nova_sort_title"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- ================================ Sort ============================== -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="2dp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.08"
+        android:text="@string/nova_filter_sheet_sort"
+        android:textAllCaps="true"
+        android:textColor="?attr/themeTextSecondary"
+        android:textSize="11sp" />
+
+    <LinearLayout
+        android:id="@+id/rowSortHot"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_sort_hot"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/checkSortHot"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_check" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowSortNew"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_sort_new"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/checkSortNew"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_check" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowSortTop"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_sort_top"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/checkSortTop"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_check" />
+    </LinearLayout>
+
+    <!-- ============================ Content type ========================== -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="2dp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.08"
+        android:text="@string/nova_filter_sheet_type"
+        android:textAllCaps="true"
+        android:textColor="?attr/themeTextSecondary"
+        android:textSize="11sp" />
+
+    <LinearLayout
+        android:id="@+id/rowTypeAll"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_filter_type_all"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/checkTypeAll"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_check" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowTypePhoto"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_filter_type_photo"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/checkTypePhoto"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_check" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowTypeReel"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_filter_type_reel"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/checkTypeReel"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_check" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowTypeText"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_filter_type_text"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/checkTypeText"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_check" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowTypePoll"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_filter_type_poll"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/checkTypePoll"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_check" />
+    </LinearLayout>
+
+    <!-- ============================== Switches ============================ -->
+    <LinearLayout
+        android:id="@+id/rowHideAnonymous"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_filter_sheet_hide_anonymous"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchHideAnonymous"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowHideExpiring"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/nova_filter_sheet_hide_expiring"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="15sp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchHideExpiring"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_hairline"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="20dp"
+        android:background="?attr/themeDivider" />
+
+    <TextView
+        android:id="@+id/btnApplyFilters"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/bg_button_primary"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:text="@string/nova_filter_apply"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+</LinearLayout>

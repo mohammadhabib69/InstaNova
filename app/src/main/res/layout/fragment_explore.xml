@@ -75,21 +75,6 @@
                 android:contentDescription="Clear search" />
         </LinearLayout>
 
-        <!-- Decorative: camera / scan lookup -->
-        <FrameLayout
-            android:id="@+id/btnSearchScan"
-            android:layout_width="@dimen/search_scan_button_size"
-            android:layout_height="@dimen/search_scan_button_size"
-            android:layout_marginStart="@dimen/search_scan_gap">
-
-            <ImageView
-                android:layout_width="@dimen/search_scan_icon_size"
-                android:layout_height="@dimen/search_scan_icon_size"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_scan"
-                app:tint="?attr/themeTextPrimary"
-                android:contentDescription="@string/cd_search" />
-        </FrameLayout>
     </LinearLayout>
 
     <!-- ============================================================= -->

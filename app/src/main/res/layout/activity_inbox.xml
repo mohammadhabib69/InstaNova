@@ -62,7 +62,7 @@
                 android:layout_width="@dimen/profile_chevron_size"
                 android:layout_height="@dimen/profile_chevron_size"
                 android:layout_marginStart="@dimen/profile_chevron_gap"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_chevron_down"
                 app:tint="?attr/themeTextPrimary" />
         </LinearLayout>
@@ -76,8 +76,8 @@
             android:id="@+id/iv_video"
             android:layout_width="@dimen/inbox_top_bar_icon"
             android:layout_height="@dimen/inbox_top_bar_icon"
-            android:contentDescription="@string/inbox_video_call"
-            android:src="@drawable/ic_video"
+            android:contentDescription="@string/inbox_call_history"
+            android:src="@drawable/ic_call_history"
             app:tint="?attr/themeTextPrimary" />
 
         <ImageView
@@ -210,7 +210,7 @@
             <ImageView
                 android:layout_width="@dimen/caught_up_icon_size"
                 android:layout_height="@dimen/caught_up_icon_size"
-                android:contentDescription="@string/not_available"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_send"
                 app:tint="?attr/themeTextSecondary" />
 

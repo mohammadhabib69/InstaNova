@@ -88,6 +88,22 @@
                 android:layout_marginStart="@dimen/story_vw_header_gap"
                 android:textAppearance="@style/TextAppearance.Insta.StoryHeaderTime" />
 
+            <TextView
+                android:id="@+id/tv_cf_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:background="@drawable/bg_close_friends_badge"
+                android:text="★ Close Friends"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
             <View
                 android:layout_width="0dp"
                 android:layout_height="1dp"
@@ -199,12 +215,6 @@
                 android:textAppearance="@style/TextAppearance.Insta.StoryPill" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/btn_owner_more"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/story_vw_more"
-            android:textAppearance="@style/TextAppearance.Insta.StoryPill" />
     </LinearLayout>
 
     <!-- Bottom bar. -->

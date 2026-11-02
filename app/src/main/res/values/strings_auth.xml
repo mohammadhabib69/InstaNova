@@ -204,4 +204,5 @@
     <string name="identity_retry_message">InstaNova could not reach its server. Your session is still valid — check your connection and retry.</string>
     <string name="identity_retry_action">Retry</string>
     <string name="identity_sign_out_action">Sign out</string>
+    <string name="story_publish_failed">Story saved on this device, but publishing failed. Check your connection.</string>
 </resources>

@@ -30,6 +30,11 @@
         android:text="About this account" />
 
     <TextView
+        android:id="@+id/rowRestrict"
+        style="@style/P18SheetRow"
+        android:text="@string/st_restrict" />
+
+    <TextView
         android:id="@+id/rowReport"
         style="@style/P18SheetRow"
         android:text="Report..."

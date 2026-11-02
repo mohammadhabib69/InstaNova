@@ -43,7 +43,7 @@
             android:layout_width="@dimen/inbox_avatar_size"
             android:layout_height="@dimen/inbox_avatar_size"
             android:layout_gravity="center"
-            android:contentDescription="@string/not_available"
+            android:contentDescription="@null"
             android:src="@drawable/ic_person_placeholder" />
     </FrameLayout>
 

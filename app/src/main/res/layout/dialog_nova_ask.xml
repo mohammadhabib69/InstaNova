@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="20dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="20dp">
+
+    <LinearLayout
+        android:id="@+id/subjectRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" />
+
+    <EditText
+        android:id="@+id/etTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/nova_study_question_title"
+        android:inputType="textCapSentences"
+        android:maxLength="120"
+        android:textColor="@color/nova_text"
+        android:textColorHint="@color/nova_text_3"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/etBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="top"
+        android:hint="@string/nova_study_question_body"
+        android:inputType="textCapSentences|textMultiLine"
+        android:maxLength="2000"
+        android:minLines="4"
+        android:textColor="@color/nova_text"
+        android:textColorHint="@color/nova_text_3"
+        android:textSize="14sp" />
+</LinearLayout>

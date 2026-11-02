@@ -35,6 +35,8 @@
         android:layout_height="@dimen/bottom_nav_height"
         android:background="?attr/themeBackground"
         app:elevation="0dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:labelVisibilityMode="unlabeled"
         app:menu="@menu/bottom_nav_menu"
         app:itemIconSize="@dimen/icon_bottom_nav"
@@ -44,5 +46,46 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- NOVA centre tab: soft glow + unread badge. Non-clickable so taps fall
+         through to the BottomNavigationView underneath. -->
+    <FrameLayout
+        android:id="@+id/novaTabOverlay"
+        android:layout_width="64dp"
+        android:layout_height="@dimen/bottom_nav_height"
+        android:clipChildren="false"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toBottomOf="@id/bottomNavigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/bottomNavigation">
+
+        <com.insta.nova.widget.GlowView
+            android:id="@+id/novaTabGlow"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center"
+            android:alpha="0.55"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/novaTabBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="18dp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginStart="24dp"
+            android:background="@drawable/bg_nova_badge"
+            android:gravity="center"
+            android:minWidth="18dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:textColor="@color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:translationY="5dp"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ============================ Typography ============================ -->
+    <style name="TextAppearance.Nova.Title" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/nova_title</item>
+        <item name="android:textColor">@color/nova_text</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.Nova.Section" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/nova_section</item>
+        <item name="android:textColor">@color/nova_text</item>
+    </style>
+
+    <style name="TextAppearance.Nova.Body" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/nova_body</item>
+        <item name="android:textColor">@color/nova_text</item>
+        <item name="android:lineSpacingMultiplier">1.18</item>
+    </style>
+
+    <style name="TextAppearance.Nova.Meta" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">@dimen/nova_meta</item>
+        <item name="android:textColor">@color/nova_text_2</item>
+    </style>
+
+    <style name="TextAppearance.Nova.Number" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/nova_number</item>
+        <item name="android:textColor">@color/nova_text</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+    </style>
+
+    <!-- ============================== Surfaces ============================= -->
+    <style name="Widget.Nova.Card" parent="">
+        <item name="android:background">@drawable/bg_nova_card</item>
+        <item name="android:padding">@dimen/nova_card_pad</item>
+    </style>
+
+    <style name="Widget.Nova.Card.High" parent="Widget.Nova.Card">
+        <item name="android:background">@drawable/bg_nova_card_high</item>
+    </style>
+
+    <style name="Widget.Nova.Glass" parent="Widget.Nova.Card" />
+
+    <!-- ============================== Buttons ============================== -->
+    <style name="Widget.Nova.Button.Primary" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/bg_nova_pill</item>
+        <item name="backgroundTint">@null</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:layout_height">@dimen/nova_button_height</item>
+        <item name="android:minHeight">@dimen/nova_button_height</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">22dp</item>
+        <item name="android:paddingEnd">22dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <style name="Widget.Nova.Button.Outlined" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/bg_nova_button_outline</item>
+        <item name="backgroundTint">@null</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:layout_height">@dimen/nova_button_height</item>
+        <item name="android:minHeight">@dimen/nova_button_height</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/nova_text</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <style name="Widget.Nova.Button.Danger" parent="Widget.Nova.Button.Primary">
+        <item name="android:background">@drawable/bg_nova_pill_danger</item>
+    </style>
+
+    <style name="Widget.Nova.Button.Ghost" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/nova_text_2</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:minHeight">@dimen/nova_touch</item>
+    </style>
+
+    <!-- ================================ Chips ============================== -->
+    <style name="Widget.Nova.Chip" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/bg_nova_chip</item>
+        <item name="android:textColor">@color/nova_text_2</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:minHeight">36dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <style name="Widget.Nova.Input" parent="Widget.AppCompat.EditText">
+        <item name="android:background">@drawable/bg_nova_input</item>
+        <item name="android:textColor">@color/nova_text</item>
+        <item name="android:textColorHint">@color/nova_text_3</item>
+        <item name="android:textSize">@dimen/nova_body</item>
+        <item name="android:padding">14dp</item>
+        <item name="android:minHeight">@dimen/nova_button_height</item>
+    </style>
+
+    <!-- Module screens paint their own background; status bar stays transparent. -->
+    <style name="Theme.Nova" parent="Theme.InstaClone">
+        <item name="android:windowBackground">@color/nova_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowSharedElementsUseOverlay">false</item>
+    </style>
+
+    <style name="Theme.Nova.Sheet" parent="InstaNovaBottomSheetDialog">
+        <item name="android:navigationBarColor">@color/nova_bg</item>
+        <item name="bottomSheetStyle">@style/Widget.Nova.SheetStyle</item>
+    </style>
+
+    <style name="Widget.Nova.SheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_nova_sheet</item>
+        <item name="android:elevation">0dp</item>
+    </style>
+
+    <style name="Widget.Nova.Divider" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/nova_stroke</item>
+    </style>
+    <!-- ======================= Nova sheet rows and sections ======================= -->
+
+    <!-- The small uppercase grey label above a group of rows. -->
+    <style name="NovaSheetSection">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginTop">14dp</item>
+        <item name="android:layout_marginBottom">2dp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <!-- One tappable row: icon, title with an optional subtitle, chevron. -->
+    <style name="NovaSheetRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+    </style>
+
+    <style name="NovaSheetIcon">
+        <item name="android:layout_width">22dp</item>
+        <item name="android:layout_height">22dp</item>
+        <item name="android:contentDescription">@null</item>
+        <item name="android:tint">?attr/themeTextPrimary</item>
+    </style>
+
+    <style name="NovaSheetRowText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="NovaSheetRowTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="NovaSheetRowSubtitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">?attr/themeTextSecondary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <style name="NovaSheetChevron">
+        <item name="android:layout_width">18dp</item>
+        <item name="android:layout_height">18dp</item>
+        <item name="android:contentDescription">@null</item>
+        <item name="android:src">@drawable/ic_chevron_right</item>
+    </style>
+    <!-- One of the Post / Story / Reel choices in the composer. -->
+    <style name="NovaComposerChoice">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/bg_nova_chip</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">?attr/themeTextPrimary</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+</resources>
+
+

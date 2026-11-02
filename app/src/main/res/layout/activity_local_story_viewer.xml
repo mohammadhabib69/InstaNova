@@ -20,6 +20,20 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <!-- Shown instead of a black rectangle when the media cannot be decoded or is gone. -->
+    <TextView
+        android:id="@+id/tvUnavailable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:text="@string/story_media_unavailable"
+        android:textAlignment="center"
+        android:textColor="#CCFFFFFF"
+        android:textSize="15sp"
+        android:visibility="gone" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

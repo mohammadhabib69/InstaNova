@@ -5,7 +5,7 @@
     android:id="@+id/detailsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <!-- Top Action Bar -->
@@ -25,7 +25,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_arrow_back"
-            app:tint="@color/white" />
+            app:tint="?attr/themeTextPrimary" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -33,7 +33,7 @@
             android:layout_marginStart="24dp"
             android:fontFamily="sans-serif-medium"
             android:text="Details"
-            android:textColor="@color/white"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -70,7 +70,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:textColor="@color/white"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -79,7 +79,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:textColor="@color/chat_text_secondary"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp" />
 
                 <TextView
@@ -92,7 +92,7 @@
                     android:paddingStart="24dp"
                     android:paddingEnd="24dp"
                     android:text="View profile"
-                    android:textColor="@color/white"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -122,7 +122,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:src="@drawable/ic_palette"
-                        app:tint="@color/white" />
+                        app:tint="?attr/themeTextPrimary" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -135,7 +135,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Theme"
-                            android:textColor="@color/white"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="15sp" />
 
                         <TextView
@@ -143,7 +143,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Default"
-                            android:textColor="@color/chat_text_secondary"
+                            android:textColor="?android:attr/textColorSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
 
@@ -176,7 +176,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:src="@drawable/ic_bell"
-                        app:tint="@color/white" />
+                        app:tint="?attr/themeTextPrimary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -184,14 +184,14 @@
                         android:layout_marginStart="16dp"
                         android:layout_weight="1"
                         android:text="Mute messages"
-                        android:textColor="@color/white"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:textSize="15sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switchMute"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:thumbTint="@color/white"
+                        app:thumbTint="?attr/themeTextPrimary"
                         app:trackTint="#404040" />
                 </LinearLayout>
 
@@ -216,7 +216,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:src="@drawable/ic_search"
-                        app:tint="@color/white" />
+                        app:tint="?attr/themeTextPrimary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -224,7 +224,7 @@
                         android:layout_marginStart="16dp"
                         android:layout_weight="1"
                         android:text="Search in conversation"
-                        android:textColor="@color/white"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:textSize="15sp" />
 
                     <ImageView
@@ -242,7 +242,7 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp"
                 android:text="Privacy &amp; Support"
-                android:textColor="@color/chat_text_secondary"
+                android:textColor="?android:attr/textColorSecondary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 

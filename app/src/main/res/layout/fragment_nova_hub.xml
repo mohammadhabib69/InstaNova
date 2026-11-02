@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nova tab — the Nova space.
+
+    Top bar: the wordmark on the left, then the filter glyph, the '+' and the
+    Alerts bell (with its unread badge). Below it the chip rail (All, Photos,
+    Reels, Saved, Mine) with the sort selector, and then the feed itself:
+    one post card per row, because a card carries the votes, the comment count
+    and the expiry badge.
+
+    Nothing here touches Instagram: the feed reads nova_posts_public only.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/novaHubRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/themeBackground"
+    android:orientation="vertical">
+
+    <!-- Status-bar spacer: keeps the 48dp bar at 48dp on every device. -->
+    <View
+        android:id="@+id/novaStatusSpacer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" />
+
+    <!-- ================================ Top bar ============================ -->
+    <!-- Top bar: the create action moved to the left corner, the bell took its old
+         slot, and the tools entry (insights / safe / lite) took the bell's slot. -->
+    <FrameLayout
+        android:id="@+id/novaTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/home_top_bar_height"
+        android:paddingStart="@dimen/home_top_bar_padding_horizontal"
+        android:paddingEnd="@dimen/home_top_bar_padding_horizontal">
+
+        <ImageButton
+            android:id="@+id/btnNovaCreate"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="start|center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/nova_cd_create"
+            android:padding="8dp"
+            android:src="@drawable/ic_add" />
+
+        <TextView
+            android:id="@+id/tvNovaTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="sans-serif"
+            android:letterSpacing="-0.02"
+            android:text="@string/nova_name"
+            android:textColor="?attr/themeTextPrimary"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Alerts: the bell carries the unread count. -->
+            <FrameLayout
+                android:id="@+id/novaAlertsBell"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp">
+
+                <ImageButton
+                    android:id="@+id/btnNovaAlerts"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/nova_sheet_alerts"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_bell" />
+
+                <TextView
+                    android:id="@+id/novaAlertsBadge"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="-2dp"
+                    android:background="@drawable/bg_notification_badge"
+                    android:gravity="center"
+                    android:minWidth="18dp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <ImageButton
+                android:id="@+id/btnNovaTools"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/nova_cd_tools"
+                android:padding="8dp"
+                android:src="@drawable/ic_grid" />
+
+            <!-- Filter sits at the far right: as the first child of this end-aligned group
+                 it looked pushed towards the middle of the bar. -->
+            <ImageButton
+                android:id="@+id/btnNovaFilter"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/nova_cd_filter"
+                android:padding="8dp"
+                android:src="@drawable/ic_nova_filter" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_hairline"
+        android:background="?attr/themeDivider" />
+
+    <!-- ==================== Chip rail + sort selector ==================== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <HorizontalScrollView
+            android:id="@+id/novaFilterScroll"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/novaFilterRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="0dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="10dp" />
+        </HorizontalScrollView>
+
+        <!-- Sort selector: Hot / New / Top. -->
+        <LinearLayout
+            android:id="@+id/novaSortButton"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="@dimen/home_top_bar_padding_horizontal"
+            android:background="@drawable/bg_nova_chip"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingEnd="12dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_nova_sort"
+                app:tint="?attr/themeTextPrimary" />
+
+            <TextView
+                android:id="@+id/tvNovaSort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ================================ Content ============================ -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/novaSwipe"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/novaGrid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingBottom="8dp"
+                android:scrollbars="none" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <!-- Empty / filtered-empty state -->
+        <LinearLayout
+            android:id="@+id/novaEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="40dp"
+            android:paddingEnd="40dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:alpha="0.9"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_brand_mark" />
+
+            <TextView
+                android:id="@+id/tvEmptyTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="sans-serif"
+                android:text="@string/nova_empty_title"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvEmptyBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="@string/nova_empty_body"
+                android:textColor="?attr/themeTextSecondary"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/btnEmptyAction"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_button_primary"
+                android:gravity="center"
+                android:minWidth="140dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/nova_empty_action"
+                android:textColor="@color/white"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Offline / failure banner -->
+        <LinearLayout
+            android:id="@+id/novaErrorBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_nova_pill_notice"
+            android:elevation="3dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="6dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvErrorBanner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:textColor="?attr/themeTextPrimary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/btnErrorRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:fontFamily="sans-serif-medium"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="@string/nova_retry"
+                android:textColor="@color/color_primary"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/novaLoading"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="?attr/themeTextSecondary"
+            android:visibility="gone" />
+    </FrameLayout>
+</LinearLayout>
