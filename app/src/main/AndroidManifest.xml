@@ -16,6 +16,10 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <!-- Android 14 gates foregroundServiceType="phoneCall" on FOREGROUND_SERVICE_PHONE_CALL
+         plus MANAGE_OWN_CALLS or the DIALER role. A VoIP app cannot hold DIALER, and
+         MANAGE_OWN_CALLS is the documented self-managed-call permission for exactly this. -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
@@ -63,9 +67,11 @@
             android:windowSoftInputMode="adjustPan" />
 
         <!-- Activity feed (likes, comments, follows) -->
+        <activity android:name=".ui.activity.FollowRequestsActivity" android:exported="true" />
+
         <activity
             android:name=".ui.activity.NotificationsActivity"
-            android:exported="false" />
+            android:exported="true" />
 
         <!-- Create Post Modal Activity -->
         <activity
@@ -73,18 +79,20 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+                <activity android:name=".ui.story2.StoryCameraActivity" android:exported="false" android:screenOrientation="portrait" android:theme="@style/Theme.InstaClone" />
+        <activity android:name=".ui.story2.StoryGalleryActivity" android:exported="false" android:screenOrientation="portrait" />
+        <activity android:name=".ui.story2.StoryEditorActivity" android:exported="false" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize" />
         <!-- Create Story Modal Activity -->
-        <activity
-            android:name=".ui.create.CreateStoryActivity"
-            android:exported="false" />
 
         <!-- Fullscreen Story Viewer Activity -->
         <activity
             android:name=".ui.story.StoryViewerActivity" 
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode" 
-            android:exported="false" />
+            android:exported="true" />
 
         <!-- Direct Message Inbox Activity -->
+        <activity android:name=".ui.chat.MessageRequestsActivity" android:exported="true" />
+
         <activity
             android:name=".ui.chat.InboxActivity"
             android:exported="true" />
@@ -111,14 +119,23 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".ui.create.NewStoryActivity"
+            android:name=".ui.create.NewReelActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
             android:exported="false"
-            android:theme="@style/Theme.InstaClone.Live" />
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".ui.create.NewReelActivity" 
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode" 
+            android:name=".ui.create.ReelCameraActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.InstaClone"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.create.ReelEditActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.InstaClone"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
@@ -162,6 +179,11 @@
             android:exported="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
+
+        <service
+            android:name=".calling.CallForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall" />
 
         <!-- Chat Details Activity -->
         <activity
@@ -213,6 +235,7 @@
             <intent-filter>
                 <action android:name="com.insta.nova.ACTION_DECLINE_CALL" />
                 <action android:name="com.insta.nova.ACTION_ACCEPT_CALL" />
+                <action android:name="com.insta.nova.ACTION_END_CALL" />
             </intent-filter>
         </receiver>
 
@@ -225,7 +248,7 @@
 
         <activity
             android:name=".ui.chat.UserProfileActivity"
-            android:exported="false"
+            android:exported="true"
             android:screenOrientation="portrait" />
 
         <!-- Fullscreen Image Viewer Activity -->
@@ -256,10 +279,78 @@
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.settings.ArchiveActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ui.settings.AccountPrivacyActivity"
-            android:exported="false" />
+            android:exported="true" />
+
+        <!-- Prompt N — Settings and activity sub-pages -->
+        <activity android:name=".ui.settings.SimpleSettingsActivity" android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.settings.PeopleListActivity" android:exported="true" />
+        <activity android:name=".ui.create.TagPeopleActivity" android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.create.TagPlacementActivity" android:exported="false"
+            android:theme="@style/Theme.InstaClone" />
+        <activity android:name=".ui.settings.PeoplePickerActivity" android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.settings.HiddenWordsActivity" android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.settings.AccountInfoActivity" android:exported="true" />
+        <activity android:name=".ui.settings.ChangePasswordActivity" android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.settings.SessionsActivity" android:exported="true" />
+        <activity android:name=".ui.settings.DeactivateDeleteActivity" android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.settings.EditProfileActivity" android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.settings.ChatThemeAppearanceActivity" android:exported="true" />
+        <activity android:name=".ui.settings.CacheActivity" android:exported="true" />
+        <activity android:name=".ui.settings.YourActivityActivity" android:exported="true" />
+        <activity android:name=".ui.settings.SearchHistoryActivity" android:exported="true" />
+        <activity android:name=".ui.settings.DownloadDataActivity" android:exported="true" />
+        <activity android:name=".ui.settings.InsightsActivity" android:exported="true" />
+        <activity android:name=".ui.settings.AudienceAnalyticsActivity" android:exported="true" />
+        <activity android:name=".ui.settings.HelpCenterActivity" android:exported="true" />
+        <activity android:name=".ui.settings.ReportProblemActivity" android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.settings.ContactSupportActivity" android:exported="true" />
+        <activity android:name=".ui.settings.LegalActivity" android:exported="true" />
+        <activity android:name=".ui.settings.AboutActivity" android:exported="true" />
+        <activity android:name=".ui.profile.ShareProfileActivity" android:exported="true" />
+        <activity android:name=".hub.NovaIntroActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".safe.NovaSafeActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".sos.NovaSosActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".sos.SosCreateActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".sos.SosDetailActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".sos.SosDonorActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".sos.SosMyActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+
+        <activity android:name=".campus.NovaCampusActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".campus.CampusConfessionsActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".campus.CampusLostActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".lite.NovaLiteActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".study.NovaStudyActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".study.NovaQaActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".study.NovaQuestionActivity" android:exported="false" android:theme="@style/Theme.Nova" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".insights.NovaInsightsActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <activity android:name=".alerts.NovaAlertsActivity" android:exported="false" android:theme="@style/Theme.Nova" />
+        <!-- The Nova composer and the Nova post detail. -->
+        <activity android:name=".ui.nova.NovaComposerActivity" android:exported="false" android:theme="@style/Theme.Nova" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".hub.NovaPostDetailActivity" android:exported="false" android:theme="@style/Theme.Nova" android:windowSoftInputMode="adjustResize" />
+
+        <!-- Settings > Language: AppCompat only stores the chosen locale across
+             restarts when this metadata service is declared. Without it the
+             choice was applied for the running process and silently dropped on
+             the next cold start. -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>
