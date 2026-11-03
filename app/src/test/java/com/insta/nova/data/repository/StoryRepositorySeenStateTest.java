@@ -10,6 +10,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 
 import com.google.gson.JsonObject;
 import com.insta.nova.data.remote.api.RestApi;
+import com.insta.nova.data.remote.dto.StoryDto;
 import com.insta.nova.data.remote.dto.StoryGroupDto;
 import com.insta.nova.util.Resource;
 
@@ -80,6 +81,12 @@ public class StoryRepositorySeenStateTest {
                         recordedBodies.add(body);
                         return fakeCall();
                     }
+                    if ("getStories".equals(method.getName())) {
+                        // markStorySeen refreshes the tray; when the grouped view has no owner
+                        // row the repository falls back to v_stories. Answer it with an empty
+                        // page so the fake does not throw on a call it never stubbed.
+                        return fakeStoriesCall();
+                    }
                     if ("getStoryGroups".equals(method.getName())) {
                         storyGroupsCalls.incrementAndGet();
                         // Return an empty list; markStorySeen only consults this
@@ -115,6 +122,21 @@ public class StoryRepositorySeenStateTest {
                 (proxy, method, args) -> {
                     if ("enqueue".equals(method.getName())) {
                         Callback<List<StoryGroupDto>> cb = (Callback<List<StoryGroupDto>>) args[0];
+                        cb.onResponse(null, Response.success(Collections.emptyList()));
+                        return null;
+                    }
+                    return null;
+                });
+    }
+
+    @SuppressWarnings("unchecked")
+    private Call<List<StoryDto>> fakeStoriesCall() {
+        return (Call<List<StoryDto>>) Proxy.newProxyInstance(
+                Call.class.getClassLoader(),
+                new Class<?>[]{Call.class},
+                (proxy, method, args) -> {
+                    if ("enqueue".equals(method.getName())) {
+                        Callback<List<StoryDto>> cb = (Callback<List<StoryDto>>) args[0];
                         cb.onResponse(null, Response.success(Collections.emptyList()));
                         return null;
                     }
