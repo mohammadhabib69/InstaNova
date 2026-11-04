@@ -30,6 +30,11 @@ package.json
 package-lock.json
 local.properties
 
+# …except the tool trees that are part of the project: a functions deploy cannot work
+# without its manifest, and the rules-test harness is the only record of what is covered.
+!functions/package.json
+!tools/rules-tests/package.json
+
 # Test artifacts
 shots/
 screenshots/
@@ -42,3 +47,45 @@ tools/firebase-claims/*.json
 
 # Local data snapshots (contain profile PII) — never commit
 backups/
+
+# Firebase emulator artifacts (migration harness)
+firestore-debug.log
+ui-debug.log
+database-debug.log
+migration-export/
+
+# ---- local scratch that must never be committed -------------------------------
+# One-off SQL/API dumps from debugging (.a1.json, .q3.json, …)
+/.[a-z][0-9]*.json
+/.[a-z][0-9][0-9].json
+
+# Device capture / screenshot working dirs
+.device_test/
+.nova_shots/
+verify/
+_archive/
+image_generate/
+.shot.sh
+.schema/
+
+# Pulled device state (contains auth tokens) and DB dumps (contain PII)
+shared_prefs/
+*.tar
+*.dump
+
+# Typeset report intermediates
+report/
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.aux
+*.lof
+*.lot
+*.toc
+
+# Firebase emulator / crash logs
+*-debug.log
+
+# Python bytecode from migration tooling
+__pycache__/
+*.pyc
