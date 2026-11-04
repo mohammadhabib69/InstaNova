@@ -1,0 +1,65 @@
+-- DRAFT — NOT APPLIED. Chat bucket privacy (task P0-23).
+--
+-- WHY THIS IS STILL A DRAFT
+-- The `chat` bucket cannot be made private with a policy that Postgres can evaluate.
+-- Conversation membership lives in the Firebase Realtime Database (`chats/{cid}/members/{uid}`),
+-- not in this database, so a storage RLS predicate has no way to answer "is this caller a
+-- member of this conversation?". Two honest options:
+--
+--   (A) Mirror membership into Postgres and write the policy here. Fast, but duplicates
+--       state that already has a source of truth, and the mirror can drift from RTDB.
+--   (B) Mint short-lived signed URLs from an Edge Function that verifies membership in RTDB
+--       (needs a Firebase credential to read RTDB server-side) and returns the URL. No
+--       duplication, but it needs `supabase login` + an FCM/Firebase server credential.
+--
+-- Do NOT apply section 1 alone. Read the note on policies below.
+--
+-- THE PART MOST PEOPLE MISS
+-- Every bucket's read policy is `roles = {public}`:
+--     storage_avatars_read, storage_posts_read, storage_stories_read,
+--     storage_reels_read, storage_chat_read   -- all `TO public USING (bucket_id = ...)`
+-- The `public` flag on the bucket is not what grants read access — this policy is. Flipping
+-- `buckets.public` to false while leaving `storage_chat_read TO public` in place leaves the
+-- objects just as readable as before, while looking like a fix. Both must change together.
+
+-- ---------------------------------------------------------------------------
+-- 1. Bucket flag (necessary, NOT sufficient)
+-- ---------------------------------------------------------------------------
+-- update storage.buckets set public = false where name = 'chat';
+
+-- ---------------------------------------------------------------------------
+-- 2. Read policy — replace the public one. Requires a membership predicate.
+-- ---------------------------------------------------------------------------
+-- drop policy if exists storage_chat_read on storage.objects;
+--
+-- -- Option (A): membership mirrored into Postgres, e.g. chat_members(conversation_id, uid).
+-- create policy storage_chat_read on storage.objects
+--   for select to authenticated
+--   using (
+--     bucket_id = 'chat'
+--     and exists (
+--       select 1 from public.chat_members m
+--       where m.conversation_id = (storage.foldername(name))[1]
+--         and m.uid = (auth.jwt() ->> 'sub')
+--     )
+--   );
+--
+-- Option (B) needs no policy change here — signed URLs are validated by the storage service
+-- against the signing key, and the public read policy can then be dropped entirely.
+
+-- ---------------------------------------------------------------------------
+-- ROLLBACK (safe, restores today's behaviour exactly)
+-- ---------------------------------------------------------------------------
+-- update storage.buckets set public = true where name = 'chat';
+-- create policy storage_chat_read on storage.objects
+--   for select to public using (bucket_id = 'chat');
+
+-- ---------------------------------------------------------------------------
+-- VERIFICATION (run after applying, before telling anyone it works)
+-- ---------------------------------------------------------------------------
+-- 1. Existing chat image still renders in the app for BOTH participants.
+-- 2. A third account pasting the URL gets 400/403, not the image.
+-- 3. New upload still succeeds from both participants.
+-- 4. `select public from storage.buckets where name='chat'` → false
+-- 5. `select policyname, roles from pg_policies where schemaname='storage' and tablename='objects' and policyname='storage_chat_read'`
+--    → roles must NOT contain public.

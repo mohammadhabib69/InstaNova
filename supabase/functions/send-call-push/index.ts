@@ -1,6 +1,27 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.48.1";
 
+// Supabase is retiring JWT-based keys. Prefer the new secret key when the runtime provides it,
+// and fall back to the legacy service_role JWT so the function keeps working either way.
+function serviceKey(): string | undefined {
+  const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed === "string") return parsed;
+      if (parsed && typeof parsed === "object") {
+        const obj = parsed as Record<string, unknown>;
+        const first = obj.default ?? Object.values(obj)[0];
+        if (typeof first === "string") return first;
+      }
+    } catch {
+      // not JSON — fall through to the legacy variable
+    }
+  }
+  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+}
+
+
 /**
  * send-call-push — Prompt J
  *
@@ -157,7 +178,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseServiceKey = serviceKey();
 
     if (!supabaseUrl || !supabaseServiceKey) {
       return json(

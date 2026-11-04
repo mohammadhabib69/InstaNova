@@ -1,0 +1,77 @@
+-- ============================================================================
+-- Harden the grants on public.posts
+--
+-- STATUS: APPLIED to production on 2026-11-03. Verified afterwards — anon and
+--         authenticated now hold exactly DELETE,INSERT,SELECT,UPDATE on
+--         public.posts. The app was smoke tested on device: GET v_feed returned
+--         200 and the Instagram feed rendered with media. Rollback available
+--         in the sibling .rollback.sql.
+--
+-- WHAT WAS FOUND
+--   anon and authenticated both held the full table privilege set on
+--   public.posts: SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES and
+--   TRIGGER. Supabase grants this by default and relies on row level security
+--   to gate access, which works for the four DML privileges — RLS is on and
+--   there are four policies (select / insert-own / update-own / delete-own).
+--
+--   RLS does NOT apply to TRUNCATE, REFERENCES or TRIGGER. PostgREST cannot
+--   issue any of them, so nothing is reachable over the API today, but the
+--   grants are broader than any client needs and cost nothing to remove.
+--
+-- WHAT THIS MIGRATION DOES
+--   Revokes the three non-DML privileges from the client roles. SELECT,
+--   INSERT, UPDATE and DELETE are left exactly as they are, so every existing
+--   client path keeps working: reads go through v_posts / v_feed / v_saved and
+--   writes go through POST/PATCH/DELETE on rest/v1/posts.
+--
+-- WHAT THIS MIGRATION DELIBERATELY DOES NOT DO
+--   It does not remove table-level SELECT from public.posts. Doing that safely
+--   needs three changes that are not in place yet:
+--
+--     1. column-level grants on posts instead of a table grant;
+--     2. the insert and update paths switched to `Prefer: return=minimal`,
+--        because with table SELECT revoked a PostgREST write that asks for a
+--        representation has no privilege to read the row back. The app's
+--        RestApi.createPost / updateCaption return the row today;
+--     3. security_invoker=false on v_posts / v_feed / v_saved so the views keep
+--        running as their owner (they are already owned by postgres and have
+--        security_invoker unset, i.e. the same behaviour — this makes it
+--        explicit rather than relying on the default).
+--
+--   Note that table-level SELECT on posts is NOT a privacy break on its own.
+--   posts_select is `using (true)`, so any client can read any post row — but
+--   the only identity column is user_id, which is the public author of a normal
+--   post and the system profile for an anonymous one. The real author of an
+--   anonymous post lives in posts_anon_owners, which is sealed: RLS on, and
+--   only postgres and service_role hold any grant.
+-- ============================================================================
+
+revoke truncate, references, trigger on public.posts from anon;
+revoke truncate, references, trigger on public.posts from authenticated;
+
+-- ============================================================================
+-- Verification (run separately; expected results noted)
+-- ============================================================================
+-- 1. The client roles must keep exactly the four DML privileges:
+--
+--   select grantee, string_agg(privilege_type, ',' order by privilege_type)
+--   from information_schema.role_table_grants
+--   where table_schema='public' and table_name='posts'
+--     and grantee in ('anon','authenticated')
+--   group by grantee;
+--
+--   Expect: anon -> DELETE,INSERT,SELECT,UPDATE
+--           authenticated -> DELETE,INSERT,SELECT,UPDATE
+--
+-- 2. RLS must still be on with its four policies:
+--
+--   select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace
+--   where n.nspname='public' and c.relname='posts';
+--   select policyname, cmd from pg_policies where schemaname='public' and tablename='posts';
+--
+-- 3. The app's reads must be unaffected (they go through the views):
+--
+--   select count(*) from public.v_feed;
+--   select count(*) from public.v_posts;
+--   select count(*) from public.v_saved;
+-- ============================================================================
