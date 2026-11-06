@@ -1,0 +1,1010 @@
+{
+  "version": 1,
+  "note": "Rule-based moderation lexicon. Terms are matched after normalisation (NFKC, lowercase, leetspeak, zero-width removal, repeated-letter collapse, single-letter chains). Severity 0 = clean, 1 = mild, 2 = harmful, 3 = severe. Context reducers clamp a match to severity 1.",
+  "whitelist": [
+    "assassin",
+    "assassinate",
+    "class",
+    "classes",
+    "classic",
+    "classification",
+    "bass",
+    "grass",
+    "pass",
+    "passing",
+    "mass",
+    "massive",
+    "assistant",
+    "assist",
+    "assume",
+    "analysis",
+    "scunthorpe",
+    "cockpit",
+    "cocktail",
+    "peacock",
+    "document",
+    "documentary",
+    "shell",
+    "skill",
+    "skilled",
+    "deadline",
+    "butter",
+    "shuttle",
+    "sexton",
+    "sussex",
+    "denude",
+    "therapist",
+    "hello",
+    "highlight",
+    "terrorist_analysis",
+    "killer_app",
+    "flame retardant",
+    "retardant",
+    "terrorism",
+    "counter terrorism",
+    "died",
+    "the die is cast"
+  ],
+  "context_reducers": [
+    "jk",
+    "joking",
+    "just kidding",
+    "kidding",
+    "lol",
+    "lmao",
+    "haha",
+    "bro",
+    "friend",
+    "মজা",
+    "হাসি",
+    "ঠাট্টা",
+    "ভাই",
+    "কৌতুক"
+  ],
+  "terms": [
+    {
+      "term": "idiot",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "idiot",
+        "idiots",
+        "idiotic"
+      ]
+    },
+    {
+      "term": "stupid",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "stupid",
+        "stupidity",
+        "stupida"
+      ]
+    },
+    {
+      "term": "dumb",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "dumb",
+        "dumbest",
+        "dumbo"
+      ]
+    },
+    {
+      "term": "moron",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "moron",
+        "moronic",
+        "morons"
+      ]
+    },
+    {
+      "term": "loser",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "loser",
+        "losers"
+      ]
+    },
+    {
+      "term": "ugly",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "ugly",
+        "ugliest"
+      ]
+    },
+    {
+      "term": "worthless",
+      "category": "insult",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "worthless"
+      ]
+    },
+    {
+      "term": "pathetic",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "pathetic"
+      ]
+    },
+    {
+      "term": "trash",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "trash",
+        "trashy"
+      ]
+    },
+    {
+      "term": "fool",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "fool",
+        "foolish"
+      ]
+    },
+    {
+      "term": "bitch",
+      "category": "insult",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "bitch",
+        "bitches",
+        "bitchy",
+        "biatch"
+      ]
+    },
+    {
+      "term": "bastard",
+      "category": "insult",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "bastard",
+        "bastards"
+      ]
+    },
+    {
+      "term": "fuck",
+      "category": "insult",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "fuck",
+        "fck",
+        "fuk",
+        "fucking",
+        "fucked",
+        "fucker"
+      ]
+    },
+    {
+      "term": "shit",
+      "category": "insult",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "shit",
+        "shitty",
+        "bullshit"
+      ]
+    },
+    {
+      "term": "boka",
+      "category": "insult",
+      "severity": 1,
+      "script": "banglish",
+      "variants": [
+        "boka",
+        "bokachoda",
+        "bekuf",
+        "befokuf"
+      ]
+    },
+    {
+      "term": "gadha",
+      "category": "insult",
+      "severity": 1,
+      "script": "banglish",
+      "variants": [
+        "gadha",
+        "gadhar"
+      ]
+    },
+    {
+      "term": "pagol",
+      "category": "insult",
+      "severity": 1,
+      "script": "banglish",
+      "variants": [
+        "pagol",
+        "pagla"
+      ]
+    },
+    {
+      "term": "shala",
+      "category": "insult",
+      "severity": 1,
+      "script": "banglish",
+      "variants": [
+        "shala",
+        "sala",
+        "shalaa"
+      ]
+    },
+    {
+      "term": "harami",
+      "category": "insult",
+      "severity": 2,
+      "script": "banglish",
+      "variants": [
+        "harami",
+        "haramjada",
+        "haramzada"
+      ]
+    },
+    {
+      "term": "kutta",
+      "category": "insult",
+      "severity": 2,
+      "script": "banglish",
+      "variants": [
+        "kutta",
+        "kuttar",
+        "kuttaa"
+      ]
+    },
+    {
+      "term": "chagol",
+      "category": "insult",
+      "severity": 1,
+      "script": "banglish",
+      "variants": [
+        "chagol"
+      ]
+    },
+    {
+      "term": "chutiya",
+      "category": "insult",
+      "severity": 2,
+      "script": "banglish",
+      "variants": [
+        "chutiya",
+        "chutia",
+        "chootiya"
+      ]
+    },
+    {
+      "term": "madarchod",
+      "category": "insult",
+      "severity": 3,
+      "script": "banglish",
+      "variants": [
+        "madarchod",
+        "madarchud",
+        "maderchod"
+      ]
+    },
+    {
+      "term": "bhenchod",
+      "category": "insult",
+      "severity": 3,
+      "script": "banglish",
+      "variants": [
+        "bhenchod",
+        "bainchod",
+        "banchod"
+      ]
+    },
+    {
+      "term": "randi",
+      "category": "insult",
+      "severity": 3,
+      "script": "banglish",
+      "variants": [
+        "randi",
+        "randir"
+      ]
+    },
+    {
+      "term": "বোকা",
+      "category": "insult",
+      "severity": 1,
+      "script": "bangla",
+      "variants": [
+        "বোকা",
+        "বোকাচোদা"
+      ]
+    },
+    {
+      "term": "গাধা",
+      "category": "insult",
+      "severity": 1,
+      "script": "bangla",
+      "variants": [
+        "গাধা"
+      ]
+    },
+    {
+      "term": "পাগল",
+      "category": "insult",
+      "severity": 1,
+      "script": "bangla",
+      "variants": [
+        "পাগল",
+        "পাগলা"
+      ]
+    },
+    {
+      "term": "শালা",
+      "category": "insult",
+      "severity": 1,
+      "script": "bangla",
+      "variants": [
+        "শালা"
+      ]
+    },
+    {
+      "term": "হারামি",
+      "category": "insult",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "হারামি",
+        "হারামজাদা"
+      ]
+    },
+    {
+      "term": "কুত্তা",
+      "category": "insult",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "কুত্তা",
+        "কুত্তার"
+      ]
+    },
+    {
+      "term": "মাদারচোদ",
+      "category": "insult",
+      "severity": 3,
+      "script": "bangla",
+      "variants": [
+        "মাদারচোদ"
+      ]
+    },
+    {
+      "term": "খানকি",
+      "category": "insult",
+      "severity": 3,
+      "script": "bangla",
+      "variants": [
+        "খানকি"
+      ]
+    },
+    {
+      "term": "kill you",
+      "category": "threat",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "kill you",
+        "killing you",
+        "will kill you",
+        "killyou"
+      ]
+    },
+    {
+      "term": "kill yourself",
+      "category": "threat",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "kill yourself",
+        "kys",
+        "killyourself"
+      ]
+    },
+    {
+      "term": "murder you",
+      "category": "threat",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "murder you",
+        "murder him",
+        "murder her",
+        "murderyou"
+      ]
+    },
+    {
+      "term": "beat you",
+      "category": "threat",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "beat you",
+        "beat you up",
+        "beat him up",
+        "beatyou"
+      ]
+    },
+    {
+      "term": "break your bones",
+      "category": "threat",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "break your bones",
+        "break your legs"
+      ]
+    },
+    {
+      "term": "you will regret",
+      "category": "threat",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "you will regret",
+        "youll regret"
+      ]
+    },
+    {
+      "term": "watch your back",
+      "category": "threat",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "watch your back",
+        "watchyourback"
+      ]
+    },
+    {
+      "term": "i know where you live",
+      "category": "threat",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "i know where you live",
+        "know where you live",
+        "iknowwhereyoulive"
+      ]
+    },
+    {
+      "term": "মেরে ফেলব",
+      "category": "threat",
+      "severity": 3,
+      "script": "bangla",
+      "variants": [
+        "মেরে ফেলব",
+        "মেরে ফেলবো"
+      ]
+    },
+    {
+      "term": "খুন করব",
+      "category": "threat",
+      "severity": 3,
+      "script": "bangla",
+      "variants": [
+        "খুন করব",
+        "খুন করবো"
+      ]
+    },
+    {
+      "term": "গলা টিপে",
+      "category": "threat",
+      "severity": 3,
+      "script": "bangla",
+      "variants": [
+        "গলা টিপে",
+        "গলা টিপে মারব"
+      ]
+    },
+    {
+      "term": "মারব",
+      "category": "threat",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "মারব",
+        "মারবো",
+        "ধর মেরে"
+      ]
+    },
+    {
+      "term": "mere felbo",
+      "category": "threat",
+      "severity": 3,
+      "script": "banglish",
+      "variants": [
+        "mere felbo",
+        "mere felboh",
+        "kune felbo"
+      ]
+    },
+    {
+      "term": "send nudes",
+      "category": "harassment",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "send nudes",
+        "send nude",
+        "nudes please",
+        "send pics",
+        "sendnudes"
+      ]
+    },
+    {
+      "term": "send me pictures",
+      "category": "harassment",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "send me pictures",
+        "send me pics",
+        "sendmepictures"
+      ]
+    },
+    {
+      "term": "stalk",
+      "category": "harassment",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "stalk",
+        "stalking",
+        "stalker"
+      ]
+    },
+    {
+      "term": "creep",
+      "category": "harassment",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "creep"
+      ]
+    },
+    {
+      "term": "harass",
+      "category": "harassment",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "harass",
+        "harassing",
+        "harassment"
+      ]
+    },
+    {
+      "term": "i will follow you",
+      "category": "harassment",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "i will follow you",
+        "follow you everywhere",
+        "iwillfollowyou"
+      ]
+    },
+    {
+      "term": "হয়রানি",
+      "category": "harassment",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "হয়রানি",
+        "হয়রানী"
+      ]
+    },
+    {
+      "term": "নির্যাতন",
+      "category": "harassment",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "নির্যাতন"
+      ]
+    },
+    {
+      "term": "জোর করে",
+      "category": "harassment",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "জোর করে",
+        "জোর করে ধরব"
+      ]
+    },
+    {
+      "term": "subhuman",
+      "category": "hate",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "subhuman",
+        "subhumans"
+      ]
+    },
+    {
+      "term": "vermin",
+      "category": "hate",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "vermin"
+      ]
+    },
+    {
+      "term": "inferior race",
+      "category": "hate",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "inferior race",
+        "inferior religion",
+        "inferiorrace"
+      ]
+    },
+    {
+      "term": "go back to your country",
+      "category": "hate",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "go back to your country",
+        "go back to your own country"
+      ]
+    },
+    {
+      "term": "filthy refugee",
+      "category": "hate",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "filthy refugee",
+        "dirty refugee"
+      ]
+    },
+    {
+      "term": "দেশ ছাড়",
+      "category": "hate",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "দেশ ছাড়",
+        "দেশ ছেড়ে দে"
+      ]
+    },
+    {
+      "term": "ঘৃণা করি",
+      "category": "hate",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "ঘৃণা করি",
+        "ঘৃণা করছি"
+      ]
+    },
+    {
+      "term": "nude",
+      "category": "sexual",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "nude",
+        "nudes",
+        "nudity"
+      ]
+    },
+    {
+      "term": "porn",
+      "category": "sexual",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "porn",
+        "porno",
+        "pornography"
+      ]
+    },
+    {
+      "term": "sex chat",
+      "category": "sexual",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "sex chat",
+        "sexting",
+        "sex",
+        "sexchat"
+      ]
+    },
+    {
+      "term": "rape",
+      "category": "sexual",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "rape",
+        "raping",
+        "rapist"
+      ]
+    },
+    {
+      "term": "child porn",
+      "category": "sexual",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "child porn",
+        "cp links",
+        "underage pics",
+        "childporn"
+      ]
+    },
+    {
+      "term": "বেশ্যা",
+      "category": "sexual",
+      "severity": 3,
+      "script": "bangla",
+      "variants": [
+        "বেশ্যা"
+      ]
+    },
+    {
+      "term": "মাগী",
+      "category": "sexual",
+      "severity": 2,
+      "script": "bangla",
+      "variants": [
+        "মাগী"
+      ]
+    },
+    {
+      "term": "ধর্ষণ",
+      "category": "sexual",
+      "severity": 3,
+      "script": "bangla",
+      "variants": [
+        "ধর্ষণ",
+        "ধর্ষণ করব"
+      ]
+    },
+    {
+      "term": "চোদা",
+      "category": "sexual",
+      "severity": 3,
+      "script": "bangla",
+      "variants": [
+        "চোদা",
+        "চুদি",
+        "চোদাচুদি"
+      ]
+    },
+    {
+      "term": "free followers",
+      "category": "spam",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "free followers",
+        "free likes",
+        "free followers fast",
+        "freefollowers"
+      ]
+    },
+    {
+      "term": "click here",
+      "category": "spam",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "click here",
+        "click the link",
+        "click now",
+        "clickhere"
+      ]
+    },
+    {
+      "term": "earn money",
+      "category": "spam",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "earn money",
+        "make money fast",
+        "earn from home",
+        "earnmoney"
+      ]
+    },
+    {
+      "term": "whatsapp me",
+      "category": "spam",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "whatsapp me",
+        "dm me",
+        "inbox me",
+        "whatsappme"
+      ]
+    },
+    {
+      "term": "subscribe",
+      "category": "spam",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "subscribe",
+        "subscribe now"
+      ]
+    },
+    {
+      "term": "লটারি",
+      "category": "spam",
+      "severity": 1,
+      "script": "bangla",
+      "variants": [
+        "লটারি",
+        "লটারি জিতেছেন",
+        "লটারিতে",
+        "লটারির"
+      ]
+    },
+    {
+      "term": "টাকা আয়",
+      "category": "spam",
+      "severity": 1,
+      "script": "bangla",
+      "variants": [
+        "টাকা আয়",
+        "টাকা ইনকাম"
+      ]
+    },
+    {
+      "term": "লিংকে ক্লিক",
+      "category": "spam",
+      "severity": 1,
+      "script": "bangla",
+      "variants": [
+        "লিংকে ক্লিক",
+        "লিংকে ক্লিক করুন"
+      ]
+    },
+    {
+      "term": "go die",
+      "category": "threat",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "go die",
+        "just die",
+        "die already",
+        "hope you die",
+        "should die",
+        "here die",
+        "die loser",
+        "die now"
+      ]
+    },
+    {
+      "term": "hurt you",
+      "category": "threat",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "hurt you",
+        "hurt u",
+        "will hurt you",
+        "gonna hurt you",
+        "beat you"
+      ]
+    },
+    {
+      "term": "find you",
+      "category": "threat",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "find you",
+        "find u",
+        "i will find you",
+        "coming for you",
+        "come for you"
+      ]
+    },
+    {
+      "term": "shoot",
+      "category": "threat",
+      "severity": 3,
+      "script": "english",
+      "variants": [
+        "shoot you",
+        "shoot your",
+        "will shoot",
+        "shoot him",
+        "shoot her"
+      ]
+    },
+    {
+      "term": "get cancer",
+      "category": "harassment",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "get cancer",
+        "hope you get cancer",
+        "die of cancer"
+      ]
+    },
+    {
+      "term": "terrorist",
+      "category": "hate",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "all terrorists",
+        "you terrorist",
+        "bloody terrorist",
+        "you are a terrorist"
+      ]
+    },
+    {
+      "term": "retard",
+      "category": "insult",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "retard",
+        "retards",
+        "retarded"
+      ]
+    },
+    {
+      "term": "whore",
+      "category": "insult",
+      "severity": 2,
+      "script": "english",
+      "variants": [
+        "whore",
+        "whores",
+        "whoring"
+      ]
+    },
+    {
+      "term": "buy followers",
+      "category": "spam",
+      "severity": 1,
+      "script": "english",
+      "variants": [
+        "buy followers",
+        "cheap followers",
+        "followers for sale"
+      ]
+    }
+  ]
+}
