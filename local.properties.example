@@ -1,4 +1,8 @@
 ## Copy this file to local.properties and fill in values.
+## local.properties is untracked (see .gitignore) — never commit real keys.
 sdk.dir=
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
+## Optional: trusted endpoint that grants the Firebase custom claim Supabase RLS needs.
+## The migration replaces this mechanism entirely (see docs/migration/ARCHITECTURE.md).
+CLAIM_PROVISION_URL=
