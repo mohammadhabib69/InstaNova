@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Native update popup. Deliberately built from the existing design tokens
+  (themeSheet / themeTextPrimary / themeTextSecondary / color_primary) so no
+  InstaNova screen changes appearance — this card is the only new surface.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_update_dialog"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <ImageView
+        android:id="@+id/updateIcon"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_update_download"
+        android:tint="?attr/themePrimary" />
+
+    <TextView
+        android:id="@+id/tvUpdateTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:text="@string/update_available_title"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="21sp" />
+
+    <TextView
+        android:id="@+id/tvUpdateVersion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:textColor="?attr/themeTextSecondary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tvWhatsNew"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/update_whats_new"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:id="@+id/notesScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:overScrollMode="ifContentScrolls"
+        android:scrollbars="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/notesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/updateProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:visibility="gone"
+        app:trackCornerRadius="4dp"
+        app:trackThickness="6dp" />
+
+    <TextView
+        android:id="@+id/tvUpdateStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:lineSpacingMultiplier="1.2"
+        android:textColor="?attr/themeTextSecondary"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnUpdateNow"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="22dp"
+        android:background="@drawable/bg_button_primary"
+        android:stateListAnimator="@null"
+        android:text="@string/update_now"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnLater"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_button_secondary"
+        android:stateListAnimator="@null"
+        android:text="@string/update_later"
+        android:textAllCaps="false"
+        android:textColor="?attr/themeTextPrimary"
+        android:textSize="15sp" />
+</LinearLayout>

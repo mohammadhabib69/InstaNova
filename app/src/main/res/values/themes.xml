@@ -382,4 +382,38 @@
         <item name="android:textSize">14sp</item>
         <item name="android:gravity">center</item>
     </style>
+
+    <!-- ============================================================= -->
+    <!-- Native OTA update popup                                       -->
+    <!-- Transparent, borderless dialog window; the card in              -->
+    <!-- dialog_update_available.xml draws its own surface. The custom  -->
+    <!-- theme attributes are re-declared here because a dialog theme   -->
+    <!-- does not inherit Theme.InstaClone (same approach as the splash -->
+    <!-- theme above).                                                  -->
+    <!-- ============================================================= -->
+    <style name="Theme.InstaClone.UpdateDialog" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowMinWidthMajor">80%</item>
+        <item name="android:windowMinWidthMinor">90%</item>
+
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorPrimaryVariant">@color/color_primary</item>
+        <item name="colorSecondary">@color/color_primary</item>
+        <item name="colorAccent">@color/color_primary</item>
+        <item name="android:colorBackground">@color/color_background</item>
+        <item name="colorSurface">@color/color_background</item>
+        <item name="colorOnSurface">@color/color_text_primary</item>
+
+        <item name="themeBackground">@color/color_background</item>
+        <item name="themeTextPrimary">@color/color_text_primary</item>
+        <item name="themeTextSecondary">@color/color_text_secondary</item>
+        <item name="themeSurfaceVariant">@color/color_surface_variant</item>
+        <item name="themeDivider">@color/color_divider</item>
+        <item name="themePrimary">@color/color_primary</item>
+        <item name="themeLike">@color/color_like</item>
+        <item name="themeSheet">@color/color_sheet</item>
+    </style>
 </resources>

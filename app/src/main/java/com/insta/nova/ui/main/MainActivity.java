@@ -119,6 +119,9 @@ public class MainActivity extends AppCompatActivity {
         novaRepository = new NovaRepository(this);
         profileRepository = new ProfileRepository(this);
         sessionManager = SessionManager.getInstance(this);
+        // Record who is signed in: the switcher needs the row, and a later username
+        // login needs the address (Supabase has no auth users to look it up from).
+        com.insta.nova.data.AccountSync.sync(this);
 
         applyBottomInsets();
 

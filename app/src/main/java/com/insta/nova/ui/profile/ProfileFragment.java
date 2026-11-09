@@ -631,16 +631,20 @@ public class ProfileFragment extends Fragment {
         dialog.show();
     }
 
+    /**
+     * Opens the sign-in form with the chosen account already filled in.
+     *
+     * <p>The previous implementation signed the current account out and cleared the task
+     * before the new sign-in had happened, so backing out of the form left the user with
+     * no session at all. Nothing is destroyed now: the session only changes when a new
+     * sign-in actually succeeds, and pressing back returns to the app as before.
+     */
     private void switchToAccount(String username) {
-        com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
-        sessionManager.clearSession();
         Intent intent = new Intent(requireContext(), AuthActivity.class);
         if (username != null && !username.isEmpty()) {
             intent.putExtra(AuthActivity.EXTRA_PREFILL_USERNAME, username);
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        requireActivity().finish();
     }
 
     /** Avatar sheet: view the photo full screen, or replace it. */

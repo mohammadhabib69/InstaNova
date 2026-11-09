@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Update card: same flat surface + hairline treatment as the rest of the app,
+      so the new popup reads as part of InstaNova rather than a bolt-on. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/themeSheet" />
+    <corners android:radius="16dp" />
+</shape>

@@ -31,6 +31,34 @@ if (!supabaseUrl.isEmpty() && !supabaseUrl.endsWith('/')) {
     supabaseUrl = supabaseUrl + '/'
 }
 
+// Native OTA updates — the manifest published as a GitHub Release asset.
+// "releases/latest/download/<asset>" always resolves to the newest non-prerelease
+// release, so the URL never changes from one version to the next. Override it in
+// local.properties only when testing against a fork.
+// A build can also override it with -PupdateManifestUrl=... (used by the local
+// update-flow test harness).
+String updateManifestUrl = project.findProperty('updateManifestUrl') ?: ''
+if (updateManifestUrl == null) updateManifestUrl = ''
+if (updateManifestUrl.trim().isEmpty()) {
+    updateManifestUrl = localProps.getProperty('UPDATE_MANIFEST_URL',
+            localProps.getProperty('update.manifest_url', ''))
+}
+if (updateManifestUrl == null) updateManifestUrl = ''
+updateManifestUrl = updateManifestUrl.trim()
+if (updateManifestUrl.isEmpty()) {
+    updateManifestUrl = 'https://github.com/mohammadhabib69/InstaNova/releases/latest/download/latest.json'
+}
+
+// Optional release signing. The OTA flow only works while every release is signed with
+// the same key, because the platform installer refuses an update whose signature differs
+// from the installed app. Kept out of the repository: values come from local.properties.
+String releaseStoreFile = localProps.getProperty('RELEASE_STORE_FILE', '')
+String releaseStorePassword = localProps.getProperty('RELEASE_STORE_PASSWORD', '')
+String releaseKeyAlias = localProps.getProperty('RELEASE_KEY_ALIAS', '')
+String releaseKeyPassword = localProps.getProperty('RELEASE_KEY_PASSWORD', '')
+if (releaseStoreFile == null) releaseStoreFile = ''
+boolean hasReleaseSigning = !releaseStoreFile.trim().isEmpty()
+
 android {
     namespace 'com.insta.nova'
     compileSdk 34
@@ -40,8 +68,13 @@ android {
         applicationId "com.insta.nova"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        // Bump BOTH for every OTA release. versionCode is what Android and the in-app
+        // updater compare; versionName is what the update dialog shows. The release
+        // script (tools/ota/release.sh) reads these values and embeds them in latest.json.
+        // The -PappVersionCode / -PappVersionName overrides exist so the OTA test harness
+        // can build an "old" and a "new" APK without editing this file.
+        versionCode((project.findProperty('appVersionCode') ?: 2) as int)
+        versionName(project.findProperty('appVersionName') ?: "1.1.0")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -65,6 +98,21 @@ android {
         // empty. The target rule is "profiles live in Firestore", so the document has to exist
         // from the first session, not from a later bulk copy.
         buildConfigField "boolean", "FIREBASE_MIRROR", "true"
+
+        // Where the native updater reads the latest release from. Empty is not a valid
+        // state: without it the checker logs "not configured" and stays silent.
+        buildConfigField "String", "UPDATE_MANIFEST_URL", "\"${updateManifestUrl}\""
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(releaseStoreFile.trim())
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -74,6 +122,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
@@ -176,3 +227,17 @@ dependencies {
     testImplementation 'org.json:json:20231013'
 }
 
+
+/*
+ * Release metadata for the OTA pipeline (tools/ota/release.sh).
+ *
+ * Reads the values the build actually used — including the -P overrides — so the
+ * generated latest.json can never disagree with the APK next to it.
+ */
+tasks.register('printOtaVersion') {
+    doLast {
+        println "versionCode=${android.defaultConfig.versionCode}"
+        println "versionName=${android.defaultConfig.versionName}"
+        println "applicationId=${android.defaultConfig.applicationId}"
+    }
+}

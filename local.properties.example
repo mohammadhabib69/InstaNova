@@ -6,3 +6,15 @@ SUPABASE_ANON_KEY=
 ## Optional: trusted endpoint that grants the Firebase custom claim Supabase RLS needs.
 ## The migration replaces this mechanism entirely (see docs/migration/ARCHITECTURE.md).
 CLAIM_PROVISION_URL=
+
+## --- Native OTA updates (docs/OTA_UPDATES.md) --------------------------------
+## Manifest URL. Empty = the project default
+## https://github.com/mohammadhabib69/InstaNova/releases/latest/download/latest.json
+UPDATE_MANIFEST_URL=
+
+## Release signing. Required to build the APK that GitHub Releases serves; every
+## release must use the SAME key or the in-app signature check rejects the update.
+RELEASE_STORE_FILE=
+RELEASE_STORE_PASSWORD=
+RELEASE_KEY_ALIAS=
+RELEASE_KEY_PASSWORD=

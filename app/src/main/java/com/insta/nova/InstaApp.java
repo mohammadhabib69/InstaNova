@@ -56,6 +56,11 @@ public class InstaApp extends Application {
         // PAGE 17: presence heartbeat — touch_active() on start and every 60 s while
         // the app is in the foreground. No-ops if the RPC is missing.
         com.insta.nova.data.repository.ChatRepository.startPresenceHeartbeat(this);
+
+        // Native OTA: one GitHub check per app launch, fired from the first real screen
+        // that resumes. Registered last and wrapped internally, so a failing update check
+        // can never affect startup, auth, Firestore, the realtime database or Supabase.
+        registerActivityLifecycleCallbacks(new com.insta.nova.update.UpdateLaunchWatcher());
     }
 
 
