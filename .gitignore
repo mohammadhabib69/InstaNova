@@ -89,3 +89,8 @@ report/
 # Python bytecode from migration tooling
 __pycache__/
 *.pyc
+
+# Plugin/tool caches and bulky documentation dumps
+.buyer-execution-hooks/
+docs/migration/
+docs/prompt_*/
