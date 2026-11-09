@@ -175,17 +175,24 @@ public class HomeViewModel extends AndroidViewModel {
             // observer never received the value, so Home only ever showed the cache.
             // Discovery pool + local mix. v_feed only carried own + followed rows, so an
             // account following one quiet poster saw a timeline of its own posts.
-            postRepository.loadDiscoveryFeed(Constants.PAGE_SIZE_FEED, 0, fetchedRaw -> {
+            // Pull a pool rather than exactly one screen. The query is always
+            // "newest N", so asking for N returned the very same rows on every refresh and
+            // the feed looked frozen no matter how often it was pulled.
+            final int poolSize = Constants.PAGE_SIZE_FEED * 3;
+            postRepository.loadDiscoveryFeed(poolSize, 0, fetchedRaw -> {
                 if (generation != loadGeneration) return;
-                List<Post> fetched = mixFeed(sanitizePosts(fetchedRaw));
+                List<Post> pool = sanitizePosts(fetchedRaw);
+                List<Post> fetched = mixFeed(pool, Constants.PAGE_SIZE_FEED);
                 List<Post> merged = mergeLocalPosts(fetched);
                 postsLiveData.setValue(merged);
-                feedOffset = fetchedRaw == null ? 0 : fetchedRaw.size();
+                // Paging continues after the whole pool, so the rows the sample left out
+                // are never repeated and the next page never overlaps this one.
+                feedOffset = pool.size();
                 if (!fetched.isEmpty()) {
                     lastCreatedAtCursor = TimeUtils.toSupabaseTimestamp(
                             fetched.get(fetched.size() - 1).getCreatedAt());
                 }
-                hasMorePosts = feedOffset >= Constants.PAGE_SIZE_FEED;
+                hasMorePosts = pool.size() >= poolSize;
                 isAllCaughtUpLiveData.setValue(!hasMorePosts && !fetched.isEmpty());
                 isRefreshingLiveData.setValue(false);
                 saveFeedCache(fetched);
@@ -263,7 +270,7 @@ public class HomeViewModel extends AndroidViewModel {
                     isLoadingMoreLiveData.setValue(false);
                     return;
                 }
-                List<Post> fetched = mixFeed(sanitizePosts(fetchedRaw));
+                List<Post> fetched = mixFeed(sanitizePosts(fetchedRaw), 0);
                 if (!fetched.isEmpty()) {
                     List<Post> current = new ArrayList<>(sanitizePosts(postsLiveData.getValue()));
                     current.addAll(fetched);
@@ -296,7 +303,7 @@ public class HomeViewModel extends AndroidViewModel {
      * {@link #OWN_POST_WINDOW_MS} old, which is what makes "I just posted, show it once, then
      * get out of the way" true instead of a timeline of only my own posts.
      */
-    private List<Post> mixFeed(List<Post> page) {
+    private List<Post> mixFeed(List<Post> page, int limit) {
         List<Post> ordered = new ArrayList<>();
         if (page == null || page.isEmpty()) return ordered;
 
@@ -321,9 +328,19 @@ public class HomeViewModel extends AndroidViewModel {
             ordered.add(at, mine.get(0));
             ownRowsShown++;
         }
-        // A brand-new account has nobody else to show yet; without this the feed would open
-        // empty and look broken.
-        if (ordered.isEmpty() && !mine.isEmpty()) ordered.add(mine.get(0));
+        // Sparse timeline. Keeping own posts to a single row is right when there is a real
+        // timeline, but with one or two posts from other people it left Home showing a couple
+        // of items and nothing to scroll. Top the screen up with the newest own posts.
+        if (limit > 0 && ordered.size() < limit && !mine.isEmpty()) {
+            for (Post own : mine) {
+                if (ordered.size() >= limit) break;
+                if (!ordered.contains(own)) ordered.add(own);
+            }
+        }
+        // One screen's worth of the shuffled pool.
+        if (limit > 0 && ordered.size() > limit) {
+            return new ArrayList<>(ordered.subList(0, limit));
+        }
         return ordered;
     }
 

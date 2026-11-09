@@ -121,8 +121,8 @@ def main() -> None:
     master_dir = ROOT / "brand"
     master_dir.mkdir(exist_ok=True)
     master = padded.resize((1024, 1024), Image.LANCZOS)
+    # One master only: the second save wrote a byte-identical copy of the same 1024² image.
     master.save(master_dir / "instanova_logo.png")
-    master.save(master_dir / "instanova_logo_1024.png")
 
     # In-app mark: one high-res bitmap, density independent.
     nodpi = RES / "drawable-nodpi"
