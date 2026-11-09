@@ -2,4 +2,28 @@
 <resources>
     <!-- Bangla overrides for strings the Nova dialogs use from the base set. -->
     <string name="cancel">বাতিল</string>
+
+    <!-- Native OTA updater -->
+    <string name="update_available_title">নতুন আপডেট পাওয়া গেছে</string>
+    <string name="update_available_version">সংস্করণ %1$s ইনস্টল করার জন্য প্রস্তুত</string>
+    <string name="update_whats_new">নতুন কী আছে</string>
+    <string name="update_now">এখনই আপডেট করুন</string>
+    <string name="update_later">পরে</string>
+    <string name="update_retry">আবার চেষ্টা করুন</string>
+    <string name="update_downloading_title">আপডেট ডাউনলোড হচ্ছে</string>
+    <string name="update_downloading_body">InstaNova %1$s</string>
+    <string name="update_progress">ডাউনলোড হচ্ছে… %1$d%%</string>
+    <string name="update_verifying">ডাউনলোড করা আপডেট যাচাই করা হচ্ছে…</string>
+    <string name="update_ready_title">আপডেট ইনস্টলের জন্য প্রস্তুত</string>
+    <string name="update_ready_body">InstaNova %1$s ইনস্টল করতে ট্যাপ করুন</string>
+    <string name="update_ready_status">ডাউনলোড সম্পন্ন। পরের স্ক্রিনে ইনস্টলেশন শেষ করুন।</string>
+    <string name="update_permission_status">InstaNova-কে অ্যাপ ইনস্টল করার অনুমতি দিন, তারপর আপডেট শেষ করতে ফিরে আসুন।</string>
+    <string name="update_failed_title">আপডেট ডাউনলোড ব্যর্থ হয়েছে</string>
+    <string name="update_failed_body">আপডেট ডাউনলোড করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।</string>
+    <string name="update_verify_failed">ডাউনলোড করা আপডেটটি যাচাই করা যায়নি।</string>
+    <string name="update_no_space">এই আপডেটের জন্য পর্যাপ্ত ফাঁকা স্টোরেজ নেই।</string>
+    <string name="update_install_failed">আপডেটের ইনস্টলার খোলা যায়নি।</string>
+    <string name="update_cancelled">আপডেট ডাউনলোড বাতিল হয়েছে।</string>
+    <string name="update_channel_name">অ্যাপ আপডেট</string>
+    <string name="update_channel_description">InstaNova আপডেট ডাউনলোডের অগ্রগতি ও ইনস্টলেশন</string>
 </resources>

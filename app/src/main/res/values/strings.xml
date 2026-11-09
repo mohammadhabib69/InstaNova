@@ -433,6 +433,30 @@
     <string name="reel_music_hint">Track: %1$s</string>
     <string name="reel_original_volume">Original</string>
     <string name="reel_music_volume">Music</string>
+
+    <!-- Native OTA updater (GitHub Releases) -->
+    <string name="update_available_title">New Update Available</string>
+    <string name="update_available_version">Version %1$s is ready to install</string>
+    <string name="update_whats_new">What\'s new</string>
+    <string name="update_now">Update Now</string>
+    <string name="update_later">Later</string>
+    <string name="update_retry">Try again</string>
+    <string name="update_downloading_title">Downloading update</string>
+    <string name="update_downloading_body">InstaNova %1$s</string>
+    <string name="update_progress">Downloading… %1$d%%</string>
+    <string name="update_verifying">Verifying the downloaded update…</string>
+    <string name="update_ready_title">Update ready to install</string>
+    <string name="update_ready_body">Tap to install InstaNova %1$s</string>
+    <string name="update_ready_status">Download complete. Finish the installation in the next screen.</string>
+    <string name="update_permission_status">Allow InstaNova to install apps, then come back to finish the update.</string>
+    <string name="update_failed_title">Update download failed</string>
+    <string name="update_failed_body">Couldn\'t download the update. Check your connection and try again.</string>
+    <string name="update_verify_failed">The downloaded update could not be verified.</string>
+    <string name="update_no_space">Not enough free storage for this update.</string>
+    <string name="update_install_failed">Couldn\'t open the installer for this update.</string>
+    <string name="update_cancelled">Update download cancelled.</string>
+    <string name="update_channel_name">App updates</string>
+    <string name="update_channel_description">Download progress and installation of InstaNova updates</string>
 </resources>
 
 
