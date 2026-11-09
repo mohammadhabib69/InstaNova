@@ -36,6 +36,13 @@ public interface RestApi {
     @POST("rest/v1/rpc/is_username_available")
     Call<Boolean> isUsernameAvailable(@Body RpcEmailRequest request);
 
+    /**
+     * Records the signed-in account's address against its profile, which is what makes
+     * the username -> email lookup possible on a later sign-in. Safe to call repeatedly.
+     */
+    @POST("rest/v1/rpc/set_my_email")
+    Call<Void> setMyEmail(@Body Map<String, String> body);
+
     @POST("rest/v1/rpc/get_story_groups")
     Call<List<StoryGroupDto>> getStoryGroups(@Body Map<String, Object> body);
 
