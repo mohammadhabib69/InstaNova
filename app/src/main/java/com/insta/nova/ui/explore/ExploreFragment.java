@@ -39,7 +39,6 @@ import com.insta.nova.data.repository.ReelRepository;
 import com.insta.nova.data.repository.SearchRepository;
 import com.insta.nova.ui.chat.UserProfileActivity;
 import com.insta.nova.ui.post.PostDetailActivity;
-import com.insta.nova.util.Constants;
 import com.insta.nova.util.Resource;
 import com.insta.nova.util.ToastUtil;
 import java.util.ArrayList;
@@ -108,7 +107,12 @@ public class ExploreFragment extends Fragment {
     private final List<Profile> accountResults = new ArrayList<>();
     /** Caption matches for the current query (local creations + loaded Explore page). */
     private final List<Post> captionResults = new ArrayList<>();
-    private int tagResultCount = 0;
+    /** Posts whose caption carries the requested #tag. */
+    private final List<Post> tagResults = new ArrayList<>();
+    /** Posts/reels whose attached track matches the Audio tab query. */
+    private final List<Post> audioResults = new ArrayList<>();
+    /** Posts whose location matches the Places tab query. */
+    private final List<Post> placeResults = new ArrayList<>();
 
     private ExploreGridAdapter gridAdapter;
     private SearchRowAdapter rowAdapter;
@@ -195,6 +199,15 @@ public class ExploreFragment extends Fragment {
                 intent.putExtra("post_id", post.getId());
                 startActivity(intent);
             }
+
+            @Override
+            public void onTagClick(String tag) {
+                if (tag == null || tag.trim().isEmpty()) return;
+                if (searchTab == TAB_TAGS) return;
+                // Selects the Tags tab, which re-runs the search and lists the posts.
+                TabLayout.Tab tagsTab = searchTabs.getTabAt(TAB_TAGS);
+                if (tagsTab != null) tagsTab.select();
+            }
         });
 
         gridGapDecoration = new GridGapDecoration(
@@ -232,11 +245,12 @@ public class ExploreFragment extends Fragment {
             if (chip == null) continue;
             chip.setOnClickListener(v -> onChipClick(chipIndex));
         }
-        // Shop is design-only.
-        if (!Constants.DECORATIVE_UI) {
-            View shop = root.findViewById(R.id.chipShop);
-            if (shop != null) shop.setVisibility(View.GONE);
-        }
+        // There is no shop catalogue anywhere in the app (no products, prices or
+        // sellers), so the Shop chip could only ever swallow the tap. Kept out of the
+        // bar instead of shipping a control that goes nowhere; it comes back when
+        // Shop data exists.
+        View shop = root.findViewById(R.id.chipShop);
+        if (shop != null) shop.setVisibility(View.GONE);
         applyChipSelection();
     }
 
@@ -276,6 +290,7 @@ public class ExploreFragment extends Fragment {
                     explorePosts.clear();
                     explorePosts.addAll(resource.data);
                     gridAdapter.notifyDataSetChanged();
+                    showEmptyState(explorePosts.isEmpty());
                 }
             });
             return;
@@ -288,6 +303,7 @@ public class ExploreFragment extends Fragment {
                     explorePosts.clear();
                     explorePosts.addAll(resource.data);
                     gridAdapter.notifyDataSetChanged();
+                    showEmptyState(explorePosts.isEmpty());
                 }
             });
             return;
@@ -304,12 +320,6 @@ public class ExploreFragment extends Fragment {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 searchTab = tab.getPosition();
-                if (searchTab == TAB_AUDIO || searchTab == TAB_PLACES) {
-                    searchRows.clear();
-                    rowAdapter.notifyDataSetChanged();
-                    showEmptyState(true);
-                    return;
-                }
                 String query = etSearch.getText() == null ? "" : etSearch.getText().toString().trim();
                 if (query.isEmpty()) {
                     showRecentRows();
@@ -438,7 +448,12 @@ public class ExploreFragment extends Fragment {
                 : R.dimen.search_field_height_idle);
         ((LinearLayout.LayoutParams) fieldParams).setMarginStart(searching ? fieldMarginStart : 0);
         layoutSearchField.setLayoutParams(fieldParams);
-        ((LinearLayout) layoutSearchField).setGravity(searching ? android.view.Gravity.START : android.view.Gravity.CENTER);
+        // Vertical gravity matters as much as the horizontal one: with START alone the
+        // icon, hint and caret all sat on the top edge of the 40dp box and the field
+        // looked collapsed. Keep the content centred on both axes.
+        ((LinearLayout) layoutSearchField).setGravity(searching
+                ? (android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL)
+                : android.view.Gravity.CENTER);
 
         etSearch.setLayoutParams(searching
                 ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
@@ -487,6 +502,9 @@ public class ExploreFragment extends Fragment {
                 explorePosts.addAll(resource.data);
                 if (!isSearching) {
                     gridAdapter.notifyDataSetChanged();
+                    // Data arrived for the plain Explore page: the notice from an empty
+                    // chip feed no longer applies.
+                    if (activeChip == CHIP_NONE) showEmptyState(false);
                 } else {
                     // The Explore page just arrived: refresh the caption matches.
                     String query = etSearch.getText() == null ? "" : etSearch.getText().toString().trim();
@@ -499,52 +517,49 @@ public class ExploreFragment extends Fragment {
         });
     }
 
-    /** Runs the existing account / tag search for the selected tab. */
+    /** Runs the account / tag / audio / place / caption search for the selected tab. */
     private void runSearch(String query) {
         if (!isSearching) applyMode(true);
         showSearchRows();
 
-        if (searchTab == TAB_AUDIO || searchTab == TAB_PLACES) {
-            searchRows.clear();
-            rowAdapter.notifyDataSetChanged();
-            showEmptyState(true);
-            return;
-        }
-
-        boolean wantAccounts = (searchTab == TAB_TOP || searchTab == TAB_ACCOUNTS);
-        boolean wantTags = (searchTab == TAB_TOP || searchTab == TAB_TAGS);
+        final String requested = query;
+        final int tab = searchTab;
 
         accountResults.clear();
-        tagResultCount = 0;
+        tagResults.clear();
+        audioResults.clear();
+        placeResults.clear();
         filterPostsByCaption(query);
         rebuildRows();
-        showEmptyState(false);
 
-        if (wantAccounts) {
+        if (tab == TAB_TOP || tab == TAB_ACCOUNTS) {
             searchRepository.searchUsers(query).observe(getViewLifecycleOwner(), resource -> {
-                if (resource != null && resource.status == Resource.Status.SUCCESS) {
-                    accountResults.clear();
-                    if (resource.data != null) accountResults.addAll(resource.data);
-                    rebuildRows();
+                if (isStale(requested, tab)) return;
+                accountResults.clear();
+                if (resource != null && resource.status == Resource.Status.SUCCESS
+                        && resource.data != null) {
+                    accountResults.addAll(resource.data);
                 }
+                rebuildRows();
             });
         }
-        if (wantTags) {
+        if (tab == TAB_TOP || tab == TAB_TAGS) {
             searchRepository.searchTags(query).observe(getViewLifecycleOwner(), resource -> {
-                if (resource != null && resource.status == Resource.Status.SUCCESS) {
-                    tagResultCount = resource.data == null ? 0 : resource.data.size();
-                    rebuildRows();
+                if (isStale(requested, tab)) return;
+                tagResults.clear();
+                if (resource != null && resource.status == Resource.Status.SUCCESS
+                        && resource.data != null) {
+                    tagResults.addAll(resource.data);
                 }
+                rebuildRows();
             });
         }
-        if (searchTab == TAB_TOP) {
+        if (tab == TAB_TOP) {
             // Server caption matches are merged into the local ones. A late response
             // for an older keystroke is ignored.
-            final String requested = query;
             searchRepository.searchPostsByCaption(query).observe(getViewLifecycleOwner(), resource -> {
                 if (resource == null || resource.status != Resource.Status.SUCCESS) return;
-                String current = etSearch.getText() == null ? "" : etSearch.getText().toString().trim();
-                if (!requested.equals(current)) return;
+                if (isStale(requested, tab)) return;
                 if (resource.data == null || resource.data.isEmpty()) return;
 
                 Set<String> known = new HashSet<>();
@@ -562,6 +577,34 @@ public class ExploreFragment extends Fragment {
                 if (added) rebuildRows();
             });
         }
+        if (tab == TAB_AUDIO) {
+            searchRepository.searchByMusic(query).observe(getViewLifecycleOwner(), resource -> {
+                if (isStale(requested, tab)) return;
+                audioResults.clear();
+                if (resource != null && resource.status == Resource.Status.SUCCESS
+                        && resource.data != null) {
+                    audioResults.addAll(resource.data);
+                }
+                rebuildRows();
+            });
+        }
+        if (tab == TAB_PLACES) {
+            searchRepository.searchByLocation(query).observe(getViewLifecycleOwner(), resource -> {
+                if (isStale(requested, tab)) return;
+                placeResults.clear();
+                if (resource != null && resource.status == Resource.Status.SUCCESS
+                        && resource.data != null) {
+                    placeResults.addAll(resource.data);
+                }
+                rebuildRows();
+            });
+        }
+    }
+
+    /** True when a response belongs to a query/tab the screen has already left. */
+    private boolean isStale(String requested, int tab) {
+        String current = etSearch.getText() == null ? "" : etSearch.getText().toString().trim();
+        return tab != searchTab || !requested.equals(current);
     }
 
     /**
@@ -591,36 +634,63 @@ public class ExploreFragment extends Fragment {
 
     private void rebuildRows() {
         searchRows.clear();
+        String query = etSearch.getText() == null ? "" : etSearch.getText().toString().trim();
+
         for (Profile profile : accountResults) {
             searchRows.add(SearchRow.account(profile));
         }
+
+        // The hashtag row is only real when the tag query returned posts. It used to be
+        // added for every keystroke with a "Fewer than 100 posts" label invented on the
+        // spot, which is exactly the part that read as mock data.
+        String tagLabel = query.isEmpty() ? "" : query.replace("#", "").trim();
+        boolean hasTag = !tagLabel.isEmpty() && !tagResults.isEmpty();
+
         if (searchTab == TAB_TOP) {
             for (Post post : captionResults) {
                 searchRows.add(SearchRow.post(post));
             }
-        }
-        if (searchTab == TAB_TOP || searchTab == TAB_TAGS) {
-            String query = etSearch.getText() == null ? "" : etSearch.getText().toString().trim();
-            if (!query.isEmpty()) {
-                searchRows.add(SearchRow.tag(
-                        query.replace("#", ""),
-                        getString(R.string.tag_posts_count, formatTagCount(tagResultCount))));
+            if (hasTag) {
+                searchRows.add(SearchRow.tag(tagLabel,
+                        getString(R.string.tag_posts_count, formatTagCount(tagResults.size()))));
+            }
+        } else if (searchTab == TAB_TAGS) {
+            if (hasTag) {
+                searchRows.add(SearchRow.tag(tagLabel,
+                        getString(R.string.tag_posts_count, formatTagCount(tagResults.size()))));
+                for (Post post : tagResults) {
+                    searchRows.add(SearchRow.post(post));
+                }
+            }
+        } else if (searchTab == TAB_AUDIO) {
+            for (Post post : audioResults) {
+                String track = post == null ? null : post.getMusicTitle();
+                searchRows.add(SearchRow.post(post,
+                        track != null && !track.trim().isEmpty() ? "\u266A " + track.trim() : null));
+            }
+        } else if (searchTab == TAB_PLACES) {
+            for (Post post : placeResults) {
+                String place = post == null ? null : post.getLocation();
+                searchRows.add(SearchRow.post(post, place));
             }
         }
+
         rowAdapter.notifyDataSetChanged();
-        showEmptyState(searchRows.isEmpty());
+        // An empty query is not "no results" - the user has not asked anything yet.
+        showEmptyState(searchRows.isEmpty() && !query.isEmpty());
     }
 
     /** PAGE 4 — focused with an empty query: existing recents logic. */
     private void showRecentRows() {
         showSearchRows();
+        searchRows.clear();
         if (searchTab == TAB_AUDIO || searchTab == TAB_PLACES) {
-            searchRows.clear();
+            // Nothing to suggest for these two: leave the list empty and let the user
+            // type, instead of claiming "No results" for a query nobody has entered.
             rowAdapter.notifyDataSetChanged();
-            showEmptyState(true);
+            showEmptyState(false);
             return;
         }
-        searchRows.clear();
         List<String> recents = recentSearchStore.getRecentSearches();
         if (!recents.isEmpty()) {
             searchRows.add(SearchRow.header());
@@ -664,10 +734,10 @@ public class ExploreFragment extends Fragment {
         if (searchEmptyState == null) return;
         searchEmptyState.setVisibility(show ? View.VISIBLE : View.GONE);
         if (show) {
-            boolean decorative = searchTab == TAB_AUDIO || searchTab == TAB_PLACES;
-            ivSearchEmptyIcon.setImageResource(decorative
-                    ? (searchTab == TAB_AUDIO ? R.drawable.ic_reels : R.drawable.ic_location)
-                    : R.drawable.ic_search);
+            int icon = R.drawable.ic_search;
+            if (isSearching && searchTab == TAB_AUDIO) icon = R.drawable.ic_reels;
+            if (isSearching && searchTab == TAB_PLACES) icon = R.drawable.ic_location;
+            ivSearchEmptyIcon.setImageResource(icon);
             tvSearchEmptyTitle.setText(R.string.search_no_results);
         }
     }
@@ -750,9 +820,21 @@ public class ExploreFragment extends Fragment {
         }
 
         static SearchRow post(Post post) {
-            String caption = post.getCaption() == null ? "" : post.getCaption().trim();
+            return post(post, null);
+        }
+
+        /** Post row with its own subtitle (track title, place) instead of the author. */
+        static SearchRow post(Post post, String subtitle) {
+            String caption = post == null || post.getCaption() == null ? "" : post.getCaption().trim();
+            String sub = subtitle;
+            if (sub == null || sub.trim().isEmpty()) {
+                String username = post == null ? null : post.getUsername();
+                sub = username == null || username.trim().isEmpty()
+                        ? null
+                        : "@" + username.trim();
+            }
             return new SearchRow(POST, null, post,
-                    caption.isEmpty() ? "Post" : caption, post.getUsername());
+                    caption.isEmpty() ? "Post" : caption, sub);
         }
 
         static SearchRow tag(String tag, String subtitle) {
@@ -777,6 +859,7 @@ public class ExploreFragment extends Fragment {
             void onClearAllRecents();
             void onPlaceClick();
             void onPostClick(Post post);
+            void onTagClick(String tag);
         }
 
         private final List<SearchRow> items;
@@ -821,7 +904,7 @@ public class ExploreFragment extends Fragment {
                 if (post != null && (thumb == null || thumb.isEmpty())) thumb = post.getFirstMediaUrl();
                 com.insta.nova.util.GlideUtils.load(ph.ivThumb, "posts", thumb);
                 ph.tvCaption.setText(row.title);
-                ph.tvAuthor.setText(row.subtitle == null ? "" : "@" + row.subtitle);
+                ph.tvAuthor.setText(row.subtitle == null ? "" : row.subtitle);
                 ph.itemView.setOnClickListener(v -> {
                     if (listener != null) listener.onPostClick(post);
                 });
@@ -864,7 +947,11 @@ public class ExploreFragment extends Fragment {
                     h.tvTitle.setText(row.title);
                     h.tvSubtitle.setText(row.subtitle);
                     h.tvSubtitle.setVisibility(View.VISIBLE);
-                    h.itemView.setOnClickListener(null);
+                    // Opens the tag's own results in the Tags tab instead of dead-ending.
+                    h.itemView.setOnClickListener(v -> {
+                        if (listener != null) listener.onTagClick(
+                                row.title == null ? "" : row.title.replace("#", ""));
+                    });
                     break;
 
                 case SearchRow.PLACE:

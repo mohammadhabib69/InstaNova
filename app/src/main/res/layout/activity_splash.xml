@@ -15,16 +15,17 @@
 
         <ImageView
             android:id="@+id/ivSplashMark"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
             android:contentDescription="@string/app_name"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_brand_mark" />
 
         <com.insta.nova.ui.widget.WordmarkView
             android:id="@+id/wordmarkView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="18dp"
             android:textColor="?attr/themeTextPrimary"
             android:textSize="38sp" />
 

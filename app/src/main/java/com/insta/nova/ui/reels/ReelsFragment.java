@@ -78,6 +78,8 @@ public class ReelsFragment extends Fragment {
     private LocalSocialStore localStore;
     private final List<Post> reelsList = new ArrayList<>();
     private int currentPosition = 0;
+    /** One-shot guard: the requested reel is fetched at most once per screen. */
+    private boolean requestedReelFetched = false;
 
     public ReelsFragment() {}
 
@@ -168,6 +170,48 @@ public class ReelsFragment extends Fragment {
         return true;
     }
 
+    /** Opens the reel author's profile — the same screen the feed and Explore use. */
+    private void openProfile(Post post) {
+        if (post == null || !isAdded()) return;
+        String userId = post.getUserId();
+        if (userId == null || userId.isEmpty()) return;
+        Intent intent = new Intent(requireContext(),
+                com.insta.nova.ui.chat.UserProfileActivity.class);
+        intent.putExtra(com.insta.nova.ui.chat.UserProfileActivity.EXTRA_USER_ID, userId);
+        intent.putExtra(com.insta.nova.ui.chat.UserProfileActivity.EXTRA_USERNAME,
+                post.getUsername());
+        startActivity(intent);
+    }
+
+    /**
+     * Profile can ask for one specific reel. If it is not on the loaded page (the
+     * feed is newest-first, so an older reel falls outside it), fetch that row and
+     * put it at the top instead of silently opening somebody else's reel.
+     */
+    private void ensureRequestedReel() {
+        if (getActivity() == null || getActivity().getIntent() == null) return;
+        String reelId = getActivity().getIntent().getStringExtra(
+                com.insta.nova.ui.main.MainActivity.EXTRA_REEL_ID);
+        if (reelId == null || reelId.isEmpty()) return;
+        for (Post post : reelsList) {
+            if (reelId.equals(post.getId())) return;
+        }
+        if (requestedReelFetched) return;
+        requestedReelFetched = true;
+        postRepository.getPostById(reelId).observe(getViewLifecycleOwner(), resource -> {
+            if (resource == null || resource.status != Resource.Status.SUCCESS
+                    || resource.data == null) {
+                return;
+            }
+            reelsList.add(0, resource.data);
+            adapter.notifyDataSetChanged();
+            binding.vpReels.post(() -> {
+                scrollToRequestedReel();
+                adapter.onPageSelected(binding.vpReels.getCurrentItem());
+            });
+        });
+    }
+
     /** Opens the pager at the reel explicitly requested by Profile. */
     private void scrollToRequestedReel() {
         if (getActivity() == null || getActivity().getIntent() == null) return;
@@ -184,7 +228,7 @@ public class ReelsFragment extends Fragment {
     }
 
     public void loadReels() {
-        reelRepository.getReels(20, 0).observe(getViewLifecycleOwner(), resource -> {
+        reelRepository.getReels(60, 0).observe(getViewLifecycleOwner(), resource -> {
             if (resource == null) return;
             if (resource.status == Resource.Status.SUCCESS) {
                 reelsList.clear();
@@ -203,6 +247,7 @@ public class ReelsFragment extends Fragment {
                     binding.layoutReelsEmpty.setVisibility(View.GONE);
                     binding.vpReels.setVisibility(View.VISIBLE);
                     binding.vpReels.post(() -> {
+                        ensureRequestedReel();
                         scrollToRequestedReel();
                         adapter.onPageSelected(binding.vpReels.getCurrentItem());
                     });
@@ -219,6 +264,7 @@ public class ReelsFragment extends Fragment {
                     binding.layoutReelsEmpty.setVisibility(View.GONE);
                     binding.vpReels.setVisibility(View.VISIBLE);
                     binding.vpReels.post(() -> {
+                        ensureRequestedReel();
                         scrollToRequestedReel();
                         adapter.onPageSelected(binding.vpReels.getCurrentItem());
                     });
@@ -379,12 +425,16 @@ public class ReelsFragment extends Fragment {
                     itemBinding.ivReelMore.setVisibility(View.GONE);
                 }
 
-                // Author row
+                // Author row — taps open that account's profile.
                 itemBinding.tvReelUsername.setText(post.getUsername());
                 itemBinding.badgeReelVerified.setVerified(post.isVerified());
                 if (post.getAvatarUrl() != null && !post.getAvatarUrl().isEmpty()) {
                     com.insta.nova.util.GlideUtils.loadAvatar(itemBinding.ivReelAvatar, post.getAvatarUrl());
                 }
+                View.OnClickListener openAuthorProfile = v -> openProfile(post);
+                itemBinding.layoutReelAuthor.setOnClickListener(openAuthorProfile);
+                itemBinding.tvReelUsername.setOnClickListener(openAuthorProfile);
+                itemBinding.ivReelAvatar.setOnClickListener(openAuthorProfile);
 
                 // Caption: one line with ellipsis, tap to expand to three lines
                 bindCaption(itemBinding.tvReelCaption, post.getCaption());

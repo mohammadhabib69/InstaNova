@@ -73,8 +73,10 @@ public class SplashActivity extends AppCompatActivity {
         }
 
         if (wordmarkView != null) {
+            // Fade the finished wordmark in: the old wipe left the name half-drawn
+            // for most of the animation, which read as a clipped logo.
             wordmarkView.setAlpha(0.0f);
-            wordmarkView.setRevealProgress(0.0f);
+            wordmarkView.setRevealProgress(1.0f);
         }
 
         splashScreen.setOnExitAnimationListener(splashScreenView -> {
@@ -91,7 +93,7 @@ public class SplashActivity extends AppCompatActivity {
             animator.addUpdateListener(animation -> {
                 float val = (float) animation.getAnimatedValue();
                 wordmarkView.setAlpha(val);
-                wordmarkView.setRevealProgress(val);
+                wordmarkView.setRevealProgress(1.0f);
             });
             animator.addListener(new AnimatorListenerAdapter() {
                 @Override

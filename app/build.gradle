@@ -73,8 +73,8 @@ android {
         // script (tools/ota/release.sh) reads these values and embeds them in latest.json.
         // The -PappVersionCode / -PappVersionName overrides exist so the OTA test harness
         // can build an "old" and a "new" APK without editing this file.
-        versionCode((project.findProperty('appVersionCode') ?: 2) as int)
-        versionName(project.findProperty('appVersionName') ?: "1.1.0")
+        versionCode((project.findProperty('appVersionCode') ?: 3) as int)
+        versionName(project.findProperty('appVersionName') ?: "1.2.0")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

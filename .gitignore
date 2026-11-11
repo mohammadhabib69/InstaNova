@@ -94,3 +94,6 @@ __pycache__/
 .buyer-execution-hooks/
 docs/migration/
 docs/prompt_*/
+
+# Local demo seeding (scripts, credentials, downloaded media, backups)
+seed/

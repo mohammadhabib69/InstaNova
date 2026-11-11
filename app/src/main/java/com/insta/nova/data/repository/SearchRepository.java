@@ -144,6 +144,61 @@ public class SearchRepository {
         return result;
     }
 
+    /**
+     * Audio tab: posts and reels whose attached track matches the query
+     * ({@code music_title} is exposed by {@code v_posts}).
+     */
+    public LiveData<Resource<List<Post>>> searchByMusic(String query) {
+        return searchPostsByColumn("music_title", query);
+    }
+
+    /** Places tab: posts whose {@code location} matches the query. */
+    public LiveData<Resource<List<Post>>> searchByLocation(String query) {
+        return searchPostsByColumn("location", query);
+    }
+
+    /**
+     * Single-column {@code ilike} search over {@code v_posts}. A miss or a network
+     * failure is an empty list, not an error: these tabs are read-only suggestions.
+     */
+    private LiveData<Resource<List<Post>>> searchPostsByColumn(String column, String query) {
+        MutableLiveData<Resource<List<Post>>> result = new MutableLiveData<>();
+        result.setValue(Resource.loading(null));
+
+        String needle = query == null ? "" : query.trim()
+                .replace("*", "")
+                .replace("%", "");
+        if (needle.isEmpty()) {
+            result.postValue(Resource.success(new ArrayList<>()));
+            return result;
+        }
+
+        Map<String, String> params = new HashMap<>();
+        params.put(column, "ilike.*" + needle + "*");
+        params.put("order", "created_at.desc");
+        params.put("limit", "30");
+
+        restApi.getPosts(params).enqueue(new Callback<List<PostDto>>() {
+            @Override
+            public void onResponse(Call<List<PostDto>> call, Response<List<PostDto>> response) {
+                List<Post> posts = new ArrayList<>();
+                if (response.isSuccessful() && response.body() != null) {
+                    for (PostDto dto : response.body()) {
+                        posts.add(dto.toDomain());
+                    }
+                }
+                result.postValue(Resource.success(posts));
+            }
+
+            @Override
+            public void onFailure(Call<List<PostDto>> call, Throwable t) {
+                result.postValue(Resource.success(new ArrayList<>()));
+            }
+        });
+
+        return result;
+    }
+
     public LiveData<Resource<List<Post>>> getExplorePosts(int limit, int offset) {
         MutableLiveData<Resource<List<Post>>> result = new MutableLiveData<>();
         result.setValue(Resource.loading(null));

@@ -184,9 +184,18 @@ public class SosDetailActivity extends AppCompatActivity {
     private void revealPhone() {
         repository.contact(requestId).observe(this, resource -> {
             if (resource == null || resource.status == Resource.Status.LOADING) return;
-            if (resource.status == Resource.Status.SUCCESS && resource.data != null) {
+            if (resource.status == Resource.Status.SUCCESS) {
+                String phone = resource.data;
                 binding.tvPhone.setVisibility(View.VISIBLE);
-                binding.tvPhone.setText(resource.data);
+                // The server only reveals a number to a pledged donor; a bare null used
+                // to be printed literally as "null".
+                if (phone == null || phone.trim().isEmpty()
+                        || "null".equalsIgnoreCase(phone.trim())) {
+                    binding.tvPhone.setText(R.string.nova_contact_locked);
+                    binding.tvPhone.setTextColor(getColor(R.color.nova_text_2));
+                    return;
+                }
+                binding.tvPhone.setText(phone);
                 binding.tvPhone.setTextColor(getColor(R.color.nova_cyan));
             } else {
                 error(resource.message);

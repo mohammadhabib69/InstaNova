@@ -241,7 +241,14 @@ public class NovaPostAdapter extends RecyclerView.Adapter<NovaPostAdapter.PostHo
                 binding.imgNovaMedia.setVisibility(View.GONE);
             } else {
                 binding.imgNovaMedia.setVisibility(View.VISIBLE);
-                GlideUtils.load(binding.imgNovaMedia, "nova", post.mediaUrl);
+                // A reel stores the mp4 here; the card is an ImageView, so load the
+                // poster frame that sits next to it instead of a video URL that Glide
+                // cannot decode (it used to render the broken-image placeholder).
+                String media = post.mediaUrl;
+                if (post.isReel() && media.toLowerCase().endsWith(".mp4")) {
+                    media = media.substring(0, media.length() - 4) + ".jpg";
+                }
+                GlideUtils.load(binding.imgNovaMedia, "nova", media);
             }
 
             bindPoll(post);

@@ -457,6 +457,7 @@
     <string name="update_cancelled">Update download cancelled.</string>
     <string name="update_channel_name">App updates</string>
     <string name="update_channel_description">Download progress and installation of InstaNova updates</string>
+    <string name="nova_contact_locked">Pledge to this request to see the contact number.</string>
 </resources>
 
 
